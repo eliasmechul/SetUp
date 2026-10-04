@@ -1,0 +1,4 @@
+setup.db*
+uploads/*
+!uploads/.gitkeep
+__pycache__/
