@@ -45,20 +45,17 @@ function toast(msg) {
   clearTimeout(toast.t); toast.t = setTimeout(() => ($toast.hidden = true), 3200);
 }
 async function api(path, body) {
-  const opt = body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
-  const res = await fetch('/api' + path, opt);
-  let data = {};
-  try { data = await res.json(); } catch (e) { /* ignore */ }
-  if (!res.ok) {
-    if (res.status === 401 && S.me) { S.me = null; }
-    const err = new Error(data.error || 'Something went wrong'); err.status = res.status; throw err;
+  try { return await window.api(path, body); } catch (e) {
+    if (e.status === 401 && S.me) S.me = null;
+    if (!e.status) { console.error(e); e.message = 'Something went wrong'; }
+    throw e;
   }
-  return data;
 }
+const hue = (id) => [...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 6;
 function av(u, cls = '') {
   if (u.avatar) return `<img class="av ${cls}" src="${esc(u.avatar)}" alt="">`;
   const ini = (u.name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-  return `<div class="av ${cls} c${u.id % 6}" aria-hidden="true">${esc(ini)}</div>`;
+  return `<div class="av ${cls} c${hue(u.id)}" aria-hidden="true">${esc(ini)}</div>`;
 }
 const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div></a>`;
 const needLogin = () => { toast('Log in to do that'); location.hash = '#/login'; };
@@ -87,14 +84,14 @@ function shell(content) {
   $app.innerHTML = `
   <div class="shell">
     <aside class="side" aria-label="Main">
-      <a class="wordmark" href="#/"><img src="/static/logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
+      <a class="wordmark" href="#/"><img src="/logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
       ${side}
       <button class="btn create" data-act="compose">${ico('plus')} Create</button>
       ${m ? `<button class="btn ghost" data-act="logout" style="margin-top:auto">Log out</button>` : ''}
     </aside>
     <div class="col">
       <header class="topbar">
-        <a class="wordmark" href="#/"><img src="/static/logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
+        <a class="wordmark" href="#/"><img src="/logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
         <div class="mobile-only">
           <a class="iconbtn" href="#/people" aria-label="Find people">${ico('users')}</a>
           <a class="iconbtn" href="#/notifications" aria-label="Notifications">${ico('bell')}${badge(m && m.unread_notifications)}</a>
@@ -154,7 +151,7 @@ route(/^#?\/?$/, async () => {
   let sug = [];
   if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
   view(`
-    ${m ? '' : `<div class="card hero"><img src="/static/logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div>
+    ${m ? '' : `<div class="card hero"><img src="/logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div>
       <p>Film people. One place. Share your work, answer castings and meet your next crew.</p>
       <div class="btns"><a class="btn" href="#/signup">Join Set UP</a><a class="btn ghost" href="#/login">Log in</a></div></div>`}
     ${m ? `<div class="seg" role="tablist"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
@@ -235,7 +232,7 @@ route(/^#\/people$/, async () => {
     ${people.map((u) => personCard(u)).join('') || '<div class="empty">No one matches yet.</div>'}`);
 });
 
-route(/^#\/profile\/(\d+)$/, async (id) => {
+route(/^#\/profile\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/, async (id) => {
   const u = await api('/users/' + id);
   const self = S.me && S.me.id === u.id;
   let tab = '';
@@ -293,7 +290,7 @@ route(/^#\/messages$/, async () => {
     <p class="muted">You can message anyone you're connected with. Find people in <a class="link" href="#/people">People</a>.</p>`);
 });
 
-route(/^#\/messages\/(\d+)$/, async (id) => {
+route(/^#\/messages\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/, async (id) => {
   if (!S.me) return needLogin();
   const draw = async (first) => {
     const t = await api('/messages/' + id);
@@ -313,10 +310,23 @@ route(/^#\/messages\/(\d+)$/, async (id) => {
   pollTimer = setInterval(() => { if (location.hash === '#/messages/' + id) draw(false).catch(() => {}); }, 5000);
 });
 
+route(/^#\/reset$/, async () => {
+  view(`<div class="auth"><div class="hero"><img src="/logo.png" alt="Set UP logo"><p>Reset your password</p></div>
+    <form data-form="reset"><div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required autocomplete="email"></div>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Send reset link</button></form>
+    <p style="text-align:center"><a class="link" href="#/login">Back to log in</a></p></div>`);
+});
+
+route(/^#\/new-password$/, async () => {
+  view(`<div class="auth"><div class="hero"><img src="/logo.png" alt="Set UP logo"><p>Choose a new password</p></div>
+    <form data-form="newpassword"><div class="field"><label for="p">New password (8+ characters)</label><input id="p" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Save password</button></form></div>`);
+});
+
 route(/^#\/(login|signup)$/, async (mode) => {
   if (S.me) { location.hash = '#/'; return; }
   const signup = mode === 'signup';
-  view(`<div class="auth"><div class="hero"><img src="/static/logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div><p>${signup ? 'Create your free profile' : 'Welcome back'}</p></div>
+  view(`<div class="auth"><div class="hero"><img src="/logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div><p>${signup ? 'Create your free profile' : 'Welcome back'}</p></div>
     <form data-form="${mode}">
     ${signup ? `<div class="field"><label for="n">Full name</label><input id="n" name="name" required maxlength="80" autocomplete="name"></div>` : ''}
     <div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required autocomplete="email"></div>
@@ -324,7 +334,7 @@ route(/^#\/(login|signup)$/, async (mode) => {
     ${signup ? `<div class="row"><div class="field"><label for="r">I am a…</label><select id="r" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
     <div class="field"><label for="c">City</label><input id="c" name="city" maxlength="80" autocomplete="address-level2"></div></div>` : ''}
     <p class="err" role="alert"></p><button class="btn block" type="submit">${signup ? 'Create account' : 'Log in'}</button></form>
-    <p class="muted" style="text-align:center">${signup ? 'Already on Set UP? <a class="link" href="#/login">Log in</a>' : 'New here? <a class="link" href="#/signup">Join Set UP</a>'}</p></div>`);
+    ${signup ? '' : '<p style="text-align:center"><a class="link" href="#/reset">Forgot password?</a></p>'}<p class="muted" style="text-align:center">${signup ? 'Already on Set UP? <a class="link" href="#/login">Log in</a>' : 'New here? <a class="link" href="#/signup">Join Set UP</a>'}</p></div>`);
 });
 
 /* ---------- composer ---------- */
@@ -435,7 +445,13 @@ document.addEventListener('submit', (ev) => {
   (async () => {
     try {
       switch (kind) {
-        case 'login': case 'signup': await api('/' + kind, data); await refreshMe(); location.hash = '#/'; return router();
+        case 'login': case 'signup': {
+          const r = await api('/' + kind, data);
+          if (r.confirm) { f.innerHTML = '<p class="card">Almost there! We sent a confirmation link to your email. Open it, then come back and log in.</p>'; return; }
+          await refreshMe(); location.hash = '#/'; return router();
+        }
+        case 'reset': await api('/reset', data); f.innerHTML = '<p class="card">If that email has an account, a reset link is on its way.</p>'; return;
+        case 'newpassword': await api('/newpassword', data); await refreshMe(); toast('Password updated'); location.hash = '#/'; return;
         case 'post': await api('/posts', data); closeModal(); location.hash = '#/'; toast('Posted'); return router();
         case 'casting': { const r = await api('/castings', data); closeModal(); location.hash = '#/castings/' + r.id; return; }
         case 'meetup': await api('/meetups', data); closeModal(); location.hash = '#/meetups'; ui.meetTab = 'mine'; return router();

@@ -1,22 +1,16 @@
 # Set UP
 
-Social platform for the film industry: profiles, a feed, casting calls, meetups, connections and messages.
+Social platform for the film industry: profiles, feed, casting calls, meetups, connections and messages.
 
-## Run it
-Needs only Python 3 (no installs).
+- **Frontend:** plain HTML/CSS/JS in `static/` (no build step), hosted on Netlify (`netlify.toml`).
+- **Backend:** Supabase (Postgres + Auth + Storage). All Set UP tables are prefixed `setup_` and protected by row level security.
+  Notifications are created by database triggers. Photos live in the `setup-uploads` bucket.
+- `legacy-python/` is the first local prototype (Python + SQLite), kept for reference.
 
-    python3 server.py --seed      # first time: adds demo people
-    python3 server.py             # afterwards
+## Run locally
+    python3 -m http.server 8000 --directory static
+then open http://127.0.0.1:8000. The public Supabase URL and publishable key are in `static/config.js`.
 
-Open http://127.0.0.1:8000. Demo login: `mara@demo.setup` / `setup1234`.
-Set `PORT=9000` or `HOST=0.0.0.0` (to test from your phone on the same Wi-Fi) as environment variables.
-
-## What's inside
-- `server.py`  API + static server, SQLite database (`setup.db`), sessions, password hashing (PBKDF2)
-- `seed.py`    demo data
-- `static/`    the web app (plain HTML/CSS/JS, mobile-first, sidebar layout on desktop)
-- `uploads/`   user images
-
-## Next steps
-Email verification and password reset, image resizing, real search, hosting (Postgres + a managed host),
-then wrap the web app as an iOS/Android app (Capacitor) or rebuild screens in React Native.
+## Supabase Auth settings to check (dashboard → Authentication → URL Configuration)
+Add your site URL (e.g. https://setup-film-network.netlify.app) to **Redirect URLs** so confirmation and
+password-reset emails link back to the site.
