@@ -10,7 +10,7 @@ const ROLES = ['Actor', 'Director', 'Producer', 'Cinematographer', 'Editor', 'Wr
   'Costume & Makeup', 'VFX & Animation', 'Crew', 'Student', 'Other'];
 const CATEGORIES = ['Acting', 'Crew', 'Voice', 'Extras', 'Other'];
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
-const PCOLS = 'id,name,role,headline,city,avatar';
+const PCOLS = 'id,name,role,headline,city,avatar,open_to_work,available_from';
 
 const fail = (status, message) => { const e = new Error(message); e.status = status; return e; };
 const ok = ({ data, error }) => {
@@ -31,7 +31,8 @@ const clean = (v, max, required, label) => {
 };
 // strip characters that have meaning inside PostgREST filter strings
 const safe = (s) => s.replace(/[,()*%\\:"']/g, ' ').trim();
-const userJson = (r) => ({ id: r.id, name: r.name, role: r.role, headline: r.headline, city: r.city, avatar: r.avatar });
+const userJson = (r) => ({ id: r.id, name: r.name, role: r.role, headline: r.headline, city: r.city, avatar: r.avatar,
+  open_to_work: !!r.open_to_work, available_from: r.available_from || '' });
 const iso = (r) => r.created_at;
 
 async function ensureProfile(user) {
@@ -39,7 +40,8 @@ async function ensureProfile(user) {
   if (data) return data;
   const m = user.user_metadata || {};
   const role = ROLES.includes(m.role) ? m.role : 'Other';
-  const row = { id: user.id, name: clean(m.name, 80) || (user.email || 'Member').split('@')[0], role, headline: role, city: clean(m.city, 80) };
+  const row = { id: user.id, name: clean(m.name, 80) || (user.email || 'Member').split('@')[0], role, headline: role, city: clean(m.city, 80),
+    lat: typeof m.lat === 'number' ? m.lat : null, lng: typeof m.lng === 'number' ? m.lng : null };
   return ok(await sb.from('setup_profiles').insert(row).select('*').single());
 }
 
@@ -89,7 +91,7 @@ const H = {
     if (typeof b.password !== 'string' || b.password.length < 8) throw fail(400, 'Password must be at least 8 characters');
     const role = ROLES.includes(b.role) ? b.role : 'Other';
     const { data, error } = await sb.auth.signUp({ email, password: b.password,
-      options: { data: { name, role, city: clean(b.city, 80) }, emailRedirectTo: location.origin + location.pathname } });
+      options: { data: { name, role, city: clean(b.city, 80), lat: Number.isFinite(+b.lat) && b.lat !== undefined ? +b.lat : null, lng: Number.isFinite(+b.lng) && b.lng !== undefined ? +b.lng : null }, emailRedirectTo: location.origin + location.pathname } });
     if (error) throw fail(400, error.message);
     if (data.session) { await ensureProfile(data.session.user); return { ok: true }; }
     return { ok: true, confirm: true };
@@ -116,8 +118,30 @@ const H = {
     const me = await uid();
     const role = ROLES.includes(b.role) ? b.role : 'Other';
     ok(await sb.from('setup_profiles').update({ name: clean(b.name, 80, true, 'Name'), role, headline: clean(b.headline, 120),
-      city: clean(b.city, 80), bio: clean(b.bio, 1500), skills: clean(b.skills, 300), avatar: b.avatar || '' }).eq('id', me));
+      city: clean(b.city, 80), bio: clean(b.bio, 1500), skills: clean(b.skills, 300), avatar: b.avatar || '',
+      lat: Number.isFinite(+b.lat) && b.lat !== '' && b.lat !== null ? +b.lat : null, lng: Number.isFinite(+b.lng) && b.lng !== '' && b.lng !== null ? +b.lng : null,
+      open_to_work: b.open_to_work === true || b.open_to_work === 'on' || b.open_to_work === 'true',
+      available_from: /^\d{4}-\d{2}-\d{2}$/.test(b.available_from || '') ? b.available_from : '',
+      reel_url: /^https:\/\/[^\s]{3,280}$/.test(b.reel_url || '') ? b.reel_url : '' }).eq('id', me));
     return { ok: true };
+  },
+  async add_credit(_, b) {
+    const me = await uid();
+    const year = clean(b.year, 4);
+    if (year && !/^\d{4}$/.test(year)) throw fail(400, 'Year must be 4 digits');
+    ok(await sb.from('setup_credits').insert({ user_id: me, title: clean(b.title, 120, true, 'Title'), role: clean(b.role, 80), kind: clean(b.kind, 40), year,
+      description: clean(b.description, 600) }));
+    return { ok: true };
+  },
+  async delete_credit(id) { ok(await sb.from('setup_credits').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
+  async map_people(q) {
+    const me = await myId();
+    let query = sb.from('setup_profiles').select(PCOLS + ',lat,lng,skills').not('lat', 'is', null).order('created_at', { ascending: false }).limit(800);
+    if (ROLES.includes(q.get('role'))) query = query.eq('role', q.get('role'));
+    if (q.get('open') === '1') query = query.eq('open_to_work', true);
+    const text = safe(q.get('q') || ''); if (text) query = query.or(`name.ilike.%${text}%,headline.ilike.%${text}%,skills.ilike.%${text}%,city.ilike.%${text}%`);
+    const [rows, conns] = await Promise.all([query, me ? myConnections(me) : new Map()]);
+    return { people: ok(rows).map((r) => ({ ...userJson(r), lat: r.lat, lng: r.lng, skills: r.skills, state: r.id === me ? 'self' : (conns.get(r.id) || 'none') })) };
   },
   async upload(_, b) {
     const me = await uid();
@@ -238,7 +262,8 @@ const H = {
       me ? sb.from('setup_follows').select('followee_id').eq('follower_id', me).eq('followee_id', id) : { data: [] },
     ]);
     const s = ok(stats);
-    return { ...userJson(p), bio: p.bio, skills: p.skills, created: iso(p), followers: s.followers, connections: s.connections,
+    const credits = ok(await sb.from('setup_credits').select('*').eq('user_id', id).order('year', { ascending: false }).order('id', { ascending: false }));
+    return { ...userJson(p), bio: p.bio, skills: p.skills, created: iso(p), reel_url: p.reel_url, lat: p.lat, lng: p.lng, credits, followers: s.followers, connections: s.connections,
       state: me === id ? 'self' : (conns.get(id) || 'none'), following: ok(fol).length > 0,
       posts: await shapePosts(ok(posts), me), castings: ok(castings).map(castingShape) };
   },
@@ -421,7 +446,7 @@ const R = [
   ['POST', '/logout', 'logout'], ['POST', '/reset', 'reset'], ['POST', '/newpassword', 'newpassword'], ['POST', '/upload', 'upload'],
   ['GET', '/feed', 'feed'], ['POST', '/posts', 'create_post'], ['POST', '/posts/(\\d+)/delete', 'delete_post'],
   ['POST', '/posts/(\\d+)/like', 'like'], ['GET', '/posts/(\\d+)/comments', 'get_comments'], ['POST', '/posts/(\\d+)/comments', 'add_comment'],
-  ['GET', '/people', 'people'], ['GET', `/users/(${UUID})`, 'profile'], ['POST', `/users/(${UUID})/follow`, 'follow'],
+  ['GET', '/people', 'people'], ['GET', '/mappeople', 'map_people'], ['POST', '/credits', 'add_credit'], ['POST', '/credits/(\\d+)/delete', 'delete_credit'], ['GET', `/users/(${UUID})`, 'profile'], ['POST', `/users/(${UUID})/follow`, 'follow'],
   ['POST', `/users/(${UUID})/connect`, 'connect_to'], ['POST', `/users/(${UUID})/accept`, 'accept'],
   ['POST', `/users/(${UUID})/decline`, 'decline'], ['POST', `/users/(${UUID})/disconnect`, 'disconnect'],
   ['GET', '/requests', 'requests'], ['GET', '/network', 'my_network'], ['GET', '/suggestions', 'suggestions'],
@@ -442,7 +467,7 @@ window.api = async (path, body) => {
     const match = re.exec(p);
     if (m === method && match) {
       const args = match.slice(1).map((g) => (/^\d+$/.test(g) ? Number(g) : g));
-      if (['feed', 'people', 'castings', 'meetups', 'communities'].includes(h)) return H[h](new URLSearchParams(qs || ''));
+      if (['feed', 'people', 'castings', 'meetups', 'communities', 'map_people'].includes(h)) return H[h](new URLSearchParams(qs || ''));
       return args.length ? H[h](...args, body || {}) : H[h](undefined, body || {});
     }
   }

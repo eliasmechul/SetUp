@@ -6,7 +6,8 @@ const $toast = document.getElementById('toast');
 let S = { me: null, roles: [], categories: [] };
 let pollTimer = null;
 let ui = { feedScope: 'all', castCat: '', castQ: '', castCity: '', meetTab: 'upcoming', profTab: 'posts',
-           pq: '', prole: '', pcity: '', commTab: 'discover', commTopic: '' };
+           pq: '', prole: '', pcity: '', commTab: 'discover', commTopic: '', mapRole: '', mapOpen: false, mapQ: '' };
+let mapObj = null;
 
 /* ---------- helpers ---------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,6 +25,7 @@ const ICONS = {
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
+  pin: '<path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
   group: '<circle cx="12" cy="8" r="3"/><circle cx="5.5" cy="10" r="2.3"/><circle cx="18.5" cy="10" r="2.3"/><path d="M6.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M1.5 18c0-2 1.5-3.5 3.5-3.7M22.5 18c0-2-1.5-3.5-3.5-3.7"/>',
 };
 const ico = (n) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
@@ -58,18 +60,16 @@ function av(u, cls = '') {
   const ini = (u.name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   return `<div class="av ${cls} c${hue(u.id)}" aria-hidden="true">${esc(ini)}</div>`;
 }
-const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div></a>`;
+const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div>${u.open_to_work ? `<div>${availBadge(u)}</div>` : ''}</a>`;
+const initials = (n) => (n || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+const geo = (txt) => { const t = String(txt || '').trim().toLowerCase(); if (!t || !window.CITIES) return null;
+  return window.CITIES.find((c) => c.label.toLowerCase() === t || c.name.toLowerCase() === t) || null; };
+const cityList = () => `<datalist id="cities">${(window.CITIES || []).map((c) => `<option value="${esc(c.name)}">${esc(c.country)}</option>`).join('')}</datalist>`;
+const availText = (u) => !u.open_to_work ? '' : (u.available_from && u.available_from > new Date().toISOString().slice(0, 10) ? 'Available from ' + new Date(u.available_from + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Open to work');
+const availBadge = (u) => (u.open_to_work ? `<span class="avail">● ${esc(availText(u))}</span>` : '');
 const needLogin = () => { toast('Log in to do that'); location.hash = '#/login'; };
 
 /* ---------- shell ---------- */
-function navItems() {
-  const m = S.me;
-  return [
-    ['#/', 'home', 'Feed'], ['#/people', 'users', 'People'], ['#/castings', 'brief', 'Castings'],
-    ['#/communities', 'group', 'Communities'], ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages],
-    ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Profile' : 'Log in'],
-  ];
-}
 function active(href) {
   const h = location.hash || '#/';
   if (href === '#/') return h === '#/' || h === '';
@@ -79,30 +79,22 @@ let wide = false;
 function shell(content) {
   const m = S.me;
   const badge = (n) => (n ? `<span class="badge">${n > 9 ? '9+' : n}</span>` : '');
-  const side = navItems().map(([h, i, l, n]) => `<a class="nav ${active(h) ? 'on' : ''}" href="${h}">${ico(i)}${l}${badge(n)}</a>`).join('');
-  const bar = [['#/', 'home', 'Feed'], ['#/castings', 'brief', 'Castings'], null, ['#/meetups', 'cal', 'Meetups'], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Profile' : 'Log in']]
+  const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/communities', 'group', 'Groups'],
+    ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
+  const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
+    (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');
+  const bar = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], null, ['#/castings', 'brief', 'Castings'], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Me' : 'Log in']]
     .map((t) => t ? `<a class="tab ${active(t[0]) ? 'on' : ''}" href="${t[0]}">${ico(t[1])}${t[2]}</a>`
       : `<button class="plus" data-act="compose" aria-label="Create">${ico('plus')}</button>`).join('');
   $app.innerHTML = `
   <div class="shell">
-    <aside class="side" aria-label="Main">
+    <header class="navbar"><div class="navin">
       <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
-      ${side}
-      <button class="btn create" data-act="compose">${ico('plus')} Create</button>
-      ${m ? `<button class="btn ghost logout" data-act="logout">Log out</button>` : ''}
-    </aside>
-    <div class="col">
-      <header class="topbar">
-        <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
-        <div class="mobile-only">
-          <a class="iconbtn" href="#/communities" aria-label="Communities">${ico('group')}</a>
-          <a class="iconbtn" href="#/people" aria-label="Find people">${ico('search')}</a>
-          <a class="iconbtn" href="#/notifications" aria-label="Notifications">${ico('bell')}${badge(m && m.unread_notifications)}</a>
-          <a class="iconbtn" href="#/messages" aria-label="Messages">${ico('chat')}${badge(m && m.unread_messages)}</a>
-        </div>
-      </header>
-      <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
-    </div>
+      <form class="gsearch" data-form="gsearch" role="search"><label class="sr" for="gs">Search people</label>${ico('search')}<input id="gs" name="q" placeholder="Search people, roles, skills" autocomplete="off"></form>
+      <nav class="topnav" aria-label="Main">${top}</nav>
+      ${m ? '' : '<div class="authbtns"><a class="btn ghost sm" href="#/login">Sign in</a><a class="btn sm" href="#/signup">Join now</a></div>'}
+    </div></header>
+    <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <nav class="tabbar" aria-label="Main">${bar}</nav>
   </div>`;
 }
@@ -157,50 +149,102 @@ const route = (re, fn) => routes.push([re, fn]);
 
 route(/^#?\/?$/, async () => {
   const m = S.me;
-  const [feed, mt, cm] = await Promise.all([api('/feed?scope=' + (m ? ui.feedScope : 'all')),
-    api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] }))]);
+  const [feed, mt, cm, cs] = await Promise.all([api('/feed?scope=' + (m ? ui.feedScope : 'all')),
+    api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] })), api('/castings').catch(() => ({ castings: [] }))]);
+  const roles = cs.castings.slice(0, 3);
+  if (!m) {
+    const feat = [['pin', 'For producers and casting directors', 'Filter by role, city and availability. See who is nearby and message them in one click.'],
+      ['user', 'For actors and crew', 'Build a profile with your reel and credits. Switch on "Open to work" and get found.'],
+      ['brief', 'Castings and jobs', 'Post a role, receive applications with full profiles and shortlist in one list.'],
+      ['group', 'Communities and meetups', 'Join groups for your craft and meet your future crew at local events.']];
+    return view(`<div class="landing">
+      <section class="lhero"><div class="lhero-t"><h1>Find your crew. <span>Get found</span> for your next role.</h1>
+        <p>Set UP is the professional network for film. Producers and casting directors search the map for cast and crew. Actors, directors and crew build a profile and get hired.</p>
+        <form class="card joinform" data-form="signup"><h2>Join Set UP. It's free.</h2>
+          <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
+          <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
+          <div class="field"><label for="jp">Password (8+ characters)</label><input id="jp" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
+          <div class="row"><div class="field"><label for="jr">I am a…</label><select id="jr" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
+          <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
+          <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
+          <p class="muted center">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
+        <div class="lhero-m" aria-hidden="true"><div class="miniMap"><span class="mp p1">12</span><span class="mp p2">ML</span><span class="mp p3">38</span><span class="mp p4">JW</span><span class="mp p5">SR</span>
+          <div class="mcard"><span class="av md c0">ML</span><div><b>Mara Linden</b> <span class="avail">● Available</span><div class="sub">Cinematographer · Berlin</div></div></div></div></div></section>
+      <section class="lband"><h2>Search the map, <span>not the inbox</span></h2><p class="muted lead">Zoom to the city where you are shooting. See who is available, what they have worked on, and connect in one click.</p>
+        <div class="lgrid">${feat.map(([i, t, d]) => `<div class="card feat"><span class="fico">${ico(i)}</span><h3>${t}</h3><p class="muted">${d}</p></div>`).join('')}</div></section>
+      <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
+        ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
+      <section class="lsec"><h2 class="lh">Everyone who makes a film</h2><div class="rolechips">${S.roles.map((r) => `<a class="chip" href="#/map" data-act="maprole" data-v="${esc(r)}">${esc(r)}</a>`).join('')}</div></section>
+      <section class="cta"><h2>Your next set is one search away.</h2><p>Create your free profile in two minutes.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
+    </div>`, true);
+  }
+  const mc = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
+    <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
+    <a class="link" href="#/me/edit">Edit profile</a></div></div>
+    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
-  if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
+  try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ }
   const toJoin = cm.communities.filter((c) => !c.joined).slice(0, 3);
   const rail = `<aside class="rail" aria-label="Suggestions">
+    <div class="card"><h2 class="rail-title">Casting near you</h2>${roles.map((c) => `<a class="mini" href="#/castings/${c.id}"><div class="who"><div class="name">${esc(c.title)}</div><div class="sub">${esc(c.city || 'Remote')}${c.pay ? ' · ' + esc(c.pay) : ''}</div></div></a>`).join('') || '<p class="muted">No castings yet.</p>'}<a class="link" href="#/castings">All castings →</a></div>
     ${sug.length ? `<div class="card"><h2 class="rail-title">People you may know</h2>${sug.slice(0, 4).map(railPerson).join('')}</div>` : ''}
     <div class="card"><h2 class="rail-title">Communities</h2>${toJoin.map((c) => `<div class="mini"><div class="who"><a href="#/communities/${c.id}" class="name">${esc(c.name)}</a><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · ${esc(c.topic)}</div></div><button class="btn ghost sm" data-act="joincomm" data-id="${c.id}">Join</button></div>`).join('') || '<p class="muted">No communities to join yet.</p>'}<a class="link" href="#/communities">All communities →</a></div>
     <div class="card"><h2 class="rail-title">Upcoming meetups</h2>${mt.meetups.slice(0, 3).map(meetMini).join('') || '<p class="muted">No meetups yet.</p>'}<a class="link" href="#/meetups">All meetups →</a></div></aside>`;
-  if (!m) {
-    const roles = (await api('/castings').catch(() => ({ castings: [] }))).castings.slice(0, 3);
-    const feat = [['SC. 01', 'Show your work', 'Stills, reels and behind-the-scenes in a portfolio that works as your profile.'],
-      ['SC. 02', 'Cast and get cast', 'Post a casting call or apply with your profile in one tap. Every applicant in one list.'],
-      ['SC. 03', 'Meet in person', 'Host screenings, table reads and coffee meetups in your city and see who is coming.'],
-      ['SC. 04', 'Connect and talk', 'Link up with people in your craft, join communities and message once connected.']];
-    const steps = [['Step 1', 'Build your profile', 'Craft, city, skills and your best work.'], ['Step 2', 'Find your people', 'Search by role and city, join communities, send connection requests.'],
-      ['Step 3', 'Get on set', 'Apply to castings, post your own, meet your crew in person.']];
-    return view(`<div class="landing">
-      <section class="hero2"><p class="rec"><span class="recdot"></span>REC · THE NETWORK FOR FILM PEOPLE</p>
-        <h1>Frame your<br><i>next set.</i></h1><div class="rule"></div>
-        <p class="lead">Show your work, answer castings, host meetups and connect with the people who make films. One profile for the whole production.</p>
-        <div class="btns"><a class="btn" href="#/signup">Create your profile</a><a class="btn ghost" href="#/castings">Browse castings</a></div></section>
-      <div class="strip"><span>Actors</span><span>Directors</span><span>Producers</span><span>Cinematographers</span><span>Editors</span><span>Sound</span><span>Writers</span></div>
-      <section class="lsec"><p class="section-title">The shooting schedule</p><h2 class="lh">Everything a production needs, <i>one profile.</i></h2>
-        <div class="lgrid">${feat.map(([k, t, d]) => `<div class="card"><div class="kicker">${k}</div><h3 class="lt">${t}</h3><p class="muted">${d}</p></div>`).join('')}</div></section>
-      <section class="lsec"><div class="lrow"><h2 class="lh">Open roles <i>this week</i></h2><a class="link" href="#/castings">All castings →</a></div>
-        ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
-      ${feed.posts.length ? `<section class="lsec"><p class="section-title">Latest from the community</p>${feed.posts.slice(0, 3).map(postCard).join('')}</section>` : ''}
-      <section class="lsec"><p class="section-title">Call sheet</p><h2 class="lh">From profile <i>to set</i> in three steps</h2>
-        <div class="lgrid3">${steps.map(([k, t, d]) => `<div class="step"><div class="kicker">${k}</div><h3>${t}</h3><p class="muted">${d}</p></div>`).join('')}</div></section>
-      <section class="cta"><h2>Roll <i>camera.</i></h2><p>Free to join. Your next set starts with a profile.</p><a class="btn" href="#/signup">Join Set UP</a></section>
-    </div>`, true);
-  }
-  view(`<div class="feedgrid"><div class="feedcol">
-    ${m ? '' : `<section class="hero2"><p class="rec"><span class="recdot"></span>REC · THE NETWORK FOR FILM PEOPLE</p>
-      <h1>Frame your<br><i>next set.</i></h1><div class="rule"></div>
-      <p class="lead">Show your work, answer castings, host meetups and connect with the people who make films.</p>
-      <div class="btns"><a class="btn" href="#/signup">Create your profile</a><a class="btn ghost" href="#/castings">Browse castings</a></div></section>`}
-    ${m ? `<div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
-      <button class="card flat person" data-act="compose">${av(m)}<span class="muted">What's on your set today?</span></button>` : ''}
-    ${sug.length ? `<div class="inline-sug"><h2 class="section-title">People you may know</h2>${sug.slice(0, 3).map((u) => personCard(u, 'none')).join('')}<h2 class="section-title">Latest</h2></div>` : ''}
-    ${feed.posts.length ? feed.posts.map(postCard).join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people in <a class="link" href="#/people">People</a>.' : 'No posts yet. Be the first!'}</div>`}
+  view(`<div class="feedgrid"><aside class="lcol">${mc}</aside><div class="feedcol">
+    <div class="card startpost"><div class="sp-top">${av(m)}<button class="sp-input" data-act="compose">Start a post</button></div>
+      <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button></div></div>
+    <div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
+    ${feed.posts.length ? feed.posts.map(postCard).join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people on the <a class="link" href="#/map">talent map</a>.' : 'No posts yet. Be the first!'}</div>`}
   </div>${rail}</div>`, true);
 });
+
+route(/^#\/map$/, async () => {
+  const qs = new URLSearchParams({ role: ui.mapRole, q: ui.mapQ });
+  if (ui.mapOpen) qs.set('open', '1');
+  const { people } = await api('/mappeople?' + qs);
+  view(`<div class="mappage"><div class="maphead"><div><h1 class="ptitle">Find talent on the map</h1><p class="muted" id="mapcount"> </p></div>
+      ${S.me ? '<button class="btn" data-act="compose" data-v="casting">Post a casting call</button>' : '<a class="btn" href="#/signup">Join to connect</a>'}</div>
+    <form class="mapfilters" data-form="mapfilter"><div class="field"><label class="sr" for="mq">Search</label><input id="mq" name="q" placeholder="Name, craft, skill or city" value="${esc(ui.mapQ)}"></div>
+      <div class="field"><label class="sr" for="mr">Role</label><select id="mr" name="role"><option value="">All roles</option>${S.roles.map((r) => `<option ${ui.mapRole === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
+      <label class="chk"><input type="checkbox" name="open" ${ui.mapOpen ? 'checked' : ''}> <span>Available now</span></label><button class="btn" type="submit">Search</button></form>
+    <div class="mapgrid"><section class="maplist" id="maplist" aria-label="People in this area"></section>
+      <section class="mapwrap"><div id="map" role="application" aria-label="Talent map"></div><div id="mapcard" class="mapcard" hidden></div></section></div></div>`, true);
+  initMap(people);
+});
+
+function initMap(people) {
+  const el = document.getElementById('map');
+  if (!window.L) { el.innerHTML = '<div class="empty">The map could not load.</div>'; return; }
+  mapObj = L.map(el, { worldCopyJump: true, minZoom: 2 });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors' }).addTo(mapObj);
+  const groups = new Map();
+  for (const p of people) { const k = p.lat.toFixed(2) + ',' + p.lng.toFixed(2); if (!groups.has(k)) groups.set(k, { lat: p.lat, lng: p.lng, list: [] }); groups.get(k).list.push(p); }
+  const pts = [];
+  groups.forEach((g) => {
+    const n = g.list.length; const label = n > 1 ? String(n) : initials(g.list[0].name);
+    const icon = L.divIcon({ className: 'pinwrap', html: `<span class="pin ${n > 1 ? 'multi' : ''}">${esc(label)}</span>`, iconSize: [44, 44], iconAnchor: [22, 22] });
+    const mk = L.marker([g.lat, g.lng], { icon, keyboard: true, title: n > 1 ? `${n} people in ${g.list[0].city}` : g.list[0].name }).addTo(mapObj);
+    mk.on('click', () => showMapCard(g));
+    pts.push([g.lat, g.lng]);
+  });
+  if (pts.length > 1) mapObj.fitBounds(pts, { padding: [60, 60], maxZoom: 8 }); else if (pts.length === 1) mapObj.setView(pts[0], 8); else mapObj.setView([30, 10], 2);
+  const renderList = () => {
+    const b = mapObj.getBounds(); const vis = people.filter((p) => b.contains([p.lat, p.lng]));
+    const list = document.getElementById('maplist'); const cnt = document.getElementById('mapcount');
+    if (!list) return;
+    list.innerHTML = vis.slice(0, 60).map((p) => `<div class="card person mp-item"><a href="#/profile/${p.id}">${av(p)}</a>${who(p)}<div class="mp-act">${connBtn(p.id, p.state, true)}<button class="link" data-act="mapfocus" data-lat="${p.lat}" data-lng="${p.lng}">Show</button></div></div>`).join('')
+      || `<div class="empty">${people.length ? 'No people in this area. Zoom out or move the map.' : 'No one has put themselves on the map yet. Add your city in your profile.'}</div>`;
+    if (cnt) cnt.textContent = `${vis.length} of ${people.length} people in this area`;
+  };
+  mapObj.on('moveend', renderList); renderList();
+  setTimeout(() => mapObj && mapObj.invalidateSize(), 100);
+}
+function showMapCard(g) {
+  const c = document.getElementById('mapcard'); if (!c) return;
+  c.hidden = false;
+  c.innerHTML = `<button class="iconbtn cclose" data-act="mapclose" aria-label="Close">${ico('x')}</button><div class="sub">${esc(g.list[0].city)} · ${g.list.length} ${g.list.length === 1 ? 'person' : 'people'}</div>` +
+    g.list.slice(0, 6).map((p) => `<div class="person rp"><a href="#/profile/${p.id}">${av(p)}</a>${who(p)}${connBtn(p.id, p.state, true)}</div>`).join('') + (g.list.length > 6 ? `<p class="muted">+ ${g.list.length - 6} more. Zoom in to see them.</p>` : '');
+}
 
 route(/^#\/communities$/, async () => {
   const qs = new URLSearchParams({ topic: ui.commTopic });
@@ -304,33 +348,49 @@ route(/^#\/people$/, async () => {
 route(/^#\/profile\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/, async (id) => {
   const u = await api('/users/' + id);
   const self = S.me && S.me.id === u.id;
-  let tab = '';
-  if (ui.profTab === 'posts') tab = u.posts.map(postCard).join('') || '<div class="empty">No posts yet.</div>';
-  else if (ui.profTab === 'castings') tab = u.castings.map(castCard).join('') || '<div class="empty">No castings posted.</div>';
-  else tab = `<div class="card"><p class="post-body">${esc(u.bio) || '<span class="muted">No bio yet.</span>'}</p>
-    ${u.skills ? `<h2 class="section-title">Skills</h2><div class="skills">${u.skills.split(',').map((s) => s.trim()).filter(Boolean).map((s) => `<span class="pill">${esc(s)}</span>`).join('')}</div>` : ''}
-    <div class="sub" style="margin-top:14px">Member since ${new Date(u.created).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</div></div>`;
-  view(`<div class="cover"></div><div class="pro-top"><span class="ring">${av(u, 'lg')}</span>
-    <h1 style="font-size:22px;margin-top:8px">${esc(u.name)}</h1><div>${esc(u.headline || u.role)}</div><div class="muted">${esc(u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div></div>
-    <div class="stats"><div><b>${u.connections}</b><span>Connections</span></div><div><b>${u.followers}</b><span>Followers</span></div></div>
-    <div class="pro-actions">${self ? '<a class="btn ghost" href="#/me/edit">Edit profile</a><button class="btn ghost" data-act="logout">Log out</button>' :
-      `${connBtn(u.id, u.state)}<button class="btn ghost" data-act="follow" data-id="${u.id}">${u.following ? 'Following' : 'Follow'}</button>${u.state === 'connected' ? `<button class="btn danger sm" data-act="disconnect" data-id="${u.id}">Remove</button>` : ''}`}</div>
-    <div class="tabs"><button class="${ui.profTab === 'posts' ? 'on' : ''}" data-act="proftab" data-v="posts">Posts</button><button class="${ui.profTab === 'castings' ? 'on' : ''}" data-act="proftab" data-v="castings">Castings</button><button class="${ui.profTab === 'about' ? 'on' : ''}" data-act="proftab" data-v="about">About</button></div>${tab}`
-    );
+  const skills = (u.skills || '').split(',').map((x) => x.trim()).filter(Boolean);
+  const buttons = self ? '<a class="btn" href="#/me/edit">Edit profile</a><button class="btn ghost" data-act="logout">Log out</button>'
+    : `${connBtn(u.id, u.state)}${u.state === 'connected' ? '' : `<a class="btn ghost" href="#/messages/${u.id}">Message</a>`}<button class="btn ghost" data-act="follow" data-id="${u.id}">${u.following ? 'Following' : 'Follow'}</button>${u.state === 'connected' ? `<button class="btn danger sm" data-act="disconnect" data-id="${u.id}">Remove</button>` : ''}`;
+  view(`<div class="pgrid"><div class="pmain">
+    <section class="card p0"><div class="banner"></div><div class="pbody"><div class="pav">${av(u, 'xl')}</div>
+      <div class="phead"><div><h1 class="pname">${esc(u.name)}</h1><div class="pline">${esc(u.headline || u.role)}</div>
+        <div class="muted">${esc(u.city || 'Location not set')} · <b class="blue">${u.connections} connection${u.connections === 1 ? '' : 's'}</b> · ${u.followers} follower${u.followers === 1 ? '' : 's'}</div>${u.open_to_work ? `<div class="avail-big">${availBadge(u)}</div>` : ''}</div>
+        <div class="pbtns">${buttons}</div></div></div></section>
+    ${u.bio ? `<section class="card"><h2 class="sec">About</h2><p class="post-body">${esc(u.bio)}</p></section>` : ''}
+    ${u.reel_url ? `<section class="card"><h2 class="sec">Showreel</h2><a class="btn ghost" href="${esc(u.reel_url)}" target="_blank" rel="noopener noreferrer">Watch showreel ↗</a></section>` : ''}
+    <section class="card"><h2 class="sec">Experience</h2>${u.credits.length ? u.credits.map((c) => `<div class="credit"><span class="fico sm">${ico('brief')}</span><div><div class="name">${esc(c.title)}${c.role ? ' · ' + esc(c.role) : ''}</div><div class="sub">${esc([c.kind, c.year].filter(Boolean).join(' · '))}</div>${c.description ? `<p class="post-body">${esc(c.description)}</p>` : ''}</div></div>`).join('') : `<p class="muted">${self ? 'Add your credits so producers can see your experience.' : 'No credits added yet.'}</p>`}${self ? '<a class="link" href="#/me/edit">+ Add credits</a>' : ''}</section>
+    ${skills.length ? `<section class="card"><h2 class="sec">Skills</h2><div class="skills">${skills.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div></section>` : ''}
+    <h2 class="sec2">Posts</h2>${u.posts.map(postCard).join('') || '<div class="empty">No posts yet.</div>'}
+  </div><aside class="prail"><div class="card"><h2 class="rail-title">Location</h2><p>${esc(u.city || 'Not set')}</p>${u.lat != null ? '<a class="link" href="#/map">See the talent map →</a>' : (self ? '<a class="link" href="#/me/edit">Add your city to appear on the map</a>' : '')}</div>
+    ${u.castings.length ? `<div class="card"><h2 class="rail-title">Open castings</h2>${u.castings.map((c) => `<a class="mini" href="#/castings/${c.id}"><div class="who"><div class="name">${esc(c.title)}</div><div class="sub">${esc(c.city || 'Remote')}${c.pay ? ' · ' + esc(c.pay) : ''}</div></div></a>`).join('')}</div>` : ''}</aside></div>`, true);
 });
 
 route(/^#\/me\/edit$/, async () => {
   if (!S.me) return needLogin();
   const m = S.me;
-  view(`<h1 class="page-title">Edit profile</h1><form class="card" data-form="profile">
+  const u = await api('/users/' + m.id);
+  view(`<h1 class="ptitle">Edit profile</h1><form class="card" data-form="profile">
     <div class="person" style="margin-bottom:14px">${av(m, 'md')}<label class="btn ghost sm">Change photo<input class="sr" type="file" accept="image/*" data-file="avatar"></label><input type="hidden" name="avatar" value="${esc(m.avatar)}"></div>
     <div class="field"><label for="n">Name</label><input id="n" name="name" required maxlength="80" value="${esc(m.name)}"></div>
-    <div class="field"><label for="r">Role</label><select id="r" name="role">${S.roles.map((r) => `<option ${m.role === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
+    <div class="row"><div class="field"><label for="r">Role</label><select id="r" name="role">${S.roles.map((r) => `<option ${m.role === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
+    <div class="field"><label for="c">City (shown on the map)</label><input id="c" name="city" list="cities" maxlength="80" autocomplete="off" value="${esc(m.city)}"></div></div>${cityList()}
     <div class="field"><label for="h">Headline</label><input id="h" name="headline" maxlength="120" value="${esc(m.headline)}" placeholder="e.g. Cinematographer · documentary"></div>
-    <div class="field"><label for="c">City</label><input id="c" name="city" maxlength="80" value="${esc(m.city)}"></div>
-    <div class="field"><label for="b">Bio</label><textarea id="b" name="bio" maxlength="1500">${esc(m.bio)}</textarea></div>
+    <div class="field"><label for="b">About</label><textarea id="b" name="bio" maxlength="1500">${esc(m.bio)}</textarea></div>
     <div class="field"><label for="s">Skills (comma separated)</label><input id="s" name="skills" maxlength="300" value="${esc(m.skills)}"></div>
-    <p class="err" role="alert"></p><button class="btn block" type="submit">Save</button></form>`);
+    <div class="field"><label for="rl">Showreel link (https://…)</label><input id="rl" name="reel_url" type="url" maxlength="300" value="${esc(m.reel_url)}" placeholder="https://vimeo.com/…"></div>
+    <div class="row"><label class="chk"><input type="checkbox" name="open_to_work" ${m.open_to_work ? 'checked' : ''}> <span>Open to work</span></label>
+    <div class="field"><label for="af">Available from</label><input id="af" name="available_from" type="date" value="${esc(m.available_from)}"></div></div>
+    <p class="muted">Pick a city from the list to appear on the talent map. Only the city centre is shown, never your address.</p>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Save profile</button></form>
+    <h2 class="sec2">Experience</h2>
+    ${u.credits.map((c) => `<div class="card credit"><span class="fico sm">${ico('brief')}</span><div style="flex:1"><div class="name">${esc(c.title)}${c.role ? ' · ' + esc(c.role) : ''}</div><div class="sub">${esc([c.kind, c.year].filter(Boolean).join(' · '))}</div></div><button class="btn danger sm" data-act="delcredit" data-id="${c.id}">Remove</button></div>`).join('')}
+    <form class="card" data-form="credit"><h3 class="sec">Add a credit</h3>
+      <div class="field"><label for="ct1">Project title</label><input id="ct1" name="title" required maxlength="120" placeholder="e.g. Night Ferry"></div>
+      <div class="row"><div class="field"><label for="cr">Your role</label><input id="cr" name="role" maxlength="80" placeholder="e.g. Director of Photography"></div>
+      <div class="field"><label for="ck">Type</label><input id="ck" name="kind" maxlength="40" placeholder="Short film, feature, music video…"></div>
+      <div class="field"><label for="cy">Year</label><input id="cy" name="year" maxlength="4" inputmode="numeric" placeholder="2026"></div></div>
+      <div class="field"><label for="cd2">Description (optional)</label><textarea id="cd2" name="description" maxlength="600"></textarea></div>
+      <p class="err" role="alert"></p><button class="btn" type="submit">Add credit</button></form>`);
 });
 
 route(/^#\/notifications$/, async () => {
@@ -365,7 +425,7 @@ route(/^#\/messages\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
     const t = await api('/messages/' + id);
     const html = `<p><a class="link" href="#/messages">${ico('back')} Messages</a></p>
       <div class="person card">${av(t.user)}${who(t.user)}</div>
-      <div class="thread" id="thread">${t.messages.map((m) => `<div class="msg ${m.mine ? 'mine' : ''}">${esc(m.body)}</div>`).join('') || '<div class="empty">Say hi 👋</div>'}</div>
+      <div class="thread" id="thread">${t.messages.map((m) => `<div class="msg ${m.mine ? 'mine' : ''}">${esc(m.body)}</div>`).join('') || '<div class="empty">Say hello</div>'}</div>
       ${t.can_message ? `<form class="msgform" data-form="msg" data-id="${id}"><label class="sr" for="mb">Message</label><input id="mb" name="body" autocomplete="off" maxlength="2000" placeholder="Write a message…" required><button class="btn" type="submit">Send</button></form>`
         : `<div class="card"><p class="muted">Connect with ${esc(t.user.name)} to send messages.</p>${connBtn(t.user.id, 'none')}</div>`}`;
     if (first) view(html);
@@ -482,6 +542,10 @@ document.addEventListener('click', (ev) => {
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
       case 'joincomm': await api(`/communities/${id}/join`, {}); return rerender();
+      case 'maprole': ui.mapRole = v; return;
+      case 'mapclose': { const c = document.getElementById('mapcard'); if (c) c.hidden = true; return; }
+      case 'mapfocus': if (mapObj) { mapObj.setView([+el.dataset.lat, +el.dataset.lng], 11); } return;
+      case 'delcredit': if (confirm('Remove this credit?')) { await api(`/credits/${id}/delete`, {}); rerender(); } return;
       case 'commtab': ui.commTab = v; return rerender();
       case 'commtopic': ui.commTopic = v; return rerender();
       case 'delcomm': if (confirm('Delete this community and its posts?')) { await api(`/communities/${id}/delete`, {}); location.hash = '#/communities'; } return;
@@ -523,7 +587,12 @@ document.addEventListener('submit', (ev) => {
   if (btn) btn.disabled = true;
   (async () => {
     try {
+      if ((kind === 'signup' || kind === 'profile') && data.city) { const g = geo(data.city); if (g) { data.city = g.name; data.lat = g.lat; data.lng = g.lng; } }
+      if (kind === 'profile') data.open_to_work = f.elements.open_to_work.checked;
       switch (kind) {
+        case 'gsearch': ui.pq = data.q; ui.prole = ''; ui.pcity = ''; location.hash = '#/people'; return router();
+        case 'mapfilter': ui.mapQ = data.q; ui.mapRole = data.role; ui.mapOpen = !!data.open; return rerender();
+        case 'credit': await api('/credits', data); toast('Credit added'); return rerender();
         case 'login': case 'signup': {
           const r = await api('/' + kind, data);
           if (r.confirm) { f.innerHTML = '<p class="card">Almost there! We sent a confirmation link to your email. Open it, then come back and log in.</p>'; return; }
@@ -560,6 +629,7 @@ async function refreshMe() {
 }
 async function router() {
   clearInterval(pollTimer);
+  if (mapObj) { mapObj.remove(); mapObj = null; }
   const hash = location.hash || '#/';
   for (const [re, fn] of routes) {
     const m = hash.match(re);
