@@ -2,3 +2,5 @@ setup.db*
 uploads/*
 !uploads/.gitkeep
 __pycache__/
+.DS_Store
+.netlify/
