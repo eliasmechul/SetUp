@@ -166,6 +166,30 @@ route(/^#?\/?$/, async () => {
     ${sug.length ? `<div class="card"><h2 class="rail-title">People you may know</h2>${sug.slice(0, 4).map(railPerson).join('')}</div>` : ''}
     <div class="card"><h2 class="rail-title">Communities</h2>${toJoin.map((c) => `<div class="mini"><div class="who"><a href="#/communities/${c.id}" class="name">${esc(c.name)}</a><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · ${esc(c.topic)}</div></div><button class="btn ghost sm" data-act="joincomm" data-id="${c.id}">Join</button></div>`).join('') || '<p class="muted">No communities to join yet.</p>'}<a class="link" href="#/communities">All communities →</a></div>
     <div class="card"><h2 class="rail-title">Upcoming meetups</h2>${mt.meetups.slice(0, 3).map(meetMini).join('') || '<p class="muted">No meetups yet.</p>'}<a class="link" href="#/meetups">All meetups →</a></div></aside>`;
+  if (!m) {
+    const roles = (await api('/castings').catch(() => ({ castings: [] }))).castings.slice(0, 3);
+    const feat = [['SC. 01', 'Show your work', 'Stills, reels and behind-the-scenes in a portfolio that works as your profile.'],
+      ['SC. 02', 'Cast and get cast', 'Post a casting call or apply with your profile in one tap. Every applicant in one list.'],
+      ['SC. 03', 'Meet in person', 'Host screenings, table reads and coffee meetups in your city and see who is coming.'],
+      ['SC. 04', 'Connect and talk', 'Link up with people in your craft, join communities and message once connected.']];
+    const steps = [['Step 1', 'Build your profile', 'Craft, city, skills and your best work.'], ['Step 2', 'Find your people', 'Search by role and city, join communities, send connection requests.'],
+      ['Step 3', 'Get on set', 'Apply to castings, post your own, meet your crew in person.']];
+    return view(`<div class="landing">
+      <section class="hero2"><p class="rec"><span class="recdot"></span>REC · THE NETWORK FOR FILM PEOPLE</p>
+        <h1>Frame your<br><i>next set.</i></h1><div class="rule"></div>
+        <p class="lead">Show your work, answer castings, host meetups and connect with the people who make films. One profile for the whole production.</p>
+        <div class="btns"><a class="btn" href="#/signup">Create your profile</a><a class="btn ghost" href="#/castings">Browse castings</a></div></section>
+      <div class="strip"><span>Actors</span><span>Directors</span><span>Producers</span><span>Cinematographers</span><span>Editors</span><span>Sound</span><span>Writers</span></div>
+      <section class="lsec"><p class="section-title">The shooting schedule</p><h2 class="lh">Everything a production needs, <i>one profile.</i></h2>
+        <div class="lgrid">${feat.map(([k, t, d]) => `<div class="card"><div class="kicker">${k}</div><h3 class="lt">${t}</h3><p class="muted">${d}</p></div>`).join('')}</div></section>
+      <section class="lsec"><div class="lrow"><h2 class="lh">Open roles <i>this week</i></h2><a class="link" href="#/castings">All castings →</a></div>
+        ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
+      ${feed.posts.length ? `<section class="lsec"><p class="section-title">Latest from the community</p>${feed.posts.slice(0, 3).map(postCard).join('')}</section>` : ''}
+      <section class="lsec"><p class="section-title">Call sheet</p><h2 class="lh">From profile <i>to set</i> in three steps</h2>
+        <div class="lgrid3">${steps.map(([k, t, d]) => `<div class="step"><div class="kicker">${k}</div><h3>${t}</h3><p class="muted">${d}</p></div>`).join('')}</div></section>
+      <section class="cta"><h2>Roll <i>camera.</i></h2><p>Free to join. Your next set starts with a profile.</p><a class="btn" href="#/signup">Join Set UP</a></section>
+    </div>`, true);
+  }
   view(`<div class="feedgrid"><div class="feedcol">
     ${m ? '' : `<section class="hero2"><p class="rec"><span class="recdot"></span>REC · THE NETWORK FOR FILM PEOPLE</p>
       <h1>Frame your<br><i>next set.</i></h1><div class="rule"></div>
