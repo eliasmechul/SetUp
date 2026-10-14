@@ -53,7 +53,7 @@ async function myConnections(me) {
   return map;
 }
 
-const POST_SEL = `id,body,image,created_at,user_id,user:setup_profiles!setup_posts_user_id_fkey(${PCOLS}),likes:setup_likes(count),comments:setup_comments(count)`;
+const POST_SEL = `id,body,image,created_at,user_id,user:setup_profiles!setup_posts_user_id_fkey(${PCOLS}),likes:setup_likes(count),comments:setup_comments(count),community:setup_communities(id,name)`;
 async function shapePosts(rows, me) {
   let liked = new Set();
   if (me && rows.length) {
@@ -61,7 +61,8 @@ async function shapePosts(rows, me) {
     liked = new Set(l.map((x) => x.post_id));
   }
   return rows.map((r) => ({ id: r.id, body: r.body, image: r.image, created: iso(r), likes: r.likes[0].count,
-    comments: r.comments[0].count, liked: liked.has(r.id), user: userJson(r.user) }));
+    comments: r.comments[0].count, liked: liked.has(r.id), user: userJson(r.user),
+    community: r.community ? { id: r.community.id, name: r.community.name } : null }));
 }
 async function myId() { const s = await session(); return s ? s.user.id : null; }
 
@@ -149,7 +150,8 @@ const H = {
     const me = await uid();
     const body = clean(b.body, 3000), image = b.image || '';
     if (!body && !image) throw fail(400, 'Write something or add an image');
-    const r = ok(await sb.from('setup_posts').insert({ user_id: me, body, image }).select('id').single());
+    const cid = /^\d+$/.test(String(b.community_id || '')) ? Number(b.community_id) : null;
+    const r = ok(await sb.from('setup_posts').insert({ user_id: me, body, image, community_id: cid }).select('id').single());
     return { id: r.id };
   },
   async delete_post(id) { ok(await sb.from('setup_posts').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
@@ -168,6 +170,48 @@ const H = {
     ok(await sb.from('setup_comments').insert({ post_id: id, user_id: await uid(), body: clean(b.body, 1000, true, 'Comment') }));
     return H.get_comments(id);
   },
+
+  /* communities */
+  async communities(q) {
+    const me = await myId();
+    let joined = new Set();
+    if (me) joined = new Set(ok(await sb.from('setup_community_members').select('community_id').eq('user_id', me)).map((x) => x.community_id));
+    let query = sb.from('setup_communities').select('*, members:setup_community_members(count)').order('created_at', { ascending: false }).limit(100);
+    if (q.get('mine')) { if (!joined.size) return { communities: [] }; query = query.in('id', [...joined]); }
+    const topic = q.get('topic'); if (topic) query = query.eq('topic', topic);
+    const text = safe(q.get('q') || ''); if (text) query = query.or(`name.ilike.%${text}%,description.ilike.%${text}%`);
+    return { communities: ok(await query).map((r) => ({ id: r.id, name: r.name, topic: r.topic, city: r.city, description: r.description,
+      owner_id: r.user_id, created: iso(r), members: r.members[0].count, joined: joined.has(r.id) })) };
+  },
+  async community(id) {
+    const me = await myId();
+    const r = ok(await sb.from('setup_communities').select('*, members:setup_community_members(count)').eq('id', id).maybeSingle());
+    if (!r) throw fail(404, 'Community not found');
+    const [posts, people, mine] = await Promise.all([
+      sb.from('setup_posts').select(POST_SEL).eq('community_id', id).order('created_at', { ascending: false }).limit(50),
+      sb.from('setup_community_members').select(`user:setup_profiles!setup_community_members_user_id_fkey(${PCOLS})`).eq('community_id', id).order('joined_at').limit(12),
+      me ? sb.from('setup_community_members').select('user_id').eq('community_id', id).eq('user_id', me) : { data: [] }]);
+    return { id: r.id, name: r.name, topic: r.topic, city: r.city, description: r.description, owner_id: r.user_id, created: iso(r),
+      members: r.members[0].count, joined: ok(mine).length > 0, posts: await shapePosts(ok(posts), me), people: ok(people).map((x) => userJson(x.user)) };
+  },
+  async create_community(_, b) {
+    const me = await uid();
+    const topics = ['General', 'Acting', 'Directing', 'Producing', 'Cinematography', 'Editing', 'Sound', 'Writing', 'Crew', 'Students', 'Local'];
+    const r = ok(await sb.from('setup_communities').insert({ user_id: me, name: clean(b.name, 80, true, 'Name'),
+      topic: topics.includes(b.topic) ? b.topic : 'General', city: clean(b.city, 80), description: clean(b.description, 1000) }).select('id').single());
+    ok(await sb.from('setup_community_members').insert({ community_id: r.id, user_id: me }));
+    return { id: r.id };
+  },
+  async join_community(id) {
+    const me = await uid();
+    const c = ok(await sb.from('setup_communities').select('user_id').eq('id', id).maybeSingle());
+    if (!c) throw fail(404, 'Community not found');
+    const del = c.user_id === me ? null : ok(await sb.from('setup_community_members').delete().eq('community_id', id).eq('user_id', me).select('user_id'));
+    if (del === null) throw fail(400, 'Owners cannot leave. Delete the community instead.');
+    if (!del.length) ok(await sb.from('setup_community_members').insert({ community_id: id, user_id: me }));
+    return { joined: !del.length };
+  },
+  async delete_community(id) { ok(await sb.from('setup_communities').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
 
   /* people & network */
   async people(q) {
@@ -381,6 +425,8 @@ const R = [
   ['POST', `/users/(${UUID})/connect`, 'connect_to'], ['POST', `/users/(${UUID})/accept`, 'accept'],
   ['POST', `/users/(${UUID})/decline`, 'decline'], ['POST', `/users/(${UUID})/disconnect`, 'disconnect'],
   ['GET', '/requests', 'requests'], ['GET', '/network', 'my_network'], ['GET', '/suggestions', 'suggestions'],
+  ['GET', '/communities', 'communities'], ['POST', '/communities', 'create_community'], ['GET', '/communities/(\\d+)', 'community'],
+  ['POST', '/communities/(\\d+)/join', 'join_community'], ['POST', '/communities/(\\d+)/delete', 'delete_community'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
   ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'],
@@ -396,7 +442,7 @@ window.api = async (path, body) => {
     const match = re.exec(p);
     if (m === method && match) {
       const args = match.slice(1).map((g) => (/^\d+$/.test(g) ? Number(g) : g));
-      if (['feed', 'people', 'castings', 'meetups'].includes(h)) return H[h](new URLSearchParams(qs || ''));
+      if (['feed', 'people', 'castings', 'meetups', 'communities'].includes(h)) return H[h](new URLSearchParams(qs || ''));
       return args.length ? H[h](...args, body || {}) : H[h](undefined, body || {});
     }
   }

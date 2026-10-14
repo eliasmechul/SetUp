@@ -6,7 +6,7 @@ const $toast = document.getElementById('toast');
 let S = { me: null, roles: [], categories: [] };
 let pollTimer = null;
 let ui = { feedScope: 'all', castCat: '', castQ: '', castCity: '', meetTab: 'upcoming', profTab: 'posts',
-           pq: '', prole: '', pcity: '' };
+           pq: '', prole: '', pcity: '', commTab: 'discover', commTopic: '' };
 
 /* ---------- helpers ---------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,6 +24,7 @@ const ICONS = {
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
+  group: '<circle cx="12" cy="8" r="3"/><circle cx="5.5" cy="10" r="2.3"/><circle cx="18.5" cy="10" r="2.3"/><path d="M6.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M1.5 18c0-2 1.5-3.5 3.5-3.7M22.5 18c0-2-1.5-3.5-3.5-3.7"/>',
 };
 const ico = (n) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
 
@@ -65,7 +66,7 @@ function navItems() {
   const m = S.me;
   return [
     ['#/', 'home', 'Feed'], ['#/people', 'users', 'People'], ['#/castings', 'brief', 'Castings'],
-    ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages],
+    ['#/communities', 'group', 'Communities'], ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages],
     ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Profile' : 'Log in'],
   ];
 }
@@ -74,6 +75,7 @@ function active(href) {
   if (href === '#/') return h === '#/' || h === '';
   return h.startsWith(href.split('/').slice(0, 2).join('/')) && !(href.startsWith('#/profile') && h !== href);
 }
+let wide = false;
 function shell(content) {
   const m = S.me;
   const badge = (n) => (n ? `<span class="badge">${n > 9 ? '9+' : n}</span>` : '');
@@ -87,23 +89,24 @@ function shell(content) {
       <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
       ${side}
       <button class="btn create" data-act="compose">${ico('plus')} Create</button>
-      ${m ? `<button class="btn ghost" data-act="logout" style="margin-top:auto">Log out</button>` : ''}
+      ${m ? `<button class="btn ghost logout" data-act="logout">Log out</button>` : ''}
     </aside>
     <div class="col">
       <header class="topbar">
         <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
         <div class="mobile-only">
-          <a class="iconbtn" href="#/people" aria-label="Find people">${ico('users')}</a>
+          <a class="iconbtn" href="#/communities" aria-label="Communities">${ico('group')}</a>
+          <a class="iconbtn" href="#/people" aria-label="Find people">${ico('search')}</a>
           <a class="iconbtn" href="#/notifications" aria-label="Notifications">${ico('bell')}${badge(m && m.unread_notifications)}</a>
           <a class="iconbtn" href="#/messages" aria-label="Messages">${ico('chat')}${badge(m && m.unread_messages)}</a>
         </div>
       </header>
-      <main class="main" id="view">${content}</main>
+      <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     </div>
     <nav class="tabbar" aria-label="Main">${bar}</nav>
   </div>`;
 }
-function view(html) { shell(html); window.scrollTo(0, 0); }
+function view(html, isWide) { wide = !!isWide; shell(html); window.scrollTo(0, 0); }
 function setView(html) { const v = document.getElementById('view'); if (v) v.innerHTML = html; }
 
 /* ---------- components ---------- */
@@ -111,6 +114,7 @@ function postCard(p) {
   const mine = S.me && S.me.id === p.user.id;
   return `<article class="card" data-post="${p.id}">
     <div class="post-head"><a href="#/profile/${p.user.id}">${av(p.user)}</a>${who(p.user)}<span class="sub">${ago(p.created)}</span></div>
+    ${p.community ? `<p><a class="pill" href="#/communities/${p.community.id}">in ${esc(p.community.name)}</a></p>` : ''}
     ${p.body ? `<p class="post-body">${esc(p.body)}</p>` : ''}
     ${p.image ? `<img class="post-img" src="${esc(p.image)}" alt="Photo shared by ${esc(p.user.name)}" loading="lazy">` : ''}
     <div class="actions">
@@ -121,6 +125,12 @@ function postCard(p) {
     <div class="comments" hidden></div>
   </article>`;
 }
+const meetMini = (m) => { const w = when(m.starts); return `<div class="mini"><div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div><div><div class="name">${esc(m.title)}</div><div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}</div></div></div>`; };
+const railPerson = (u) => `<div class="person rp"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}${connBtn(u.id, 'none', true)}</div>`;
+const commCard = (c) => `<div class="card"><div class="event"><div class="date"><span>${esc(c.topic.slice(0, 5))}</span><b>${c.members}</b></div>
+  <div class="info"><a href="#/communities/${c.id}"><h3>${esc(c.name)}</h3></a><div class="sub">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''} · ${c.members} member${c.members === 1 ? '' : 's'}</div>
+  ${c.description ? `<div class="sub">${esc(c.description)}</div>` : ''}</div>
+  <button class="btn sm ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓' : 'Join'}</button></div></div>`;
 function castCard(c) {
   const status = c.applied ? '<span class="pill ok">Applied</span>' : '';
   return `<a class="cast" href="#/castings/${c.id}"><div class="in">
@@ -147,17 +157,52 @@ const route = (re, fn) => routes.push([re, fn]);
 
 route(/^#?\/?$/, async () => {
   const m = S.me;
-  const feed = await api('/feed?scope=' + (m ? ui.feedScope : 'all'));
+  const [feed, mt, cm] = await Promise.all([api('/feed?scope=' + (m ? ui.feedScope : 'all')),
+    api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] }))]);
   let sug = [];
   if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
-  view(`
-    ${m ? '' : `<div class="card hero"><img src="logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div>
-      <p>Film people. One place. Share your work, answer castings and meet your next crew.</p>
-      <div class="btns"><a class="btn" href="#/signup">Join Set UP</a><a class="btn ghost" href="#/login">Log in</a></div></div>`}
-    ${m ? `<div class="seg" role="tablist"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
-      <button class="card flat person" style="width:100%;text-align:left;cursor:text" data-act="compose">${av(m)}<span class="muted">What's on your set today?</span></button>` : ''}
-    ${sug.length ? `<h2 class="section-title">People you may know</h2>${sug.slice(0, 3).map((u) => personCard(u, 'none')).join('')}<h2 class="section-title">Latest</h2>` : ''}
-    ${feed.posts.length ? feed.posts.map(postCard).join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people in <a class="link" href="#/people">People</a>.' : 'No posts yet. Be the first!'}</div>`}`);
+  const toJoin = cm.communities.filter((c) => !c.joined).slice(0, 3);
+  const rail = `<aside class="rail" aria-label="Suggestions">
+    ${sug.length ? `<div class="card"><h2 class="rail-title">People you may know</h2>${sug.slice(0, 4).map(railPerson).join('')}</div>` : ''}
+    <div class="card"><h2 class="rail-title">Communities</h2>${toJoin.map((c) => `<div class="mini"><div class="who"><a href="#/communities/${c.id}" class="name">${esc(c.name)}</a><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · ${esc(c.topic)}</div></div><button class="btn ghost sm" data-act="joincomm" data-id="${c.id}">Join</button></div>`).join('') || '<p class="muted">No communities to join yet.</p>'}<a class="link" href="#/communities">All communities →</a></div>
+    <div class="card"><h2 class="rail-title">Upcoming meetups</h2>${mt.meetups.slice(0, 3).map(meetMini).join('') || '<p class="muted">No meetups yet.</p>'}<a class="link" href="#/meetups">All meetups →</a></div></aside>`;
+  view(`<div class="feedgrid"><div class="feedcol">
+    ${m ? '' : `<section class="hero2"><p class="rec"><span class="recdot"></span>REC · THE NETWORK FOR FILM PEOPLE</p>
+      <h1>Frame your<br><i>next set.</i></h1><div class="rule"></div>
+      <p class="lead">Show your work, answer castings, host meetups and connect with the people who make films.</p>
+      <div class="btns"><a class="btn" href="#/signup">Create your profile</a><a class="btn ghost" href="#/castings">Browse castings</a></div></section>`}
+    ${m ? `<div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
+      <button class="card flat person" data-act="compose">${av(m)}<span class="muted">What's on your set today?</span></button>` : ''}
+    ${sug.length ? `<div class="inline-sug"><h2 class="section-title">People you may know</h2>${sug.slice(0, 3).map((u) => personCard(u, 'none')).join('')}<h2 class="section-title">Latest</h2></div>` : ''}
+    ${feed.posts.length ? feed.posts.map(postCard).join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people in <a class="link" href="#/people">People</a>.' : 'No posts yet. Be the first!'}</div>`}
+  </div>${rail}</div>`, true);
+});
+
+route(/^#\/communities$/, async () => {
+  const qs = new URLSearchParams({ topic: ui.commTopic });
+  if (ui.commTab === 'mine' && S.me) qs.set('mine', '1');
+  const { communities } = await api('/communities?' + qs);
+  const topics = ['', 'General', 'Acting', 'Directing', 'Producing', 'Cinematography', 'Editing', 'Sound', 'Writing', 'Crew', 'Students', 'Local'];
+  view(`<h1 class="page-title">Communities</h1>
+    <div class="seg"><button class="${ui.commTab === 'discover' ? 'on' : ''}" data-act="commtab" data-v="discover">Discover</button>${S.me ? `<button class="${ui.commTab === 'mine' ? 'on' : ''}" data-act="commtab" data-v="mine">My communities</button>` : ''}</div>
+    <div class="chips">${topics.map((t) => `<button class="chip ${ui.commTopic === t ? 'on' : ''}" data-act="commtopic" data-v="${t}">${t || 'All'}</button>`).join('')}</div>
+    ${S.me ? '<p><button class="link" data-act="compose" data-v="community">+ Start a community</button></p>' : ''}
+    ${communities.length ? communities.map(commCard).join('') : '<div class="empty">No communities here yet. Start the first one!</div>'}`);
+});
+
+route(/^#\/communities\/(\d+)$/, async (id) => {
+  const c = await api('/communities/' + id);
+  const mine = S.me && S.me.id === c.owner_id;
+  view(`<p><a class="link" href="#/communities">${ico('back')} Communities</a></p>
+    <div class="card"><span class="kicker">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''}</span>
+      <h1 class="page-title">${esc(c.name)}</h1>
+      ${c.description ? `<p class="post-body">${esc(c.description)}</p>` : ''}
+      <div class="meta"><span>${c.members} member${c.members === 1 ? '' : 's'}</span></div>
+      <div class="skills" style="margin:12px 0">${c.people.map((u) => `<a href="#/profile/${u.id}" title="${esc(u.name)}">${av(u)}</a>`).join('')}</div>
+      <div class="pro-actions">${mine ? `<button class="btn danger sm" data-act="delcomm" data-id="${c.id}">Delete community</button>` : `<button class="btn ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓ (tap to leave)' : 'Join community'}</button>`}
+      ${c.joined || mine ? `<button class="btn" data-act="compose" data-v="post" data-cid="${c.id}">Post in community</button>` : ''}</div></div>
+    <h2 class="section-title">Discussion</h2>
+    ${c.posts.length ? c.posts.map(postCard).join('') : `<div class="empty">No posts yet.${c.joined ? ' Start the conversation!' : ' Join to start the conversation.'}</div>`}`);
 });
 
 route(/^#\/castings$/, async () => {
@@ -338,12 +383,12 @@ route(/^#\/(login|signup)$/, async (mode) => {
 });
 
 /* ---------- composer ---------- */
-function composer(kind = 'post') {
+function composer(kind = 'post', cid = '') {
   if (!S.me) return needLogin();
-  const t = (k, label, icon) => `<button type="button" class="${kind === k ? 'on' : ''}" data-act="compose" data-v="${k}">${ico(icon)}${label}</button>`;
+  const t = (k, label, icon) => `<button type="button" class="${kind === k ? 'on' : ''}" data-act="compose" data-v="${k}" data-cid="${cid}">${ico(icon)}${label}</button>`;
   let form = '';
   if (kind === 'post') form = `<form data-form="post"><div class="field"><label class="sr" for="pb">Post</label><textarea id="pb" name="body" maxlength="3000" placeholder="Share an update, a still, a question…"></textarea></div>
-    <img class="preview" id="pv" alt="" hidden><input type="hidden" name="image">
+    <img class="preview" id="pv" alt="" hidden><input type="hidden" name="image"><input type="hidden" name="community_id" value="${esc(cid)}">${cid ? '<p class="muted">Posting inside this community.</p>' : ''}
     <label class="btn ghost sm">${ico('img')} Add photo<input class="sr" type="file" accept="image/*" data-file="post"></label>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Publish</button></form>`;
   if (kind === 'casting') form = `<form data-form="casting">
@@ -362,9 +407,15 @@ function composer(kind = 'post') {
     <div class="field"><label for="v">Venue</label><input id="v" name="venue" maxlength="120"></div>
     <div class="field"><label for="ds">Description</label><textarea id="ds" name="description" maxlength="2000"></textarea></div>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Create meetup</button></form>`;
+  if (kind === 'community') form = `<form data-form="community">
+    <div class="field"><label for="cn">Community name</label><input id="cn" name="name" required maxlength="80" placeholder="e.g. Berlin Indie Filmmakers"></div>
+    <div class="row"><div class="field"><label for="ct">Topic</label><select id="ct" name="topic">${['General', 'Acting', 'Directing', 'Producing', 'Cinematography', 'Editing', 'Sound', 'Writing', 'Crew', 'Students', 'Local'].map((c) => `<option>${c}</option>`).join('')}</select></div>
+    <div class="field"><label for="cc2">City (optional)</label><input id="cc2" name="city" maxlength="80"></div></div>
+    <div class="field"><label for="cd">What is it about?</label><textarea id="cd" name="description" maxlength="1000"></textarea></div>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Create community</button></form>`;
   $modal.hidden = false;
   $modal.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Create"><div class="sheet-head"><h2>Create</h2><button class="iconbtn" data-act="close" aria-label="Close">${ico('x')}</button></div>
-    <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting call', 'brief')}${t('meetup', 'Meetup', 'cal')}</div>${form}</div>`;
+    <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting', 'brief')}${t('meetup', 'Meetup', 'cal')}${t('community', 'Community', 'group')}</div>${form}</div>`;
   const first = $modal.querySelector('textarea, input'); if (first) first.focus();
 }
 const closeModal = () => { $modal.hidden = true; $modal.innerHTML = ''; };
@@ -382,7 +433,7 @@ document.addEventListener('click', (ev) => {
   const act = el.dataset.act, id = el.dataset.id, v = el.dataset.v;
   guard(async () => {
     switch (act) {
-      case 'compose': return composer(v || 'post');
+      case 'compose': return composer(v || 'post', el.dataset.cid || '');
       case 'close': return closeModal();
       case 'logout': await api('/logout', {}); S.me = null; location.hash = '#/'; return router();
       case 'scope': ui.feedScope = v; return rerender();
@@ -406,6 +457,10 @@ document.addEventListener('click', (ev) => {
       case 'follow': await api(`/users/${id}/follow`, {}); return rerender();
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
+      case 'joincomm': await api(`/communities/${id}/join`, {}); return rerender();
+      case 'commtab': ui.commTab = v; return rerender();
+      case 'commtopic': ui.commTopic = v; return rerender();
+      case 'delcomm': if (confirm('Delete this community and its posts?')) { await api(`/communities/${id}/delete`, {}); location.hash = '#/communities'; } return;
       case 'delcast': if (confirm('Delete this casting?')) { await api(`/castings/${id}/delete`, {}); location.hash = '#/castings'; } return;
     }
   });
@@ -452,7 +507,8 @@ document.addEventListener('submit', (ev) => {
         }
         case 'reset': await api('/reset', data); f.innerHTML = '<p class="card">If that email has an account, a reset link is on its way.</p>'; return;
         case 'newpassword': await api('/newpassword', data); await refreshMe(); toast('Password updated'); location.hash = '#/'; return;
-        case 'post': await api('/posts', data); closeModal(); location.hash = '#/'; toast('Posted'); return router();
+        case 'post': await api('/posts', data); closeModal(); toast('Posted'); if (data.community_id) return router(); location.hash = '#/'; return router();
+        case 'community': { const r = await api('/communities', data); closeModal(); location.hash = '#/communities/' + r.id; return; }
         case 'casting': { const r = await api('/castings', data); closeModal(); location.hash = '#/castings/' + r.id; return; }
         case 'meetup': await api('/meetups', data); closeModal(); location.hash = '#/meetups'; ui.meetTab = 'mine'; return router();
         case 'apply': await api(`/castings/${id}/apply`, data); toast('Application sent'); return rerender();
