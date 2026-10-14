@@ -88,7 +88,7 @@ const H = {
     if (typeof b.password !== 'string' || b.password.length < 8) throw fail(400, 'Password must be at least 8 characters');
     const role = ROLES.includes(b.role) ? b.role : 'Other';
     const { data, error } = await sb.auth.signUp({ email, password: b.password,
-      options: { data: { name, role, city: clean(b.city, 80) }, emailRedirectTo: location.origin + '/' } });
+      options: { data: { name, role, city: clean(b.city, 80) }, emailRedirectTo: location.origin + location.pathname } });
     if (error) throw fail(400, error.message);
     if (data.session) { await ensureProfile(data.session.user); return { ok: true }; }
     return { ok: true, confirm: true };
@@ -101,7 +101,7 @@ const H = {
   async logout() { await sb.auth.signOut(); return { ok: true }; },
   async reset(_, b) {
     const email = clean(b.email, 160, true, 'Email').toLowerCase();
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/' });
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
     if (error) throw fail(400, error.message);
     return { ok: true };
   },

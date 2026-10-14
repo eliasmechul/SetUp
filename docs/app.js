@@ -84,14 +84,14 @@ function shell(content) {
   $app.innerHTML = `
   <div class="shell">
     <aside class="side" aria-label="Main">
-      <a class="wordmark" href="#/"><img src="/logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
+      <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
       ${side}
       <button class="btn create" data-act="compose">${ico('plus')} Create</button>
       ${m ? `<button class="btn ghost" data-act="logout" style="margin-top:auto">Log out</button>` : ''}
     </aside>
     <div class="col">
       <header class="topbar">
-        <a class="wordmark" href="#/"><img src="/logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
+        <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
         <div class="mobile-only">
           <a class="iconbtn" href="#/people" aria-label="Find people">${ico('users')}</a>
           <a class="iconbtn" href="#/notifications" aria-label="Notifications">${ico('bell')}${badge(m && m.unread_notifications)}</a>
@@ -151,7 +151,7 @@ route(/^#?\/?$/, async () => {
   let sug = [];
   if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
   view(`
-    ${m ? '' : `<div class="card hero"><img src="/logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div>
+    ${m ? '' : `<div class="card hero"><img src="logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div>
       <p>Film people. One place. Share your work, answer castings and meet your next crew.</p>
       <div class="btns"><a class="btn" href="#/signup">Join Set UP</a><a class="btn ghost" href="#/login">Log in</a></div></div>`}
     ${m ? `<div class="seg" role="tablist"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
@@ -311,14 +311,14 @@ route(/^#\/messages\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 });
 
 route(/^#\/reset$/, async () => {
-  view(`<div class="auth"><div class="hero"><img src="/logo.png" alt="Set UP logo"><p>Reset your password</p></div>
+  view(`<div class="auth"><div class="hero"><img src="logo.png" alt="Set UP logo"><p>Reset your password</p></div>
     <form data-form="reset"><div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required autocomplete="email"></div>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Send reset link</button></form>
     <p style="text-align:center"><a class="link" href="#/login">Back to log in</a></p></div>`);
 });
 
 route(/^#\/new-password$/, async () => {
-  view(`<div class="auth"><div class="hero"><img src="/logo.png" alt="Set UP logo"><p>Choose a new password</p></div>
+  view(`<div class="auth"><div class="hero"><img src="logo.png" alt="Set UP logo"><p>Choose a new password</p></div>
     <form data-form="newpassword"><div class="field"><label for="p">New password (8+ characters)</label><input id="p" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Save password</button></form></div>`);
 });
@@ -326,7 +326,7 @@ route(/^#\/new-password$/, async () => {
 route(/^#\/(login|signup)$/, async (mode) => {
   if (S.me) { location.hash = '#/'; return; }
   const signup = mode === 'signup';
-  view(`<div class="auth"><div class="hero"><img src="/logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div><p>${signup ? 'Create your free profile' : 'Welcome back'}</p></div>
+  view(`<div class="auth"><div class="hero"><img src="logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div><p>${signup ? 'Create your free profile' : 'Welcome back'}</p></div>
     <form data-form="${mode}">
     ${signup ? `<div class="field"><label for="n">Full name</label><input id="n" name="name" required maxlength="80" autocomplete="name"></div>` : ''}
     <div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required autocomplete="email"></div>

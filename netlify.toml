@@ -1,5 +1,5 @@
 [build]
-  publish = "static"
+  publish = "docs"
 
 [[headers]]
   for = "/*"
