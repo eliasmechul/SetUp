@@ -153,13 +153,14 @@ route(/^#?\/?$/, async () => {
     api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] })), api('/castings').catch(() => ({ castings: [] }))]);
   const roles = cs.castings.slice(0, 3);
   if (!m) {
-    const feat = [['pin', 'For producers and casting directors', 'Filter by role, city and availability. See who is nearby and message them in one click.'],
-      ['user', 'For actors and crew', 'Build a profile with your reel and credits. Switch on "Open to work" and get found.'],
-      ['brief', 'Castings and jobs', 'Post a role, receive applications with full profiles and shortlist in one list.'],
-      ['group', 'Communities and meetups', 'Join groups for your craft and meet your future crew at local events.']];
+    const feat = [['img', 'SC. 01', 'Share your work', 'Post stills, reels and behind-the-scenes. Your profile is your portfolio, and people can like, comment and share it.'],
+      ['brief', 'SC. 02', 'Find jobs and castings', 'Post a role or apply with your profile in one tap. Every applicant lands in one list.'],
+      ['group', 'SC. 03', 'Join communities', 'Groups for your craft and your city. Ask questions, share tips and find your next collaborator.'],
+      ['pin', 'SC. 04', 'Find your crew on the map', 'Search by role and city, see who is available and connect before you even message.']];
     return view(`<div class="landing">
-      <section class="lhero"><div class="lhero-t"><h1>Find your crew. <span>Get found</span> for your next role.</h1>
-        <p>Set UP is the professional network for film. Producers and casting directors search the map for cast and crew. Actors, directors and crew build a profile and get hired.</p>
+      <section class="lhero"><div class="lhero-t"><p class="rec"><span class="recdot"></span>REC · THE NETWORK FOR FILM PEOPLE</p>
+        <h1>Frame your <i>next set.</i></h1><div class="rule"></div>
+        <p class="lead2">Share your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
         <form class="card joinform" data-form="signup"><h2>Join Set UP. It's free.</h2>
           <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
           <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
@@ -170,12 +171,13 @@ route(/^#?\/?$/, async () => {
           <p class="muted center">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
         <div class="lhero-m" aria-hidden="true"><div class="miniMap"><span class="mp p1">12</span><span class="mp p2">ML</span><span class="mp p3">38</span><span class="mp p4">JW</span><span class="mp p5">SR</span>
           <div class="mcard"><span class="av md c0">ML</span><div><b>Mara Linden</b> <span class="avail">● Available</span><div class="sub">Cinematographer · Berlin</div></div></div></div></div></section>
-      <section class="lband"><h2>Search the map, <span>not the inbox</span></h2><p class="muted lead">Zoom to the city where you are shooting. See who is available, what they have worked on, and connect in one click.</p>
-        <div class="lgrid">${feat.map(([i, t, d]) => `<div class="card feat"><span class="fico">${ico(i)}</span><h3>${t}</h3><p class="muted">${d}</p></div>`).join('')}</div></section>
-      <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
+      <div class="strip"><span>Actors</span><span>Directors</span><span>Producers</span><span>Cinematographers</span><span>Editors</span><span>Sound</span><span>Writers</span></div>
+      <section class="lband"><p class="section-title">The shooting schedule</p><h2>Everything a production needs, <i>one network.</i></h2>
+        <div class="lgrid">${feat.map(([i, k, t, d]) => `<div class="card feat"><div class="kicker">${k}</div><h3>${t}</h3><p class="muted">${d}</p></div>`).join('')}</div></section>
+      <section class="lsec"><div class="lrow"><h2 class="lh">Open <i>roles</i></h2><a class="link" href="#/castings">All castings →</a></div>
         ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
-      <section class="lsec"><h2 class="lh">Everyone who makes a film</h2><div class="rolechips">${S.roles.map((r) => `<a class="chip" href="#/map" data-act="maprole" data-v="${esc(r)}">${esc(r)}</a>`).join('')}</div></section>
-      <section class="cta"><h2>Your next set is one search away.</h2><p>Create your free profile in two minutes.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
+      <section class="lsec"><h2 class="lh">Everyone who <i>makes a film</i></h2><div class="rolechips">${S.roles.map((r) => `<a class="chip" href="#/map" data-act="maprole" data-v="${esc(r)}">${esc(r)}</a>`).join('')}</div></section>
+      <section class="cta"><h2>Roll <i>camera.</i></h2><p>Free to join. Your next set starts with a profile.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
     </div>`, true);
   }
   const mc = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
