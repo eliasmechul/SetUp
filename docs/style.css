@@ -298,3 +298,32 @@ select option{background:#171513}
 .types button.on{border-color:var(--amber);color:var(--text);font-weight:600}
 .preview{max-width:100%;max-height:200px;border-radius:10px;margin:0 0 12px;display:block}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;z-index:2100;background:#000;border:1px solid var(--amber);padding:12px 18px;border-radius:10px;font-size:14px;max-width:90vw}
+
+/* ---------- warm landing (close-ups + handwriting) ---------- */
+.handline{font-family:'Caveat',cursive;font-size:34px;line-height:1.1;color:var(--amber);margin:12px 0 0;transform:rotate(-2deg);transform-origin:left}
+.cta .handline{margin:8px 0 26px;transform:none;font-size:32px}
+.lhero-t h1{font-size:92px}
+.lhero-m{position:relative;min-height:600px}
+.photo-eye{position:absolute;right:0;top:0;width:300px;height:520px;border-radius:14px;overflow:hidden;border:1px solid #3a342d;background:radial-gradient(70% 55% at 50% 45%,#E8A878,#B66F45 55%,#3a2014 100%)}
+.notebook{position:absolute;left:0;bottom:0;width:320px;height:360px;transform:rotate(-4deg);border-radius:6px;background-color:#F1EBDD;background-image:linear-gradient(rgba(60,80,110,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(60,80,110,.28) 1px,transparent 1px);background-size:26px 26px;box-shadow:0 24px 50px rgba(0,0,0,.6);color:#2B2B2B;padding:34px 30px}
+.notebook .rings{position:absolute;left:-14px;top:20px;bottom:20px;width:26px;display:flex;flex-direction:column;justify-content:space-between}
+.notebook .rings i{height:12px;border-radius:6px;background:#222;display:block}
+.hand{font-family:'Caveat',cursive;font-size:30px;line-height:1.1}
+.hand.big{font-size:44px;font-weight:700;margin-bottom:22px}
+.hand .red,.hand b.red{color:#B5342A}
+.pillar{padding:0;overflow:hidden;margin:0}
+.ptop{height:200px;position:relative;display:flex;align-items:center;justify-content:center}
+.pt1{background:radial-gradient(60% 80% at 70% 30%,rgba(255,200,120,.9),transparent 70%),linear-gradient(180deg,#5a3520,#171513)}
+.pt2{background:radial-gradient(60% 80% at 30% 30%,rgba(255,200,120,.7),transparent 70%),linear-gradient(180deg,#3a2517,#171513);justify-content:flex-start;align-items:flex-start;padding:24px}
+.pt2 .hand{font-size:34px;color:var(--text)}
+.pt2 .hand b{color:var(--amber);font-weight:500}
+.pt3{background:radial-gradient(60% 80% at 50% 20%,rgba(255,200,120,.6),transparent 70%),linear-gradient(180deg,#2e1f16,#171513)}
+.faces{display:flex}
+.faces .av{width:64px;height:64px;border:3px solid var(--card);margin-left:-14px;font-style:normal;font-weight:600}
+.faces .av:first-child{margin-left:0}
+.pbody2{padding:24px}
+.mapband{display:flex;flex-wrap:wrap;gap:40px;align-items:center;padding:72px 0 8px}
+.mb-t{flex:1 1 380px}
+.mb-m{flex:1 1 460px;min-width:0}
+.miniMap{aspect-ratio:16/10}
+@media(max-width:600px){.lhero-m{min-height:560px}.lhero-t h1{font-size:56px}.photo-eye{width:240px;height:420px}.notebook{width:260px;height:300px;padding:26px 22px}.hand.big{font-size:34px}.handline{font-size:28px}}
