@@ -327,3 +327,11 @@ select option{background:#171513}
 .mb-m{flex:1 1 460px;min-width:0}
 .miniMap{aspect-ratio:16/10}
 @media(max-width:600px){.lhero-m{min-height:560px}.lhero-t h1{font-size:56px}.photo-eye{width:240px;height:420px}.notebook{width:260px;height:300px;padding:26px 22px}.hand.big{font-size:34px}.handline{font-size:28px}}
+
+/* viewfinder panel (replaces the eye) */
+.photo-eye{background:radial-gradient(75% 55% at 70% 28%,rgba(255,205,125,.95),rgba(227,162,74,.5) 40%,transparent 72%),radial-gradient(60% 50% at 15% 95%,rgba(229,69,43,.55),transparent 70%),linear-gradient(180deg,#2a1d15,#0b0908)}
+.vf-b{position:absolute;inset:16px;display:block}
+.vf-rec{position:absolute;left:30px;top:28px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em}
+.vf-sc{position:absolute;right:30px;bottom:28px;font-family:var(--mono);font-size:12px;letter-spacing:.12em}
+.vf-flare{position:absolute;right:46px;top:96px;width:84px;height:84px;border-radius:50%;background:radial-gradient(circle,#FFE2A6 0,rgba(255,226,166,.8) 28%,rgba(255,226,166,0) 70%);opacity:.9}
+.vfb{background:linear-gradient(var(--amber),var(--amber)) top left/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) top left/2px 22px no-repeat,linear-gradient(var(--amber),var(--amber)) top right/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) top right/2px 22px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom left/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom left/2px 22px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom right/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom right/2px 22px no-repeat}
