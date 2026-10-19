@@ -38,3 +38,7 @@ then open http://127.0.0.1:8000
 
 ## Releasing
 After changing files in docs/, bump the `?v=` number on the script and style links in docs/index.html so browsers fetch the new files immediately (GitHub Pages caches for 10 minutes).
+
+## Email bot
+`bot/gmail-autoreply.gs` is a free Gmail auto-reply bot (Google Apps Script). Setup steps in `bot/README.md`.
+The mailbox itself must be created by the account owner. Status: script written, mailbox not created yet.
