@@ -165,7 +165,7 @@ const H = {
   async logout() { await sb.auth.signOut(); return { ok: true }; },
   async reset(_, b) {
     const email = clean(b.email, 160, true, 'Email').toLowerCase();
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname + '#/new-password' });
     if (error) throw fail(400, error.message);
     return { ok: true };
   },
