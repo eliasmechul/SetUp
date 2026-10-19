@@ -56,14 +56,15 @@ async function myConnections(me) {
 }
 
 const KINDS = ['update', 'showcase', 'question', 'tip', 'job', 'collab', 'event', 'news'];
-const POST_SEL = `id,body,image,kind,created_at,user_id,user:setup_profiles!setup_posts_user_id_fkey(${PCOLS}),likes:setup_likes(count),comments:setup_comments(count),community:setup_communities(id,name)`;
+const POST_SEL = `id,body,image,kind,created_at,user_id,user:setup_profiles!setup_posts_user_id_fkey(${PCOLS}),likes:setup_likes(count),comments:setup_comments(count),community:setup_communities(id,name),repost_of,original:repost_of(id,body,image,created_at,user:setup_profiles!setup_posts_user_id_fkey(${PCOLS}))`;
 async function shapePosts(rows, me) {
   let liked = new Set();
   if (me && rows.length) {
     const l = ok(await sb.from('setup_likes').select('post_id').eq('user_id', me).in('post_id', rows.map((r) => r.id)));
     liked = new Set(l.map((x) => x.post_id));
   }
-  return rows.map((r) => ({ id: r.id, body: r.body, image: r.image, kind: r.kind, created: iso(r), likes: r.likes[0].count,
+  return rows.map((r) => ({ id: r.id, body: r.body, image: r.image, kind: r.kind, repost_of: r.repost_of || null,
+    original: r.original ? { id: r.original.id, body: r.original.body, image: r.original.image, created: iso(r.original), user: userJson(r.original.user) } : null, created: iso(r), likes: r.likes[0].count,
     comments: r.comments[0].count, liked: liked.has(r.id), user: userJson(r.user),
     community: r.community ? { id: r.community.id, name: r.community.name } : null }));
 }
@@ -227,6 +228,7 @@ const H = {
     const me = await myId();
     let query = sb.from('setup_posts').select(POST_SEL).order('created_at', { ascending: false }).limit(50);
     if (KINDS.includes(q.get('kind'))) query = query.eq('kind', q.get('kind'));
+    if (/^[\p{L}\p{N}_]{2,40}$/u.test(q.get('tag') || '')) query = query.ilike('body', '%#' + q.get('tag') + '%');
     if (q.get('scope') === 'network' && me) {
       const [f, c] = await Promise.all([
         sb.from('setup_follows').select('followee_id').eq('follower_id', me),
@@ -244,10 +246,12 @@ const H = {
   async create_post(_, b) {
     const me = await uid();
     const body = clean(b.body, 3000), image = b.image || '';
-    if (!body && !image) throw fail(400, 'Write something or add an image');
+    const repostOf = /^\d+$/.test(String(b.repost_of || '')) ? Number(b.repost_of) : null;
+    if (repostOf && isSample(repostOf)) throw fail(400, SAMPLE_MSG);
+    if (!body && !image && !repostOf) throw fail(400, 'Write something or add an image');
     const cid = /^\d+$/.test(String(b.community_id || '')) ? Number(b.community_id) : null;
     const kind = KINDS.includes(b.kind) ? b.kind : 'update';
-    const r = ok(await sb.from('setup_posts').insert({ user_id: me, body, image, community_id: cid, kind }).select('id').single());
+    const r = ok(await sb.from('setup_posts').insert({ user_id: me, body, image, community_id: cid, kind, repost_of: repostOf }).select('id').single());
     return { id: r.id };
   },
   async delete_post(id) { ok(await sb.from('setup_posts').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
@@ -266,6 +270,20 @@ const H = {
   async add_comment(id, b) {
     ok(await sb.from('setup_comments').insert({ post_id: id, user_id: await uid(), body: clean(b.body, 1000, true, 'Comment') }));
     return H.get_comments(id);
+  },
+
+  async report(_, b) {
+    const me = await uid();
+    const types = ['post', 'comment', 'profile', 'casting', 'community'];
+    const reasons = ['spam', 'harassment', 'misleading', 'inappropriate', 'other'];
+    const type = types.includes(b.target_type) ? b.target_type : null;
+    const tid = String(b.target_id || '').slice(0, 60);
+    if (!type || !tid) throw fail(400, 'Nothing to report');
+    if (isSample(Number(tid)) || isSample(tid)) throw fail(400, SAMPLE_MSG);
+    const { error } = await sb.from('setup_reports').insert({ reporter_id: me, target_type: type, target_id: tid,
+      reason: reasons.includes(b.reason) ? b.reason : 'other', note: clean(b.note, 500) });
+    if (error) throw fail(error.code === '23505' ? 409 : 400, error.code === '23505' ? 'You already reported this. Thank you.' : error.message);
+    return { ok: true };
   },
 
   /* communities */
@@ -525,7 +543,7 @@ const H = {
 };
 
 const R = [
-  ['GET', '/me', 'me'], ['POST', '/me', 'update_me'], ['POST', '/signup', 'signup'], ['POST', '/login', 'login'],
+  ['GET', '/me', 'me'], ['POST', '/me', 'update_me'], ['POST', '/signup', 'signup'], ['POST', '/report', 'report'], ['POST', '/login', 'login'],
   ['POST', '/logout', 'logout'], ['POST', '/reset', 'reset'], ['POST', '/newpassword', 'newpassword'], ['POST', '/upload', 'upload'],
   ['GET', '/feed', 'feed'], ['POST', '/posts', 'create_post'], ['POST', '/posts/(\\d+)/delete', 'delete_post'],
   ['POST', '/posts/(\\d+)/like', 'like'], ['GET', '/posts/(\\d+)/comments', 'get_comments'], ['POST', '/posts/(\\d+)/comments', 'add_comment'],

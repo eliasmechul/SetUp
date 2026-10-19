@@ -301,3 +301,46 @@ create policy setup_uploads_insert on storage.objects for insert to authenticate
   with check (bucket_id = 'setup-uploads' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy setup_uploads_delete on storage.objects for delete to authenticated
   using (bucket_id = 'setup-uploads' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+-- ===== v2: reposts, reports, hourly rate limits =====
+alter table public.setup_posts add column if not exists repost_of bigint references public.setup_posts(id) on delete set null;
+create index if not exists setup_posts_repost on public.setup_posts(repost_of);
+alter table public.setup_posts drop constraint if exists setup_posts_check;
+alter table public.setup_posts add constraint setup_posts_check check (body <> '' or image <> '' or repost_of is not null);
+
+create table public.setup_reports(
+  id bigint generated always as identity primary key,
+  reporter_id uuid not null references public.setup_profiles(id) on delete cascade,
+  target_type text not null check (target_type in ('post','comment','profile','casting','community')),
+  target_id text not null check (char_length(target_id) <= 60),
+  reason text not null default 'other' check (reason in ('spam','harassment','misleading','inappropriate','other')),
+  note text not null default '' check (char_length(note) <= 500),
+  created_at timestamptz not null default now(),
+  unique(reporter_id, target_type, target_id));
+create index setup_reports_reporter on public.setup_reports(reporter_id);
+alter table public.setup_reports enable row level security;
+create policy setup_reports_insert on public.setup_reports for insert to authenticated with check (reporter_id = (select auth.uid()));
+revoke all on public.setup_reports from anon;
+revoke select, update, delete, truncate, references, trigger on public.setup_reports from authenticated;
+
+create function public.setup_rate_limit() returns trigger
+language plpgsql security definer set search_path = '' as $$
+declare cnt int;
+begin
+  execute format('select count(*) from public.%I where %I = $1 and created_at > now() - interval ''1 hour''', tg_table_name, tg_argv[1])
+    into cnt using (to_jsonb(new) ->> tg_argv[1])::uuid;
+  if cnt >= tg_argv[0]::int then
+    raise exception 'Slow down: too many in the last hour. Please try again later.' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+revoke all on function public.setup_rate_limit() from public, anon, authenticated;
+create trigger setup_rl_posts before insert on public.setup_posts for each row execute function public.setup_rate_limit('30', 'user_id');
+create trigger setup_rl_comments before insert on public.setup_comments for each row execute function public.setup_rate_limit('60', 'user_id');
+create trigger setup_rl_messages before insert on public.setup_messages for each row execute function public.setup_rate_limit('120', 'from_id');
+create trigger setup_rl_communities before insert on public.setup_communities for each row execute function public.setup_rate_limit('5', 'user_id');
+create trigger setup_rl_castings before insert on public.setup_castings for each row execute function public.setup_rate_limit('10', 'user_id');
+create trigger setup_rl_applications before insert on public.setup_applications for each row execute function public.setup_rate_limit('30', 'user_id');
+create trigger setup_rl_connections before insert on public.setup_connections for each row execute function public.setup_rate_limit('60', 'from_id');
+create trigger setup_rl_reports before insert on public.setup_reports for each row execute function public.setup_rate_limit('30', 'reporter_id');
+-- (post "kind" column: see v1 definition above; it is part of setup_posts)

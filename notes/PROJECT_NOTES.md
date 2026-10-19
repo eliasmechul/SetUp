@@ -42,3 +42,11 @@ After changing files in docs/, bump the `?v=` number on the script and style lin
 ## Email bot
 `bot/gmail-autoreply.gs` is a free Gmail auto-reply bot (Google Apps Script). Setup steps in `bot/README.md`.
 The mailbox itself must be created by the account owner. Status: script written, mailbox not created yet.
+
+## v2 additions (Oct 2026)
+- Community feed: post kinds (showcase, question, tip, job, collab, event, news, update) with filter chips; hashtags (#tag pages); reposts; report button (table `setup_reports`, readable only in the dashboard).
+- Hourly rate limits by database triggers (posts 30, comments 60, messages 120, communities 5, castings 10, applications 30, connections 60, reports 30).
+- Turkish interface: `docs/i18n.js` (dictionary + language button in the footer; auto-picks Turkish for Turkish browsers). Add phrases there.
+- Legal pages (#/privacy, #/terms, #/imprint) are DRAFT templates with [brackets] to fill in and have reviewed.
+- Share previews (Open Graph), robots.txt, sitemap.xml.
+- After a database change run `notify pgrst, 'reload schema'` in the SQL editor.

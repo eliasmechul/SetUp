@@ -27,6 +27,7 @@ const ICONS = {
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
+  repost: '<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>',
   pin: '<path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
   group: '<circle cx="12" cy="8" r="3"/><circle cx="5.5" cy="10" r="2.3"/><circle cx="18.5" cy="10" r="2.3"/><path d="M6.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M1.5 18c0-2 1.5-3.5 3.5-3.7M22.5 18c0-2-1.5-3.5-3.5-3.7"/>',
 };
@@ -100,6 +101,7 @@ function shell(content) {
       ${m ? '' : '<div class="authbtns"><a class="btn ghost sm" href="#/login">Sign in</a><a class="btn sm" href="#/signup">Join now</a></div>'}
     </div></header>
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
+    <footer class="foot"><span>© Set UP</span><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></footer>
     <nav class="tabbar" aria-label="Main">${bar}</nav>
   </div>`;
 }
@@ -107,17 +109,23 @@ function view(html, isWide) { wide = !!isWide; shell(html); window.scrollTo(0, 0
 function setView(html) { const v = document.getElementById('view'); if (v) v.innerHTML = html; }
 
 /* ---------- components ---------- */
+const richText = (t) => esc(t).replace(/(^|\s)#([\p{L}\p{N}_]{2,40})/gu, (m, sp, tag) => `${sp}<a class="tag" href="#/tag/${encodeURIComponent(tag)}">#${tag}</a>`);
+const quoteBlock = (p) => (p.original
+  ? `<div class="quote"><div class="sub"><a href="#/profile/${p.original.user.id}"><b>${esc(p.original.user.name)}</b></a> · ${ago(p.original.created)}</div>${p.original.body ? `<div>${richText(p.original.body)}</div>` : ''}${p.original.image ? `<img class="post-img sm" src="${esc(p.original.image)}" alt="" loading="lazy">` : ''}</div>`
+  : (p.repost_of ? '<div class="quote muted">The original post is no longer available.</div>' : ''));
 function postCard(p) {
   const mine = S.me && S.me.id === p.user.id;
   return `<article class="card" data-post="${p.id}">
     <div class="post-head"><a href="#/profile/${p.user.id}">${av(p.user)}</a>${who(p.user)}<span class="sub">${ago(p.created)}</span>${exPill(p)}</div>
     ${p.community || (p.kind && p.kind !== 'update') ? `<p>${kindPill(p)}${p.community ? `<a class="pill" href="#/communities/${p.community.id}">in ${esc(p.community.name)}</a>` : ''}</p>` : ''}
-    ${p.body ? `<p class="post-body">${esc(p.body)}</p>` : ''}
+    ${p.body ? `<p class="post-body">${richText(p.body)}</p>` : ''}
+    ${quoteBlock(p)}
     ${p.image ? `<img class="post-img" src="${esc(p.image)}" alt="Photo shared by ${esc(p.user.name)}" loading="lazy">` : ''}
     <div class="actions">
       <button class="act ${p.liked ? 'liked' : ''}" data-act="like" data-id="${p.id}" aria-label="Like" aria-pressed="${p.liked}">${ico('heart')}<span>${p.likes}</span></button>
       <button class="act" data-act="comments" data-id="${p.id}" aria-label="Comments">${ico('chat')}<span>${p.comments}</span></button>
-      ${mine ? `<button class="act" data-act="delpost" data-id="${p.id}">Delete</button>` : ''}
+      ${S.me && !p.sample ? `<button class="act" data-act="repost" data-id="${p.id}" aria-label="Repost">${ico('repost')}<span>Repost</span></button>` : ''}
+      ${mine ? `<button class="act" data-act="delpost" data-id="${p.id}">Delete</button>` : (S.me && !p.sample ? `<button class="act rep" data-act="report" data-type="post" data-id="${p.id}">Report</button>` : '')}
     </div>
     <div class="comments" hidden></div>
   </article>`;
@@ -366,7 +374,7 @@ route(/^#\/profile\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
   const self = S.me && S.me.id === u.id;
   const skills = (u.skills || '').split(',').map((x) => x.trim()).filter(Boolean);
   const buttons = self ? '<a class="btn" href="#/me/edit">Edit profile</a><button class="btn ghost" data-act="logout">Log out</button>'
-    : `${connBtn(u.id, u.state)}${u.state === 'connected' ? '' : `<a class="btn ghost" href="#/messages/${u.id}">Message</a>`}<button class="btn ghost" data-act="follow" data-id="${u.id}">${u.following ? 'Following' : 'Follow'}</button>${u.state === 'connected' ? `<button class="btn danger sm" data-act="disconnect" data-id="${u.id}">Remove</button>` : ''}`;
+    : `${connBtn(u.id, u.state)}${u.state === 'connected' ? '' : `<a class="btn ghost" href="#/messages/${u.id}">Message</a>`}<button class="btn ghost" data-act="follow" data-id="${u.id}">${u.following ? 'Following' : 'Follow'}</button>${S.me && !u.sample ? `<button class="btn ghost sm" data-act="report" data-type="profile" data-id="${u.id}">Report</button>` : ''}${u.state === 'connected' ? `<button class="btn danger sm" data-act="disconnect" data-id="${u.id}">Remove</button>` : ''}`;
   view(`<div class="pgrid"><div class="pmain">
     <section class="card p0"><div class="banner"></div><div class="pbody"><div class="pav">${av(u, 'xl')}</div>
       <div class="phead"><div><h1 class="pname">${esc(u.name)}</h1><div class="pline">${esc(u.headline || u.role)}</div>
@@ -455,6 +463,37 @@ route(/^#\/messages\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
   pollTimer = setInterval(() => { if (location.hash === '#/messages/' + id) draw(false).catch(() => {}); }, 5000);
 });
 
+route(/^#\/tag\/(.+)$/, async (raw) => {
+  const tag = decodeURIComponent(raw);
+  const { posts } = await api('/feed?tag=' + encodeURIComponent(tag));
+  view(`<p><a class="link" href="#/">${ico('back')} Home</a></p><h1 class="page-title">#${esc(tag)}</h1>
+    ${posts.length ? posts.map(postCard).join('') : '<div class="empty">No posts with this tag yet.</div>'}`);
+});
+
+const LEGAL_NOTE = '<p class="sample-note"><b>Draft.</b> This is a template. Fill in the [brackets] and have it reviewed by a lawyer before you rely on it.</p>';
+route(/^#\/privacy$/, async () => view(`<h1 class="page-title">Privacy policy</h1>${LEGAL_NOTE}<div class="legal">
+  <p><b>Who is responsible:</b> [Your name or company], [address], [contact email].</p>
+  <h2>What we collect</h2><p>Account data you give us (name, email, role, city, profile text, photos, credits), the content you post (posts, comments, messages, castings, communities, meetups, applications), and the connections you make. Your email and password are handled by our login provider; we never see your password.</p>
+  <h2>How we use it</h2><p>To run Set UP: show your profile and posts, place you on the talent map by city (only the city centre, never your address), let people connect, message and apply, send account emails (confirmation, password reset) and keep the service safe.</p>
+  <h2>Who processes it</h2><p>Supabase (database, login, file storage; project region: [Singapore / update if you move it]); GitHub Pages (website hosting); OpenStreetMap (map tiles: your IP address is sent to them when you open the map); Google Fonts (fonts: your IP address is sent to Google). [Consider hosting the fonts yourself to avoid the Google request.]</p>
+  <h2>Cookies and storage</h2><p>We only use browser storage that is needed to keep you logged in. There is no advertising or tracking.</p>
+  <h2>Your rights</h2><p>You can access, correct, export or delete your data, object to processing and complain to your data protection authority. To delete your account or ask a question, email [contact email].</p>
+  <h2>Retention</h2><p>We keep your data while your account exists. When you delete your account your profile, posts, messages and files are removed.</p>
+  <h2>Age</h2><p>Set UP is for people aged 16 and over.</p></div>`));
+route(/^#\/terms$/, async () => view(`<h1 class="page-title">Terms of use</h1>${LEGAL_NOTE}<div class="legal">
+  <h2>Using Set UP</h2><p>You must be at least 16, give true information and keep your login private. One person, one account.</p>
+  <h2>Your content</h2><p>You own what you post. You allow Set UP to show it to other users for the purpose of running the service. Only post things you have the right to share. Do not post anyone else's private information.</p>
+  <h2>Not allowed</h2><p>Spam, scams, fake castings or jobs, requests for money to apply, harassment, hate, nudity or sexual content involving minors, illegal content, impersonation, scraping or abusing the service.</p>
+  <h2>Castings and jobs</h2><p>Set UP only connects people. We do not employ anyone, we are not a party to any agreement between users, and we do not check castings. Use your own judgement and never pay to get a role.</p>
+  <h2>Reports and removal</h2><p>Use the Report button. We may remove content or suspend accounts that break these rules.</p>
+  <h2>Liability</h2><p>Set UP is provided as is. To the extent the law allows, we are not liable for losses arising from use of the service. [Have this clause reviewed.]</p>
+  <h2>Contact</h2><p>[contact email]. Governing law: [country / court].</p></div>`));
+route(/^#\/imprint$/, async () => view(`<h1 class="page-title">Impressum</h1>${LEGAL_NOTE}<div class="legal">
+  <p><b>Provider:</b><br>[Full name or company name]<br>[Street and number]<br>[Postcode and city], [Country]</p>
+  <p><b>Contact:</b><br>Email: [contact email]<br>[Phone, optional]</p>
+  <p><b>Responsible for content:</b> [Name and address]</p>
+  <p>[If you are a company add: register court and number, VAT ID.]</p></div>`));
+
 route(/^#\/reset$/, async () => {
   view(`<div class="auth"><div class="hero"><img src="logo.png" alt="Set UP logo"><p>Reset your password</p></div>
     <form data-form="reset"><div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required autocomplete="email"></div>
@@ -519,6 +558,24 @@ function composer(kind = 'post', cid = '') {
     <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting', 'brief')}${t('meetup', 'Meetup', 'cal')}${t('community', 'Community', 'group')}</div>${form}</div>`;
   const first = $modal.querySelector('textarea, input'); if (first) first.focus();
 }
+function openReport(type, id) {
+  if (!S.me) return needLogin();
+  $modal.hidden = false;
+  $modal.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Report"><div class="sheet-head"><h2>Report</h2><button class="iconbtn" data-act="close" aria-label="Close">${ico('x')}</button></div>
+    <form data-form="report"><input type="hidden" name="target_type" value="${esc(type)}"><input type="hidden" name="target_id" value="${esc(id)}">
+    <div class="field"><label for="rr">Why are you reporting this?</label><select id="rr" name="reason"><option value="spam">Spam or scam</option><option value="harassment">Harassment or hate</option><option value="misleading">Misleading or fake</option><option value="inappropriate">Inappropriate content</option><option value="other">Something else</option></select></div>
+    <div class="field"><label for="rn">Details (optional)</label><textarea id="rn" name="note" maxlength="500"></textarea></div>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Send report</button></form></div>`;
+}
+function openRepost(id) {
+  if (!S.me) return needLogin();
+  $modal.hidden = false;
+  $modal.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Repost"><div class="sheet-head"><h2>Repost</h2><button class="iconbtn" data-act="close" aria-label="Close">${ico('x')}</button></div>
+    <form data-form="repost"><input type="hidden" name="repost_of" value="${esc(id)}"><input type="hidden" name="kind" value="update">
+    <div class="field"><label for="rb">Add your thoughts (optional)</label><textarea id="rb" name="body" maxlength="3000" placeholder="Say something about this post…"></textarea></div>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Repost</button></form></div>`;
+  const t = $modal.querySelector('textarea'); if (t) t.focus();
+}
 const closeModal = () => { $modal.hidden = true; $modal.innerHTML = ''; };
 
 /* ---------- events ---------- */
@@ -536,6 +593,9 @@ document.addEventListener('click', (ev) => {
     switch (act) {
       case 'compose': return composer(v || 'post', el.dataset.cid || '');
       case 'close': return closeModal();
+      case 'report': return openReport(el.dataset.type, id);
+      case 'repost': return openRepost(id);
+      case 'lang': return window.I18N && window.I18N.toggle();
       case 'logout': await api('/logout', {}); S.me = null; location.hash = '#/'; return router();
       case 'scope': ui.feedScope = v; return rerender();
       case 'feedkind': ui.feedKind = v; return rerender();
@@ -626,6 +686,8 @@ document.addEventListener('submit', (ev) => {
         case 'profile': await api('/me', data); await refreshMe(); toast('Saved'); location.hash = '#/profile/' + S.me.id; return;
         case 'comment': { const r = await api(`/posts/${id}/comments`, data); const box = f.closest('.comments'); drawComments(box, id, r.comments); const art = box.closest('article'); art.querySelector('[data-act=comments] span').textContent = r.comments.length; return; }
         case 'msg': await api('/messages/' + id, data); f.reset(); return rerender();
+        case 'report': await api('/report', data); closeModal(); toast('Thank you. We will review this.'); return;
+        case 'repost': await api('/posts', data); closeModal(); toast('Reposted'); return rerender();
         case 'castfilter': ui.castQ = data.q; ui.castCity = data.city; return rerender();
         case 'pfilter': ui.pq = data.q; ui.prole = data.role; ui.pcity = data.city; return rerender();
       }

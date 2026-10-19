@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://eliasmechul.github.io/SetUp/sitemap.xml

@@ -343,3 +343,18 @@ select option{background:#171513}
 
 .pill.kind{border-color:var(--amber);color:var(--amber);margin-right:6px}
 .kindchips{margin-bottom:10px}
+
+/* tags, quotes, footer, legal */
+a.tag{color:var(--amber);font-weight:600}
+a.tag:hover{text-decoration:underline}
+.quote{display:block;border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:10px;padding:10px 14px;margin:0 0 12px;background:var(--bg)}
+.quote .post-img.sm{max-height:180px;margin:8px 0 0}
+.act.rep{margin-left:auto;font-size:13px}
+.foot{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;justify-content:center;padding:18px 16px 96px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.foot a{min-height:44px;display:inline-flex;align-items:center}
+.foot a:hover{color:var(--amber)}
+.foot .link{min-height:44px;font-size:13px}
+@media(min-width:900px){.foot{padding-bottom:28px}}
+.legal{max-width:720px}
+.legal h2{font-family:var(--serif);font-size:30px;margin:26px 0 8px}
+.legal p{color:var(--soft);line-height:1.65;margin:0 0 12px}
