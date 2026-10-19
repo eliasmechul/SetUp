@@ -335,3 +335,8 @@ select option{background:#171513}
 .vf-sc{position:absolute;right:30px;bottom:28px;font-family:var(--mono);font-size:12px;letter-spacing:.12em}
 .vf-flare{position:absolute;right:46px;top:96px;width:84px;height:84px;border-radius:50%;background:radial-gradient(circle,#FFE2A6 0,rgba(255,226,166,.8) 28%,rgba(255,226,166,0) 70%);opacity:.9}
 .vfb{background:linear-gradient(var(--amber),var(--amber)) top left/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) top left/2px 22px no-repeat,linear-gradient(var(--amber),var(--amber)) top right/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) top right/2px 22px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom left/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom left/2px 22px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom right/22px 2px no-repeat,linear-gradient(var(--amber),var(--amber)) bottom right/2px 22px no-repeat}
+
+/* example content */
+.pill.ex{border-color:#5A5146;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;margin-left:6px}
+.sample-note{border:1px dashed #5A5146;border-radius:10px;padding:10px 14px;color:var(--soft);font-size:14px;margin:0 0 14px;background:rgba(227,162,74,.06)}
+.sample-note b{color:var(--amber)}

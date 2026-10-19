@@ -60,13 +60,15 @@ function av(u, cls = '') {
   const ini = (u.name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   return `<div class="av ${cls} c${hue(u.id)}" aria-hidden="true">${esc(ini)}</div>`;
 }
-const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div>${u.open_to_work ? `<div>${availBadge(u)}</div>` : ''}</a>`;
+const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div>${exPill(u)}${u.open_to_work ? `<div>${availBadge(u)}</div>` : ''}</a>`;
 const initials = (n) => (n || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const geo = (txt) => { const t = String(txt || '').trim().toLowerCase(); if (!t || !window.CITIES) return null;
   return window.CITIES.find((c) => c.label.toLowerCase() === t || c.name.toLowerCase() === t) || null; };
 const cityList = () => `<datalist id="cities">${(window.CITIES || []).map((c) => `<option value="${esc(c.name)}">${esc(c.country)}</option>`).join('')}</datalist>`;
 const availText = (u) => !u.open_to_work ? '' : (u.available_from && u.available_from > new Date().toISOString().slice(0, 10) ? 'Available from ' + new Date(u.available_from + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Open to work');
 const availBadge = (u) => (u.open_to_work ? `<span class="avail">● ${esc(availText(u))}</span>` : '');
+const exPill = (x) => (x && x.sample ? '<span class="pill ex">Example</span>' : '');
+const sampleNote = (list) => (list && list[0] && list[0].sample ? '<p class="sample-note"><b>Examples.</b> These show how Set UP looks. Real members, jobs and posts replace them as people join.</p>' : '');
 const needLogin = () => { toast('Log in to do that'); location.hash = '#/login'; };
 
 /* ---------- shell ---------- */
@@ -105,7 +107,7 @@ function setView(html) { const v = document.getElementById('view'); if (v) v.inn
 function postCard(p) {
   const mine = S.me && S.me.id === p.user.id;
   return `<article class="card" data-post="${p.id}">
-    <div class="post-head"><a href="#/profile/${p.user.id}">${av(p.user)}</a>${who(p.user)}<span class="sub">${ago(p.created)}</span></div>
+    <div class="post-head"><a href="#/profile/${p.user.id}">${av(p.user)}</a>${who(p.user)}<span class="sub">${ago(p.created)}</span>${exPill(p)}</div>
     ${p.community ? `<p><a class="pill" href="#/communities/${p.community.id}">in ${esc(p.community.name)}</a></p>` : ''}
     ${p.body ? `<p class="post-body">${esc(p.body)}</p>` : ''}
     ${p.image ? `<img class="post-img" src="${esc(p.image)}" alt="Photo shared by ${esc(p.user.name)}" loading="lazy">` : ''}
@@ -120,13 +122,13 @@ function postCard(p) {
 const meetMini = (m) => { const w = when(m.starts); return `<div class="mini"><div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div><div><div class="name">${esc(m.title)}</div><div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}</div></div></div>`; };
 const railPerson = (u) => `<div class="person rp"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}${connBtn(u.id, 'none', true)}</div>`;
 const commCard = (c) => `<div class="card"><div class="event"><div class="date"><span>${esc(c.topic.slice(0, 5))}</span><b>${c.members}</b></div>
-  <div class="info"><a href="#/communities/${c.id}"><h3>${esc(c.name)}</h3></a><div class="sub">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''} · ${c.members} member${c.members === 1 ? '' : 's'}</div>
+  <div class="info"><a href="#/communities/${c.id}"><h3>${esc(c.name)}</h3></a>${exPill(c)}<div class="sub">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''} · ${c.members} member${c.members === 1 ? '' : 's'}</div>
   ${c.description ? `<div class="sub">${esc(c.description)}</div>` : ''}</div>
   <button class="btn sm ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓' : 'Join'}</button></div></div>`;
 function castCard(c) {
   const status = c.applied ? '<span class="pill ok">Applied</span>' : '';
   return `<a class="cast" href="#/castings/${c.id}"><div class="in">
-    <span class="kicker">${esc(c.category)} casting</span><h3>${esc(c.title)}</h3>
+    <span class="kicker">${esc(c.category)} casting ${exPill(c)}</span><h3>${esc(c.title)}</h3>
     <div class="meta">${c.production ? `<span>${esc(c.production)}</span>` : ''}${c.city ? `<span>${esc(c.city)}</span>` : ''}${c.pay ? `<span>${esc(c.pay)}</span>` : ''}${c.deadline ? `<span>Closes ${esc(when(c.deadline).text)}</span>` : ''}</div>
     <div class="meta"><span>Posted ${ago(c.created)} by ${esc(c.poster)}</span>${c.applicants !== undefined ? `<span>${c.applicants} applied</span>` : ''}${status}</div>
   </div></a>`;
@@ -198,6 +200,7 @@ route(/^#?\/?$/, async () => {
   view(`<div class="feedgrid"><aside class="lcol">${mc}</aside><div class="feedcol">
     <div class="card startpost"><div class="sp-top">${av(m)}<button class="sp-input" data-act="compose">Start a post</button></div>
       <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button></div></div>
+    ${sampleNote(feed.posts)}
     <div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
     ${feed.posts.length ? feed.posts.map(postCard).join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people on the <a class="link" href="#/map">talent map</a>.' : 'No posts yet. Be the first!'}</div>`}
   </div>${rail}</div>`, true);
@@ -209,6 +212,7 @@ route(/^#\/map$/, async () => {
   const { people } = await api('/mappeople?' + qs);
   view(`<div class="mappage"><div class="maphead"><div><h1 class="ptitle">Find talent on the map</h1><p class="muted" id="mapcount"> </p></div>
       ${S.me ? '<button class="btn" data-act="compose" data-v="casting">Post a casting call</button>' : '<a class="btn" href="#/signup">Join to connect</a>'}</div>
+    ${sampleNote(people)}
     <form class="mapfilters" data-form="mapfilter"><div class="field"><label class="sr" for="mq">Search</label><input id="mq" name="q" placeholder="Name, craft, skill or city" value="${esc(ui.mapQ)}"></div>
       <div class="field"><label class="sr" for="mr">Role</label><select id="mr" name="role"><option value="">All roles</option>${S.roles.map((r) => `<option ${ui.mapRole === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
       <label class="chk"><input type="checkbox" name="open" ${ui.mapOpen ? 'checked' : ''}> <span>Available now</span></label><button class="btn" type="submit">Search</button></form>
@@ -259,6 +263,7 @@ route(/^#\/communities$/, async () => {
   view(`<h1 class="page-title">Communities</h1>
     <div class="seg"><button class="${ui.commTab === 'discover' ? 'on' : ''}" data-act="commtab" data-v="discover">Discover</button>${S.me ? `<button class="${ui.commTab === 'mine' ? 'on' : ''}" data-act="commtab" data-v="mine">My communities</button>` : ''}</div>
     <div class="chips">${topics.map((t) => `<button class="chip ${ui.commTopic === t ? 'on' : ''}" data-act="commtopic" data-v="${t}">${t || 'All'}</button>`).join('')}</div>
+    ${sampleNote(communities)}
     ${S.me ? '<p><button class="link" data-act="compose" data-v="community">+ Start a community</button></p>' : ''}
     ${communities.length ? communities.map(commCard).join('') : '<div class="empty">No communities here yet. Start the first one!</div>'}`);
 });
@@ -287,6 +292,7 @@ route(/^#\/castings$/, async () => {
     <div class="field"><label class="sr" for="cc">City</label><input id="cc" name="city" placeholder="City" value="${esc(ui.castCity)}"></div><button class="sr" type="submit">Search</button></form>
     <div class="chips">${cats.map((c) => `<button class="chip ${ui.castCat === c ? 'on' : ''}" data-act="castcat" data-v="${esc(c)}">${c || 'All'}</button>`).join('')}</div>
     ${S.me ? `<div class="row" style="margin-bottom:12px"></div>` : ''}
+    ${sampleNote(castings)}
     ${S.me ? `<p><button class="link" data-act="compose" data-v="casting">+ Post a casting call</button> · <a class="link" href="#/applications">My applications</a></p>` : ''}
     ${castings.length ? castings.map(castCard).join('') : '<div class="empty">No castings match. Try another filter.</div>'}`);
 });
@@ -327,10 +333,11 @@ route(/^#\/meetups$/, async () => {
   const { meetups } = await api('/meetups' + (ui.meetTab === 'mine' ? '?mine=1' : ''));
   view(`<h1 class="page-title">Meetups</h1>
     <div class="seg"><button class="${ui.meetTab === 'upcoming' ? 'on' : ''}" data-act="meettab" data-v="upcoming">Upcoming</button><button class="${ui.meetTab === 'mine' ? 'on' : ''}" data-act="meettab" data-v="mine">Going / Hosting</button></div>
+    ${sampleNote(meetups)}
     ${S.me ? '<p><button class="link" data-act="compose" data-v="meetup">+ Host a meetup</button></p>' : ''}
     ${meetups.length ? meetups.map((m) => { const w = when(m.starts); const mine = S.me && S.me.id === m.host_id; return `<div class="card"><div class="event">
       <div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div>
-      <div class="info"><h3>${esc(m.title)}</h3><div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}${m.city ? ', ' + esc(m.city) : ''}</div>
+      <div class="info"><h3>${esc(m.title)}</h3>${exPill(m)}<div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}${m.city ? ', ' + esc(m.city) : ''}</div>
       <div class="sub">${m.going} going · Hosted by <a class="link" href="#/profile/${m.host_id}">${esc(m.host)}</a></div></div>
       <button class="btn sm ${m.joined ? 'ghost' : ''}" data-act="rsvp" data-id="${m.id}">${m.joined ? 'Going ✓' : 'Join'}</button></div>
       ${m.description ? `<p class="post-body" style="margin:10px 0 0">${esc(m.description)}</p>` : ''}

@@ -71,6 +71,67 @@ async function myId() { const s = await session(); return s ? s.user.id : null; 
 const castingShape = (r) => ({ id: r.id, title: r.title, category: r.category, production: r.production, city: r.city, pay: r.pay,
   deadline: r.deadline, description: r.description, created: iso(r), user_id: r.user_id, poster: r.poster ? r.poster.name : '' });
 
+/* ---------- example content (shown only while the real site is empty; never stored) ---------- */
+const SID = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const isSample = (v) => (typeof v === 'number' && v >= 9000000) || (typeof v === 'string' && v.startsWith('00000000-0000-4000-8000-'));
+const SAMPLE_MSG = 'This is an example. Join Set UP to connect with real people.';
+const dAhead = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+const minsAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
+const SP = [
+  [1, 'Mara Linden', 'Cinematographer', 'Director of Photography', 'Berlin', 52.52, 13.405, true, 'DoP for shorts, music videos and documentaries. Natural light, small crews.', 'ARRI, Anamorphic, Documentary'],
+  [2, 'Jacob Washington', 'Director', 'Director and writer', 'Berlin', 52.52, 13.405, false, 'Making my second short film this winter.', 'Directing, Writing, Casting'],
+  [3, 'Sofia Reyes', 'Sound', 'Location sound and design', 'Berlin', 52.52, 13.405, true, 'Boom op by day, mixer by night.', 'Location sound, Foley, Mixing'],
+  [4, 'Kat Williams', 'Actor', 'Actor, stage and screen', 'London', 51.507, -0.128, true, 'Trained in London. English and German.', 'Drama, Comedy, Voice'],
+  [5, 'Nina Kovacs', 'Producer', 'Indie producer', 'Paris', 48.857, 2.352, false, 'I host a monthly short film night.', 'Producing, Budgeting, Festivals'],
+  [6, 'Tony Monta', 'Editor', 'Editor and colourist', 'Los Angeles', 34.052, -118.244, true, 'Cutting narrative and commercial work.', 'Premiere, DaVinci Resolve'],
+  [7, 'Amara Okafor', 'Actor', 'Screen actor', 'Lagos', 6.524, 3.379, true, 'Open to features and series.', 'Drama, Accents'],
+  [8, 'Ravi Menon', 'Director', 'Documentary director', 'Mumbai', 19.076, 72.878, false, 'Long-form documentary and branded content.', 'Directing, Documentary'],
+  [9, 'Chloe Tremblay', 'Production Designer', 'Production designer', 'Toronto', 43.653, -79.383, true, 'Sets and props for indie features.', 'Set design, Props'],
+  [10, 'Leo Nakamura', 'Cinematographer', 'Cinematographer', 'Tokyo', 35.689, 139.692, false, 'Commercials and music videos.', 'Anamorphic, Steadicam'],
+  [11, 'Elif Demir', 'Writer', 'Screenwriter', 'Istanbul', 41.008, 28.978, false, 'Drama and limited series.', 'Screenwriting, Story'],
+  [12, 'Sam Carter', 'Sound', 'Sound designer', 'Sydney', -33.869, 151.209, true, 'Post sound and ADR.', 'Mixing, ADR'],
+];
+const sPeople = SP.map(([n, name, role, headline, city, lat, lng, open, bio, skills]) => ({ id: SID(n), name, role, headline, city, avatar: '', open_to_work: open,
+  available_from: '', lat, lng, bio, skills, sample: true }));
+const sUser = (n) => { const u = sPeople[n - 1]; return userJson(u) && { ...userJson(u), sample: true }; };
+const SAMPLE = {
+  people(q) {
+    const text = (q.get('q') || '').toLowerCase();
+    return sPeople.filter((p) => (!q.get('role') || p.role === q.get('role')) && (q.get('open') !== '1' || p.open_to_work) &&
+      (!text || [p.name, p.headline, p.skills, p.city].join(' ').toLowerCase().includes(text))).map((p) => ({ ...p, state: 'none' }));
+  },
+  posts() {
+    const t = [[1, 'Wrapped the last day on Night Ferry. Thank you to the whole camera crew.', 20, 24, 6], [4, 'Open to new work from December. DM me if your shoot needs an actor in London.', 90, 41, 9],
+      [3, 'Tip: record 60 seconds of room tone on every location. Your editor will thank you.', 300, 112, 18], [2, 'Casting a lead for my short film. Shoot dates in November. Details in Castings.', 600, 33, 5]];
+    return t.map(([n, body, m, likes, comments], i) => ({ id: 9000001 + i, body, image: '', created: minsAgo(m), likes, comments, liked: false, user: sUser(n), community: null, sample: true }));
+  },
+  castings() {
+    return [[9000001, 'Junior actor, lead role', 'Acting', 'Berlin', 'Paid', 6, 2, 'Looking for an actor in their twenties for the lead of a 15-minute drama. Three shooting days in November.'],
+      [9000002, 'Gaffer, feature documentary', 'Crew', 'Hamburg', 'Day rate', 12, 2, 'Experienced gaffer for a ten-day documentary shoot. Own kit is a plus.'],
+      [9000003, 'Voice actor, animated series', 'Voice', 'Remote', 'Paid', 3, 5, 'Warm, expressive voice for a children\'s animated series. Remote recording.'],
+      [9000004, 'Street scene extras, one day', 'Extras', 'Munich', 'Unpaid, meals', 9, 1, 'Background performers for a busy street scene.']]
+      .map(([id, title, category, city, pay, days, owner, description]) => ({ id, title, category, production: '[Example production]', city, pay, deadline: dAhead(days), description,
+        created: minsAgo(120), user_id: SID(owner), poster: sPeople[owner - 1].name, applied: false, sample: true }));
+  },
+  communities() {
+    return [[9000001, 'Berlin Indie Filmmakers', 'Directing', 'Berlin', 'Monthly chats, shared resources and crew calls for independent directors.', 128, 2],
+      [9000002, 'Editors Room', 'Editing', '', 'Workflow tips, feedback on cuts and freelance leads for editors and colourists.', 86, 6],
+      [9000003, 'Location Sound Collective', 'Sound', '', 'Boom ops, mixers and sound designers swapping gear advice and day-rate gigs.', 39, 3]]
+      .map(([id, name, topic, city, description, members, owner]) => ({ id, name, topic, city, description, owner_id: SID(owner), created: minsAgo(5000), members, joined: false, sample: true }));
+  },
+  meetups() {
+    return [[9000001, 'Short Film Night', 'Berlin', 'Kino Rex', dAhead(8) + 'T19:00', 42, 5], [9000002, 'Cinematographers Coffee', 'Berlin', 'Cafe Lumen', dAhead(15) + 'T10:00', 18, 1],
+      [9000003, 'Script Table Read', 'London', 'Studio 9', dAhead(22) + 'T18:30', 12, 4]]
+      .map(([id, title, city, venue, starts, going, host]) => ({ id, title, city, venue, starts, description: 'Open to everyone in film.', host: sPeople[host - 1].name, host_id: SID(host),
+        going, joined: false, sample: true }));
+  },
+  profile(id) {
+    const p = sPeople.find((x) => x.id === id); if (!p) return null;
+    return { ...userJson(p), sample: true, bio: p.bio, skills: p.skills, created: minsAgo(9000), reel_url: '', lat: p.lat, lng: p.lng, credits: [{ id: 1, title: 'Night Ferry', role: p.role, kind: 'Short film', year: '2026', description: '' }],
+      followers: 120, connections: 340, state: 'none', following: false, posts: SAMPLE.posts().filter((x) => x.user.id === id), castings: SAMPLE.castings().filter((c) => c.user_id === id) };
+  },
+};
+
 /* ---------- handlers ---------- */
 const H = {
   async me() {
@@ -141,7 +202,9 @@ const H = {
     if (q.get('open') === '1') query = query.eq('open_to_work', true);
     const text = safe(q.get('q') || ''); if (text) query = query.or(`name.ilike.%${text}%,headline.ilike.%${text}%,skills.ilike.%${text}%,city.ilike.%${text}%`);
     const [rows, conns] = await Promise.all([query, me ? myConnections(me) : new Map()]);
-    return { people: ok(rows).map((r) => ({ ...userJson(r), lat: r.lat, lng: r.lng, skills: r.skills, state: r.id === me ? 'self' : (conns.get(r.id) || 'none') })) };
+    const rrows = ok(rows);
+    if (!rrows.length) { const tot = await sb.from('setup_profiles').select('id', { count: 'exact', head: true }).not('lat', 'is', null); if (!tot.count) return { people: SAMPLE.people(q) }; }
+    return { people: rrows.map((r) => ({ ...userJson(r), lat: r.lat, lng: r.lng, skills: r.skills, state: r.id === me ? 'self' : (conns.get(r.id) || 'none') })) };
   },
   async upload(_, b) {
     const me = await uid();
@@ -168,7 +231,8 @@ const H = {
       const ids = new Set([me, ...ok(f).map((x) => x.followee_id), ...ok(c).map((x) => (x.from_id === me ? x.to_id : x.from_id))]);
       query = query.in('user_id', [...ids]);
     }
-    return { posts: await shapePosts(ok(await query), me) };
+    const posts = await shapePosts(ok(await query), me);
+    return { posts: posts.length || q.get('scope') === 'network' ? posts : SAMPLE.posts() };
   },
   async create_post(_, b) {
     const me = await uid();
@@ -187,6 +251,7 @@ const H = {
     return { likes: n.count || 0, liked: !del.length };
   },
   async get_comments(id) {
+    if (isSample(id)) return { comments: [] };
     const rows = ok(await sb.from('setup_comments').select(`id,body,created_at,user:setup_profiles!setup_comments_user_id_fkey(${PCOLS})`).eq('post_id', id).order('id'));
     return { comments: rows.map((r) => ({ id: r.id, body: r.body, created: iso(r), user: userJson(r.user) })) };
   },
@@ -204,10 +269,13 @@ const H = {
     if (q.get('mine')) { if (!joined.size) return { communities: [] }; query = query.in('id', [...joined]); }
     const topic = q.get('topic'); if (topic) query = query.eq('topic', topic);
     const text = safe(q.get('q') || ''); if (text) query = query.or(`name.ilike.%${text}%,description.ilike.%${text}%`);
-    return { communities: ok(await query).map((r) => ({ id: r.id, name: r.name, topic: r.topic, city: r.city, description: r.description,
+    const crows = ok(await query);
+    if (!crows.length && !q.get('mine') && !q.get('topic') && !q.get('q')) return { communities: SAMPLE.communities() };
+    return { communities: crows.map((r) => ({ id: r.id, name: r.name, topic: r.topic, city: r.city, description: r.description,
       owner_id: r.user_id, created: iso(r), members: r.members[0].count, joined: joined.has(r.id) })) };
   },
   async community(id) {
+    const sc = SAMPLE.communities().find((c) => c.id === id); if (sc) return { ...sc, posts: [], people: sPeople.slice(0, 6).map((p) => ({ ...userJson(p), sample: true })) };
     const me = await myId();
     const r = ok(await sb.from('setup_communities').select('*, members:setup_community_members(count)').eq('id', id).maybeSingle());
     if (!r) throw fail(404, 'Community not found');
@@ -251,6 +319,7 @@ const H = {
     return { people: ok(rows).map((r) => ({ ...userJson(r), state: conns.get(r.id) || 'none' })) };
   },
   async profile(id) {
+    const sp = SAMPLE.profile(id); if (sp) return sp;
     const me = await myId();
     const p = ok(await sb.from('setup_profiles').select('*').eq('id', id).maybeSingle());
     if (!p) throw fail(404, 'Person not found');
@@ -327,11 +396,13 @@ const H = {
     const city = safe(q.get('city') || ''); if (city) query = query.ilike('city', `%${city}%`);
     const text = safe(q.get('q') || ''); if (text) query = query.or(`title.ilike.%${text}%,production.ilike.%${text}%,description.ilike.%${text}%`);
     const rows = ok(await query);
+    if (!rows.length && !q.get('category') && !q.get('city') && !q.get('q')) return { castings: SAMPLE.castings() };
     let applied = new Set();
     if (me && rows.length) applied = new Set(ok(await sb.from('setup_applications').select('casting_id').eq('user_id', me)).map((x) => x.casting_id));
     return { castings: rows.map((r) => ({ ...castingShape(r), applied: applied.has(r.id), ...(me && r.user_id === me ? { applicants: r.applicants[0].count } : {}) })) };
   },
   async casting(id) {
+    const sc = SAMPLE.castings().find((c) => c.id === id); if (sc) return sc;
     const me = await myId();
     const r = ok(await sb.from('setup_castings').select('*, poster:setup_profiles!setup_castings_user_id_fkey(name)').eq('id', id).maybeSingle());
     if (!r) throw fail(404, 'Casting not found');
@@ -377,7 +448,9 @@ const H = {
     } else {
       query = query.gte('starts', new Date().toISOString().slice(0, 10));
     }
-    return { meetups: ok(await query).map((r) => ({ id: r.id, title: r.title, city: r.city, venue: r.venue, starts: r.starts, description: r.description,
+    const mrows = ok(await query);
+    if (!mrows.length && !q.get('mine') && !(me && joined.size)) return { meetups: SAMPLE.meetups() };
+    return { meetups: mrows.map((r) => ({ id: r.id, title: r.title, city: r.city, venue: r.venue, starts: r.starts, description: r.description,
       host: r.host.name, host_id: r.user_id, going: r.going[0].count, joined: joined.has(r.id) })) };
   },
   async create_meetup(_, b) {
@@ -467,6 +540,7 @@ window.api = async (path, body) => {
     const match = re.exec(p);
     if (m === method && match) {
       const args = match.slice(1).map((g) => (/^\d+$/.test(g) ? Number(g) : g));
+      if (args.some(isSample) && (method === 'POST' || h === 'thread')) throw fail(400, SAMPLE_MSG);
       if (['feed', 'people', 'castings', 'meetups', 'communities', 'map_people'].includes(h)) return H[h](new URLSearchParams(qs || ''));
       return args.length ? H[h](...args, body || {}) : H[h](undefined, body || {});
     }
