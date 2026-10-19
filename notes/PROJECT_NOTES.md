@@ -12,7 +12,7 @@ profiles with credits and "open to work", and a **talent map** where producers f
 - Netlify site `setup-film-network` exists but is unused (free credits ran out). Safe to delete.
 
 ## Structure
-- `docs/index.html`, `app.js` (screens), `api.js` (data layer on Supabase), `style.css`, `cities.js` (~160 city centres for the map),
+- `docs/index.html`, `app.js` (screens), `api.js` (data layer on Supabase), `style.css`, `cities.js` (~285 city centres for the map),
   `leaflet.*` (map library, vendored), `supabase.js` (client, vendored), `config.js` (public Supabase URL and publishable key).
 - `legacy-python/` first local prototype, kept for reference. `brand/` logo and photos. `notes/` this file.
 

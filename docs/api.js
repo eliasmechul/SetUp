@@ -316,7 +316,9 @@ const H = {
     const city = safe(q.get('city') || '');
     if (city) query = query.ilike('city', `%${city}%`);
     const [rows, conns] = await Promise.all([query, me ? myConnections(me) : new Map()]);
-    return { people: ok(rows).map((r) => ({ ...userJson(r), state: conns.get(r.id) || 'none' })) };
+    const prow = ok(rows);
+    if (!prow.length && !me) { const tot = await sb.from('setup_profiles').select('id', { count: 'exact', head: true }); if (!tot.count) return { people: SAMPLE.people(new URLSearchParams({ q: q.get('q') || '', role: q.get('role') || '' })) }; }
+    return { people: prow.map((r) => ({ ...userJson(r), state: conns.get(r.id) || 'none' })) };
   },
   async profile(id) {
     const sp = SAMPLE.profile(id); if (sp) return sp;
