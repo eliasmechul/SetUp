@@ -35,3 +35,6 @@ Notifications are created by database triggers. Images only from the `setup-uplo
 ## How to run locally
     python3 -m http.server 8000 --directory docs
 then open http://127.0.0.1:8000
+
+## Releasing
+After changing files in docs/, bump the `?v=` number on the script and style links in docs/index.html so browsers fetch the new files immediately (GitHub Pages caches for 10 minutes).
