@@ -6,7 +6,9 @@ const $toast = document.getElementById('toast');
 let S = { me: null, roles: [], categories: [] };
 let pollTimer = null;
 let ui = { feedScope: 'all', castCat: '', castQ: '', castCity: '', meetTab: 'upcoming', profTab: 'posts',
-           pq: '', prole: '', pcity: '', commTab: 'discover', commTopic: '', mapRole: '', mapOpen: false, mapQ: '' };
+           pq: '', prole: '', pcity: '', commTab: 'discover', commTopic: '', mapRole: '', mapOpen: false, mapQ: '', feedKind: '' };
+const KINDS = [['', 'All'], ['showcase', 'Showcase'], ['question', 'Questions'], ['tip', 'Tips'], ['job', 'Jobs and calls'], ['collab', 'Collabs'], ['event', 'Events'], ['news', 'Film news'], ['update', 'Updates']];
+const kindLabel = (k) => (KINDS.find((x) => x[0] === k) || ['', ''])[1];
 let mapObj = null;
 
 /* ---------- helpers ---------- */
@@ -67,6 +69,7 @@ const geo = (txt) => { const t = String(txt || '').trim().toLowerCase(); if (!t 
 const cityList = () => `<datalist id="cities">${(window.CITIES || []).map((c) => `<option value="${esc(c.name)}">${esc(c.country)}</option>`).join('')}</datalist>`;
 const availText = (u) => !u.open_to_work ? '' : (u.available_from && u.available_from > new Date().toISOString().slice(0, 10) ? 'Available from ' + new Date(u.available_from + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Open to work');
 const availBadge = (u) => (u.open_to_work ? `<span class="avail">● ${esc(availText(u))}</span>` : '');
+const kindPill = (p) => (p.kind && p.kind !== 'update' ? `<span class="pill kind">${esc(kindLabel(p.kind).replace(/s$/, ''))}</span>` : '');
 const exPill = (x) => (x && x.sample ? '<span class="pill ex">Example</span>' : '');
 const sampleNote = (list) => (list && list[0] && list[0].sample ? '<p class="sample-note"><b>Examples.</b> These show how Set UP looks. Real members, jobs and posts replace them as people join.</p>' : '');
 const needLogin = () => { toast('Log in to do that'); location.hash = '#/login'; };
@@ -108,7 +111,7 @@ function postCard(p) {
   const mine = S.me && S.me.id === p.user.id;
   return `<article class="card" data-post="${p.id}">
     <div class="post-head"><a href="#/profile/${p.user.id}">${av(p.user)}</a>${who(p.user)}<span class="sub">${ago(p.created)}</span>${exPill(p)}</div>
-    ${p.community ? `<p><a class="pill" href="#/communities/${p.community.id}">in ${esc(p.community.name)}</a></p>` : ''}
+    ${p.community || (p.kind && p.kind !== 'update') ? `<p>${kindPill(p)}${p.community ? `<a class="pill" href="#/communities/${p.community.id}">in ${esc(p.community.name)}</a>` : ''}</p>` : ''}
     ${p.body ? `<p class="post-body">${esc(p.body)}</p>` : ''}
     ${p.image ? `<img class="post-img" src="${esc(p.image)}" alt="Photo shared by ${esc(p.user.name)}" loading="lazy">` : ''}
     <div class="actions">
@@ -151,7 +154,7 @@ const route = (re, fn) => routes.push([re, fn]);
 
 route(/^#?\/?$/, async () => {
   const m = S.me;
-  const [feed, mt, cm, cs] = await Promise.all([api('/feed?scope=' + (m ? ui.feedScope : 'all')),
+  const [feed, mt, cm, cs] = await Promise.all([api('/feed?scope=' + (m ? ui.feedScope : 'all') + (ui.feedKind ? '&kind=' + ui.feedKind : '')),
     api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] })), api('/castings').catch(() => ({ castings: [] }))]);
   const roles = cs.castings.slice(0, 3);
   if (!m) {
@@ -201,6 +204,7 @@ route(/^#?\/?$/, async () => {
     <div class="card startpost"><div class="sp-top">${av(m)}<button class="sp-input" data-act="compose">Start a post</button></div>
       <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button></div></div>
     ${sampleNote(feed.posts)}
+    <div class="chips kindchips" role="group" aria-label="Topics">${KINDS.map(([k, l]) => `<button class="chip ${ui.feedKind === k ? 'on' : ''}" data-act="feedkind" data-v="${k}">${l}</button>`).join('')}</div>
     <div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
     ${feed.posts.length ? feed.posts.map(postCard).join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people on the <a class="link" href="#/map">talent map</a>.' : 'No posts yet. Be the first!'}</div>`}
   </div>${rail}</div>`, true);
@@ -485,6 +489,7 @@ function composer(kind = 'post', cid = '') {
   let form = '';
   if (kind === 'post') form = `<form data-form="post"><div class="field"><label class="sr" for="pb">Post</label><textarea id="pb" name="body" maxlength="3000" placeholder="Share an update, a still, a question…"></textarea></div>
     <img class="preview" id="pv" alt="" hidden><input type="hidden" name="image"><input type="hidden" name="community_id" value="${esc(cid)}">${cid ? '<p class="muted">Posting inside this community.</p>' : ''}
+    <div class="field"><label for="pk">What are you sharing?</label><select id="pk" name="kind">${KINDS.filter((k) => k[0]).map(([k, l]) => `<option value="${k}" ${k === 'update' ? 'selected' : ''}>${l.replace(/s$/, '')}</option>`).join('')}</select></div>
     <label class="btn ghost sm">${ico('img')} Add photo<input class="sr" type="file" accept="image/*" data-file="post"></label>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Publish</button></form>`;
   if (kind === 'casting') form = `<form data-form="casting">
@@ -533,6 +538,7 @@ document.addEventListener('click', (ev) => {
       case 'close': return closeModal();
       case 'logout': await api('/logout', {}); S.me = null; location.hash = '#/'; return router();
       case 'scope': ui.feedScope = v; return rerender();
+      case 'feedkind': ui.feedKind = v; return rerender();
       case 'castcat': ui.castCat = v; return rerender();
       case 'meettab': ui.meetTab = v; return rerender();
       case 'proftab': ui.profTab = v; return rerender();

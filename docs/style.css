@@ -340,3 +340,6 @@ select option{background:#171513}
 .pill.ex{border-color:#5A5146;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;margin-left:6px}
 .sample-note{border:1px dashed #5A5146;border-radius:10px;padding:10px 14px;color:var(--soft);font-size:14px;margin:0 0 14px;background:rgba(227,162,74,.06)}
 .sample-note b{color:var(--amber)}
+
+.pill.kind{border-color:var(--amber);color:var(--amber);margin-right:6px}
+.kindchips{margin-bottom:10px}

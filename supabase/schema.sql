@@ -41,6 +41,7 @@ create table public.setup_posts(
   body text not null default '' check (char_length(body) <= 3000),
   image text not null default '' check (image = '' or image like 'https://__REF__.supabase.co/storage/v1/object/public/setup-uploads/%'),
   community_id bigint references public.setup_communities(id) on delete cascade,
+  kind text not null default 'update' check (kind in ('update','showcase','question','tip','job','collab','event','news')),
   created_at timestamptz not null default now(),
   check (body <> '' or image <> ''));
 create index setup_posts_created on public.setup_posts(created_at desc);

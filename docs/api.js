@@ -55,14 +55,15 @@ async function myConnections(me) {
   return map;
 }
 
-const POST_SEL = `id,body,image,created_at,user_id,user:setup_profiles!setup_posts_user_id_fkey(${PCOLS}),likes:setup_likes(count),comments:setup_comments(count),community:setup_communities(id,name)`;
+const KINDS = ['update', 'showcase', 'question', 'tip', 'job', 'collab', 'event', 'news'];
+const POST_SEL = `id,body,image,kind,created_at,user_id,user:setup_profiles!setup_posts_user_id_fkey(${PCOLS}),likes:setup_likes(count),comments:setup_comments(count),community:setup_communities(id,name)`;
 async function shapePosts(rows, me) {
   let liked = new Set();
   if (me && rows.length) {
     const l = ok(await sb.from('setup_likes').select('post_id').eq('user_id', me).in('post_id', rows.map((r) => r.id)));
     liked = new Set(l.map((x) => x.post_id));
   }
-  return rows.map((r) => ({ id: r.id, body: r.body, image: r.image, created: iso(r), likes: r.likes[0].count,
+  return rows.map((r) => ({ id: r.id, body: r.body, image: r.image, kind: r.kind, created: iso(r), likes: r.likes[0].count,
     comments: r.comments[0].count, liked: liked.has(r.id), user: userJson(r.user),
     community: r.community ? { id: r.community.id, name: r.community.name } : null }));
 }
@@ -101,9 +102,10 @@ const SAMPLE = {
       (!text || [p.name, p.headline, p.skills, p.city].join(' ').toLowerCase().includes(text))).map((p) => ({ ...p, state: 'none' }));
   },
   posts() {
-    const t = [[1, 'Wrapped the last day on Night Ferry. Thank you to the whole camera crew.', 20, 24, 6], [4, 'Open to new work from December. DM me if your shoot needs an actor in London.', 90, 41, 9],
-      [3, 'Tip: record 60 seconds of room tone on every location. Your editor will thank you.', 300, 112, 18], [2, 'Casting a lead for my short film. Shoot dates in November. Details in Castings.', 600, 33, 5]];
-    return t.map(([n, body, m, likes, comments], i) => ({ id: 9000001 + i, body, image: '', created: minsAgo(m), likes, comments, liked: false, user: sUser(n), community: null, sample: true }));
+    const t = [[1, 'Wrapped the last day on Night Ferry. Thank you to the whole camera crew.', 20, 24, 6, 'showcase'], [4, 'Open to new work from December. DM me if your shoot needs an actor in London.', 90, 41, 9, 'collab'],
+      [3, 'Tip: record 60 seconds of room tone on every location. Your editor will thank you.', 300, 112, 18, 'tip'], [2, 'Casting a lead for my short film. Shoot dates in November. Details in Castings.', 600, 33, 5, 'job'],
+      [6, 'Question: what is your go-to workflow for syncing dual-system sound on a tiny crew?', 800, 18, 12, 'question'], [5, 'Short Film Night is back next month. Come and meet other filmmakers.', 1000, 52, 7, 'event']];
+    return t.map(([n, body, m, likes, comments, kind], i) => ({ id: 9000001 + i, body, image: '', kind, created: minsAgo(m), likes, comments, liked: false, user: sUser(n), community: null, sample: true }));
   },
   castings() {
     return [[9000001, 'Junior actor, lead role', 'Acting', 'Berlin', 'Paid', 6, 2, 'Looking for an actor in their twenties for the lead of a 15-minute drama. Three shooting days in November.'],
@@ -224,6 +226,7 @@ const H = {
   async feed(q) {
     const me = await myId();
     let query = sb.from('setup_posts').select(POST_SEL).order('created_at', { ascending: false }).limit(50);
+    if (KINDS.includes(q.get('kind'))) query = query.eq('kind', q.get('kind'));
     if (q.get('scope') === 'network' && me) {
       const [f, c] = await Promise.all([
         sb.from('setup_follows').select('followee_id').eq('follower_id', me),
@@ -232,14 +235,19 @@ const H = {
       query = query.in('user_id', [...ids]);
     }
     const posts = await shapePosts(ok(await query), me);
-    return { posts: posts.length || q.get('scope') === 'network' ? posts : SAMPLE.posts() };
+    if (!posts.length && q.get('scope') !== 'network') {
+      const tot = await sb.from('setup_posts').select('id', { count: 'exact', head: true });
+      if (!tot.count) return { posts: SAMPLE.posts().filter((x) => !q.get('kind') || x.kind === q.get('kind')) };
+    }
+    return { posts };
   },
   async create_post(_, b) {
     const me = await uid();
     const body = clean(b.body, 3000), image = b.image || '';
     if (!body && !image) throw fail(400, 'Write something or add an image');
     const cid = /^\d+$/.test(String(b.community_id || '')) ? Number(b.community_id) : null;
-    const r = ok(await sb.from('setup_posts').insert({ user_id: me, body, image, community_id: cid }).select('id').single());
+    const kind = KINDS.includes(b.kind) ? b.kind : 'update';
+    const r = ok(await sb.from('setup_posts').insert({ user_id: me, body, image, community_id: cid, kind }).select('id').single());
     return { id: r.id };
   },
   async delete_post(id) { ok(await sb.from('setup_posts').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
