@@ -50,3 +50,4 @@ The mailbox itself must be created by the account owner. Status: script written,
 - Legal pages (#/privacy, #/terms, #/imprint) are DRAFT templates with [brackets] to fill in and have reviewed.
 - Share previews (Open Graph), robots.txt, sitemap.xml.
 - After a database change run `notify pgrst, 'reload schema'` in the SQL editor.
+- Uploaded photos are resized in the browser to max 1600 px (JPEG) before upload; GIFs are sent as they are.

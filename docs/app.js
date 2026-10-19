@@ -641,8 +641,25 @@ function drawComments(box, id, comments) {
 function readImage(file) {
   return new Promise((res, rej) => {
     if (!file || !file.type.startsWith('image/')) return rej(new Error('Choose an image'));
-    if (file.size > 5 * 1024 * 1024) return rej(new Error('Image too large (max 5 MB)'));
-    const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('Could not read file')); r.readAsDataURL(file);
+    if (file.size > 30 * 1024 * 1024) return rej(new Error('Image too large (max 30 MB)'));
+    const fr = new FileReader();
+    fr.onerror = () => rej(new Error('Could not read file'));
+    fr.onload = () => {
+      // GIFs are sent as they are; other images are resized to max 1600 px unless they are already small
+      if (file.type === 'image/gif') return file.size > 5 * 1024 * 1024 ? rej(new Error('Image too large (max 5 MB)')) : res(fr.result);
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, 1600 / Math.max(img.width, img.height));
+        if (k === 1 && file.size <= 1024 * 1024) return res(fr.result);
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => rej(new Error('Could not read this image'));
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
   });
 }
 document.addEventListener('change', (ev) => {
