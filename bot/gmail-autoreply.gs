@@ -10,7 +10,7 @@ const LABEL = 'setup-bot-replied';
 const MAX_PER_RUN = 20;
 // Optional: only answer mail sent to this address, e.g. 'yourname+setup@gmail.com' (a free "+" alias of an existing Gmail).
 // Leave empty to answer all new mail in the inbox (use this for a dedicated Set UP mailbox).
-const BOT_ADDRESS = 'ilyasgungor3+setup@gmail.com';
+const BOT_ADDRESS = '';
 
 function setup() {
   GmailApp.createLabel(LABEL);
