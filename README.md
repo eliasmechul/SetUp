@@ -5,7 +5,6 @@ Social platform for the film industry: profiles, feed, casting calls, meetups, c
 - **Frontend:** plain HTML/CSS/JS in `docs/` (no build step), hosted on Netlify (`netlify.toml`).
 - **Backend:** Supabase (Postgres + Auth + Storage). All Set UP tables are prefixed `setup_` and protected by row level security.
   Notifications are created by database triggers. Photos live in the `setup-uploads` bucket.
-- `legacy-python/` is the first local prototype (Python + SQLite), kept for reference.
 
 ## Run locally
     python3 -m http.server 8000 --directory docs

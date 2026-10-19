@@ -9,12 +9,12 @@ profiles with credits and "open to work", and a **talent map** where producers f
 - Code: https://github.com/eliasmechul/SetUp  (public repo, so never commit keys or passwords).
 - Backend: Supabase project `wyuyzqlbmjcxmagrdbru` (organisation "revert"): Postgres, Auth, Storage.
   All Set UP tables are prefixed `setup_` because the project is shared with another app. Do not touch tables without that prefix.
-- Netlify site `setup-film-network` exists but is unused (free credits ran out). Safe to delete.
+- Netlify site `setup-film-network` (team eliasmechul) is unused (free credits ran out). Delete it in the Netlify dashboard: Project configuration → General → Delete project.
 
 ## Structure
 - `docs/index.html`, `app.js` (screens), `api.js` (data layer on Supabase), `style.css`, `cities.js` (~285 city centres for the map),
   `leaflet.*` (map library, vendored), `supabase.js` (client, vendored), `config.js` (public Supabase URL and publishable key).
-- `legacy-python/` first local prototype, kept for reference. `brand/` logo and photos. `notes/` this file.
+- `brand/` logo and photos. `notes/` this file. `supabase/schema.sql` the complete database setup. (The first Python prototype was removed; it is in the git history before commit 064181e.)
 
 ## Design decisions
 - Look: "Cinematic Night" — near-black, amber accents, Instrument Serif headlines, IBM Plex Mono labels, Caveat handwriting, film grain, viewfinder brackets.
