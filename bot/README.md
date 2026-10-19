@@ -9,6 +9,10 @@ skips automated mail, and leaves every message unread so a person still sees it.
 3. In the function dropdown choose **setup**, click **Run**, and approve the permissions (it needs to read and reply to mail in this account only).
 4. Done: it now checks the inbox every 5 minutes. To switch it off run **stopBot**.
 
+## No new account? Use a free "+" address
+If you already have a Gmail, `yourname+setup@gmail.com` is delivered to `yourname@gmail.com` and works as a separate address you can publish.
+Set `BOT_ADDRESS = 'yourname+setup@gmail.com'` at the top of the script and the bot will only answer mail sent to that address; the rest of your inbox is untouched.
+
 ## Test
 Send an email to the mailbox from another address with the words "how do I find a casting". You should get a reply within about 5 minutes.
 

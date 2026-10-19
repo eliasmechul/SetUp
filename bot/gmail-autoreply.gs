@@ -8,6 +8,9 @@
 const SITE = 'https://eliasmechul.github.io/SetUp/';
 const LABEL = 'setup-bot-replied';
 const MAX_PER_RUN = 20;
+// Optional: only answer mail sent to this address, e.g. 'yourname+setup@gmail.com' (a free "+" alias of an existing Gmail).
+// Leave empty to answer all new mail in the inbox (use this for a dedicated Set UP mailbox).
+const BOT_ADDRESS = '';
 
 function setup() {
   GmailApp.createLabel(LABEL);
@@ -25,7 +28,7 @@ function autoReply() {
   const me = Session.getActiveUser().getEmail().toLowerCase();
   const props = PropertiesService.getScriptProperties();
   const label = GmailApp.getUserLabelByName(LABEL) || GmailApp.createLabel(LABEL);
-  const threads = GmailApp.search('in:inbox is:unread -label:' + LABEL + ' newer_than:2d', 0, MAX_PER_RUN);
+  const threads = GmailApp.search('in:inbox is:unread -label:' + LABEL + ' newer_than:2d' + (BOT_ADDRESS ? ' deliveredto:' + BOT_ADDRESS : ''), 0, MAX_PER_RUN);
   const today = Utilities.formatDate(new Date(), 'UTC', 'yyyy-MM-dd');
 
   threads.forEach((thread) => {
