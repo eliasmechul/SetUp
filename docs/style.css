@@ -492,3 +492,20 @@ body.busy::before{content:'';position:fixed;top:0;left:0;height:3px;width:35%;ba
 .invcard{flex:1 1 300px;max-width:320px;margin:0 auto;background:#fff;color:#000;border-radius:18px;padding:26px;text-align:center;transform:rotate(3deg);box-shadow:0 30px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;gap:10px}
 .invcard small{font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.14em}.invcard b{font:400 28px/1.05 'Instrument Serif',serif}.invcard canvas{width:200px;height:200px}
 @media(max-width:700px){.lhero{padding:28px 18px}.lhero-t h1{font-size:46px}.lhero-m{min-height:470px}.lhero-m .mk-post{width:70%}.lhero-m .mk-job{width:62%;top:230px}.roomsin{padding:28px 20px}}
+
+/* ---------- v6 photo-led landing ---------- */
+.lhero{position:relative;overflow:hidden;min-height:640px;padding:64px 48px;border:0;border-radius:24px;background:#0b0a09 url(img/hero.jpg) center/cover no-repeat!important;align-items:center}
+.lhero::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(14,13,12,.92) 0%,rgba(14,13,12,.7) 45%,rgba(14,13,12,.15) 100%);pointer-events:none}
+.lhero>*{position:relative}
+.lhero-t{flex:1 1 520px;max-width:640px}
+.lhero-m{flex:1 1 300px;min-height:420px}
+.lhero-m .mk-post{left:auto;right:30px;top:20px}.lhero-m .mk-job{right:0;top:210px}.lhero-m .mk-room{left:auto;right:60px;bottom:10px}
+.feat .fphoto{display:block;width:calc(100% + 40px);margin:-20px -20px 14px;height:150px;object-fit:cover;border-radius:16px 16px 0 0;filter:saturate(.9)}
+.roomsin{position:relative;overflow:hidden;background:#0b0a09 url(img/rooms.jpg) center/cover no-repeat}
+.roomsin::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(14,13,12,.92),rgba(14,13,12,.6));pointer-events:none}
+.roomsin>*{position:relative}
+.cta{position:relative;overflow:hidden;background:#0b0a09 url(img/cta.jpg) center/cover no-repeat!important}
+.cta::before{content:'';position:absolute;inset:0;background:rgba(14,13,12,.62);pointer-events:none}
+.cta>*{position:relative}
+@media(max-width:700px){.lhero{padding:32px 18px;min-height:0}.lhero::before{background:linear-gradient(180deg,rgba(14,13,12,.85),rgba(14,13,12,.7))}.lhero-m{min-height:300px}.lhero-m .mk-post{right:auto;left:0}.lhero-m .mk-job{top:150px}.lhero-m .mk-room{right:auto;left:0}}
+.lhero-m .mk-post,.lhero-m .mk-room{display:none}.lhero-m .mk-job{right:0;top:auto;bottom:10px}

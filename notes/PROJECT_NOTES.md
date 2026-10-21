@@ -51,3 +51,5 @@ The mailbox itself must be created by the account owner. Status: script written,
 - Share previews (Open Graph), robots.txt, sitemap.xml.
 - After a database change run `notify pgrst, 'reload schema'` in the SQL editor.
 - Uploaded photos are resized in the browser to max 1600 px (JPEG) before upload; GIFs are sent as they are.
+
+Photos: img/*.jpg come from Unsplash (free license, no attribution required): see unsplash.com/license.
