@@ -34,6 +34,8 @@ const safe = (s) => s.replace(/[,()*%\\:"']/g, ' ').trim();
 const userJson = (r) => ({ id: r.id, name: r.name, role: r.role, headline: r.headline, city: r.city, avatar: r.avatar,
   open_to_work: !!r.open_to_work, available_from: r.available_from || '' });
 const iso = (r) => r.created_at;
+const roomJson = (r, me) => ({ id: r.id, title: r.title, kind: r.kind, description: r.description, starts_at: r.starts_at, location: r.location,
+  link: r.link, owner_id: r.user_id, mine: r.user_id === me, members: r.members[0].count, created: r.created_at });
 
 async function ensureProfile(user) {
   const { data } = await sb.from('setup_profiles').select('*').eq('id', user.id).maybeSingle();
@@ -331,6 +333,68 @@ const H = {
   },
   async delete_community(id) { ok(await sb.from('setup_communities').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
 
+  /* private rooms: invite-only spaces with QR invites and check-in */
+  async rooms() {
+    const me = await uid();
+    const rows = ok(await sb.from('setup_rooms').select('*, members:setup_room_members(count)').order('created_at', { ascending: false }).limit(100));
+    return { rooms: rows.map((r) => roomJson(r, me)) };
+  },
+  async room(id) {
+    const me = await uid();
+    const r = ok(await sb.from('setup_rooms').select('*, members:setup_room_members(count)').eq('id', id).maybeSingle());
+    if (!r) throw fail(404, 'Room not found');
+    const mem = ok(await sb.from('setup_room_members').select(`checked_in_at,joined_at,user:setup_profiles!setup_room_members_user_id_fkey(${PCOLS})`).eq('room_id', id).order('joined_at').limit(500));
+    const out = roomJson(r, me);
+    if (out.mine) { out.invite_code = r.invite_code; out.invite_open = r.invite_open; }
+    out.people = mem.map((x) => ({ ...userJson(x.user), checked_in: !!x.checked_in_at }));
+    return out;
+  },
+  async create_room(_, b) {
+    const me = await uid();
+    const kinds = ['presentation', 'program', 'screening', 'casting_day', 'other'];
+    let link = clean(b.link, 500); if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+    const startsAt = b.starts_at ? new Date(b.starts_at) : null;
+    const r = ok(await sb.from('setup_rooms').insert({ user_id: me, title: clean(b.title, 120, true, 'Title'), kind: kinds.includes(b.kind) ? b.kind : 'presentation',
+      description: clean(b.description, 4000), location: clean(b.location, 160), link, starts_at: startsAt && !isNaN(startsAt) ? startsAt.toISOString() : null }).select('id').single());
+    ok(await sb.from('setup_room_members').insert({ room_id: r.id, user_id: me }));
+    return { id: r.id };
+  },
+  async room_invite(id, b) {
+    const me = await uid();
+    const patch = {};
+    if (b.action === 'close') patch.invite_open = false;
+    else if (b.action === 'open') patch.invite_open = true;
+    else if (b.action === 'new') patch.invite_code = 'k' + [...crypto.getRandomValues(new Uint8Array(8))].map((x) => x.toString(16).padStart(2, '0')).join('');
+    else throw fail(400, 'Unknown action');
+    const r = ok(await sb.from('setup_rooms').update(patch).eq('id', id).eq('user_id', me).select('invite_code,invite_open').maybeSingle());
+    if (!r) throw fail(403, 'Not allowed');
+    return r;
+  },
+  async room_checkin(id, b) {
+    await uid();
+    const r = ok(await sb.from('setup_room_members').update({ checked_in_at: b.undo ? null : new Date().toISOString() }).eq('room_id', id).eq('user_id', clean(b.user_id, 40, true, 'User')).select('user_id').maybeSingle());
+    if (!r) throw fail(403, 'Not allowed');
+    return { ok: true };
+  },
+  async leave_room(id) {
+    const me = await uid();
+    const r = ok(await sb.from('setup_rooms').select('user_id').eq('id', id).maybeSingle());
+    if (r && r.user_id === me) throw fail(400, 'Hosts cannot leave. Delete the room instead.');
+    ok(await sb.from('setup_room_members').delete().eq('room_id', id).eq('user_id', me));
+    return { ok: true };
+  },
+  async delete_room(id) { ok(await sb.from('setup_rooms').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
+  async room_preview(code) {
+    const rows = ok(await sb.rpc('setup_room_preview', { code: String(code).toLowerCase() }));
+    if (!rows || !rows.length) throw fail(404, 'This invite is not valid or has been closed');
+    return rows[0];
+  },
+  async join_room(code) {
+    await uid();
+    const id = ok(await sb.rpc('setup_join_room', { code: String(code).toLowerCase() }));
+    return { id };
+  },
+
   /* people & network */
   async people(q) {
     const me = await myId();
@@ -553,6 +617,9 @@ const R = [
   ['GET', '/requests', 'requests'], ['GET', '/network', 'my_network'], ['GET', '/suggestions', 'suggestions'],
   ['GET', '/communities', 'communities'], ['POST', '/communities', 'create_community'], ['GET', '/communities/(\\d+)', 'community'],
   ['POST', '/communities/(\\d+)/join', 'join_community'], ['POST', '/communities/(\\d+)/delete', 'delete_community'],
+  ['GET', '/rooms', 'rooms'], ['POST', '/rooms', 'create_room'], ['GET', '/rooms/(\\d+)', 'room'], ['POST', '/rooms/(\\d+)/invite', 'room_invite'],
+  ['POST', '/rooms/(\\d+)/checkin', 'room_checkin'], ['POST', '/rooms/(\\d+)/leave', 'leave_room'], ['POST', '/rooms/(\\d+)/delete', 'delete_room'],
+  ['GET', '/join/([0-9a-fA-F]{8,64})', 'room_preview'], ['POST', '/join/([0-9a-fA-F]{8,64})', 'join_room'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
   ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'],
@@ -567,9 +634,9 @@ window.api = async (path, body) => {
   for (const [m, re, h] of R) {
     const match = re.exec(p);
     if (m === method && match) {
-      const args = match.slice(1).map((g) => (/^\d+$/.test(g) ? Number(g) : g));
+      const args = match.slice(1).map((g) => (/^\d+$/.test(g) && !/^(join_room|room_preview)$/.test(h) ? Number(g) : g));
       if (args.some(isSample) && (method === 'POST' || h === 'thread')) throw fail(400, SAMPLE_MSG);
-      if (['feed', 'people', 'castings', 'meetups', 'communities', 'map_people'].includes(h)) return H[h](new URLSearchParams(qs || ''));
+      if (['feed', 'people', 'castings', 'meetups', 'communities', 'map_people', 'rooms'].includes(h)) return H[h](new URLSearchParams(qs || ''));
       return args.length ? H[h](...args, body || {}) : H[h](undefined, body || {});
     }
   }

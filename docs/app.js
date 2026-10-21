@@ -29,6 +29,7 @@ const ICONS = {
   back: '<path d="M15 5l-7 7 7 7"/>',
   repost: '<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>',
   pin: '<path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/>',
   group: '<circle cx="12" cy="8" r="3"/><circle cx="5.5" cy="10" r="2.3"/><circle cx="18.5" cy="10" r="2.3"/><path d="M6.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M1.5 18c0-2 1.5-3.5 3.5-3.7M22.5 18c0-2-1.5-3.5-3.5-3.7"/>',
 };
 const ico = (n) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
@@ -91,7 +92,7 @@ function shell(content) {
   const m = S.me;
   const badge = (n) => (n ? `<span class="badge">${n > 9 ? '9+' : n}</span>` : '');
   const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/communities', 'group', 'Groups'],
-    ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
+    ['#/rooms', 'qr', 'Rooms'], ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
   const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
     (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');
   const bar = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], null, ['#/castings', 'brief', 'Castings'], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Me' : 'Log in']]
@@ -108,7 +109,7 @@ function shell(content) {
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <footer class="foot"><div class="foot-in">
       <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
-      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups</a></div>
+      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/rooms">Private rooms</a><a href="#/meetups">Meetups</a></div>
       <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
       <p class="foot-copy">© Set UP</p></div></footer>
@@ -327,6 +328,72 @@ route(/^#\/communities\/(\d+)$/, async (id) => {
       ${c.joined || mine ? `<button class="btn" data-act="compose" data-v="post" data-cid="${c.id}">Post in community</button>` : ''}</div></div>
     <h2 class="section-title">Discussion</h2>
     ${c.posts.length ? c.posts.map(postCard).join('') : `<div class="empty">No posts yet.${c.joined ? ' Start the conversation!' : ' Join to start the conversation.'}</div>`}`);
+});
+
+
+/* ---------- private rooms ---------- */
+const ROOM_KINDS = [['presentation', 'Presentation'], ['program', 'Program'], ['screening', 'Screening'], ['casting_day', 'Casting day'], ['other', 'Other']];
+const roomKind = (k) => (ROOM_KINDS.find((x) => x[0] === k) || ['', 'Room'])[1];
+const inviteUrl = (code) => location.origin + location.pathname + '#/join/' + code;
+const keepInvite = (code) => { try { localStorage.setItem('setup_invite', code); } catch (e) { /* private mode */ } };
+const pendingInvite = () => { try { return localStorage.getItem('setup_invite') || ''; } catch (e) { return ''; } };
+const clearInvite = () => { try { localStorage.removeItem('setup_invite'); } catch (e) { /* ignore */ } };
+function drawQR(canvas, text, px) {
+  const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(), quiet = 4, cell = Math.max(2, Math.floor(px / (n + quiet * 2)));
+  canvas.width = canvas.height = cell * (n + quiet * 2);
+  const g = canvas.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, canvas.width, canvas.height); g.fillStyle = '#000';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+}
+const roomCard = (r) => `<a class="card room" href="#/rooms/${r.id}"><span class="kicker">${esc(roomKind(r.kind))}${r.mine ? ' · Hosted by you' : ''}</span>
+  <h3>${esc(r.title)}</h3><div class="sub">${r.starts_at ? esc(new Date(r.starts_at).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })) + ' · ' : ''}${r.location ? esc(r.location) + ' · ' : ''}${r.members} ${r.members === 1 ? 'person' : 'people'}</div></a>`;
+
+route(/^#\/rooms$/, async () => {
+  const intro = `<h1 class="page-title">Private rooms</h1>
+    <div class="card"><h2 class="rail-title">Share work with the right people only</h2>
+      <p class="muted">Producers and casting directors: open an invite-only room for a program, pitch, presentation, screening or casting day. Guests get in with a QR code or an invite link, and you can check them in at the door.</p>
+      <div class="steps3"><span>${ico('plus')} Create a room</span><span>${ico('qr')} Print or share the QR code</span><span>${ico('user')} Guests scan and join</span></div></div>`;
+  if (!S.me) return view(intro + '<div class="card"><a class="btn block" href="#/signup">Join Set UP to create or join rooms</a><p class="center"><a class="link" href="#/login">Log in</a></p></div>');
+  const { rooms } = await api('/rooms');
+  const mine = rooms.filter((r) => r.mine), joined = rooms.filter((r) => !r.mine);
+  view(intro + `<p><button class="btn" data-act="compose" data-v="room">${ico('plus')} Create a room</button></p>
+    <h2 class="section-title">Hosted by you</h2>${mine.length ? mine.map(roomCard).join('') : '<div class="empty">You have not created a room yet.</div>'}
+    <h2 class="section-title">You were invited to</h2>${joined.length ? joined.map(roomCard).join('') : '<div class="empty">Rooms you join with an invite appear here.</div>'}`);
+});
+
+route(/^#\/rooms\/(\d+)$/, async (id) => {
+  if (!S.me) return needLogin();
+  const r = await api('/rooms/' + id);
+  const invite = r.mine && r.invite_code ? inviteUrl(r.invite_code) : '';
+  const people = r.people.map((p) => `<div class="person rp"><a href="#/profile/${p.id}">${av(p)}</a>${who(p)}
+    ${r.mine ? `<button class="btn ${p.checked_in ? '' : 'ghost'} sm" data-act="checkin" data-id="${r.id}" data-uid="${p.id}" data-v="${p.checked_in ? 'undo' : 'in'}">${p.checked_in ? 'Checked in ✓' : 'Check in'}</button>` : (p.checked_in ? '<span class="avail">● Checked in</span>' : '')}</div>`).join('');
+  view(`<p><a class="link" href="#/rooms">${ico('back')} Private rooms</a></p>
+    <div class="card"><span class="kicker">${esc(roomKind(r.kind))} · ${ico('qr')} Invite only</span>
+      <h1 class="page-title">${esc(r.title)}</h1>
+      <div class="meta">${r.starts_at ? `<span>${esc(new Date(r.starts_at).toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }))}</span>` : ''}${r.location ? `<span>${ico('pin')} ${esc(r.location)}</span>` : ''}<span>${r.members} ${r.members === 1 ? 'person' : 'people'}</span></div>
+      ${r.description ? `<p class="post-body">${esc(r.description)}</p>` : ''}
+      <div class="pro-actions">${r.link ? `<a class="btn" href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">Open presentation</a>` : ''}
+      ${r.mine ? `<button class="btn danger sm" data-act="delroom" data-id="${r.id}">Delete room</button>` : `<button class="btn ghost sm" data-act="leaveroom" data-id="${r.id}">Leave room</button>`}</div></div>
+    ${r.mine ? `<div class="card invite"><h2 class="rail-title">Invite guests</h2>
+      <div class="qrbox"><canvas id="qr" aria-label="Invite QR code"></canvas>
+        <div><p class="muted">${r.invite_open ? 'Anyone with this QR code or link can join after logging in.' : 'Invites are closed. Nobody new can join.'}</p>
+        <input id="invlink" readonly value="${esc(invite)}" aria-label="Invite link">
+        <div class="pro-actions"><button class="btn sm" data-act="copyinvite">Copy link</button><button class="btn ghost sm" data-act="dlqr">Download QR</button><button class="btn ghost sm" data-act="printposter" data-title="${esc(r.title)}">Print invite</button></div>
+        <div class="pro-actions"><button class="btn ghost sm" data-act="roominvite" data-id="${r.id}" data-v="${r.invite_open ? 'close' : 'open'}">${r.invite_open ? 'Close invites' : 'Open invites'}</button><button class="btn ghost sm" data-act="roominvite" data-id="${r.id}" data-v="new">New code</button></div>
+        <p class="muted small">"New code" makes the old QR code stop working.</p></div></div></div>` : ''}
+    <h2 class="section-title">Guests</h2><div class="card">${people || '<p class="muted">Nobody yet.</p>'}</div>`);
+  if (invite) drawQR(document.getElementById('qr'), invite, 240);
+});
+
+route(/^#\/join\/([0-9a-fA-F]{8,64})$/, async (code) => {
+  let r;
+  try { r = await api('/join/' + code); } catch (e) { return view(`<div class="card center"><h1 class="page-title">Invite not valid</h1><p class="muted">${esc(e.message)}</p><a class="btn" href="#/">Go to Set UP</a></div>`); }
+  const when2 = r.starts_at ? new Date(r.starts_at).toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }) : '';
+  const card = `<span class="kicker">${ico('qr')} You are invited · ${esc(roomKind(r.kind))}</span><h1 class="page-title">${esc(r.title)}</h1>
+    <div class="meta"><span>Hosted by ${esc(r.host)}</span>${when2 ? `<span>${esc(when2)}</span>` : ''}${r.location ? `<span>${ico('pin')} ${esc(r.location)}</span>` : ''}</div>`;
+  if (!S.me) { keepInvite(code); return view(`<div class="card">${card}<p class="muted">Create a free Set UP profile or log in to join this private room.</p>
+    <a class="btn block" href="#/signup">Join Set UP</a><p class="center"><a class="link" href="#/login">I already have an account</a></p></div>`); }
+  view(`<div class="card">${card}<button class="btn block lg" data-act="joinroom" data-code="${esc(code)}">Join this room</button></div>`);
 });
 
 route(/^#\/castings$/, async () => {
@@ -587,9 +654,18 @@ function composer(kind = 'post', cid = '') {
     <div class="field"><label for="cc2">City (optional)</label><input id="cc2" name="city" maxlength="80"></div></div>
     <div class="field"><label for="cd">What is it about?</label><textarea id="cd" name="description" maxlength="1000"></textarea></div>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Create community</button></form>`;
+  if (kind === 'room') form = `<form data-form="room">
+    <div class="field"><label for="rt">Title</label><input id="rt" name="title" required maxlength="120" placeholder="e.g. Pitch night: Harbour Lights"></div>
+    <div class="row"><div class="field"><label for="rk">Type</label><select id="rk" name="kind">${ROOM_KINDS.map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></div>
+    <div class="field"><label for="rd">Date & time (optional)</label><input id="rd" name="starts_at" type="datetime-local"></div></div>
+    <div class="field"><label for="rl">Place (optional)</label><input id="rl" name="location" maxlength="160" placeholder="Venue, city or Online"></div>
+    <div class="field"><label for="rlk">Presentation link (optional)</label><input id="rlk" name="link" maxlength="500" placeholder="Link to slides, a PDF, a video or a folder"></div>
+    <div class="field"><label for="rds">Program / notes for guests</label><textarea id="rds" name="description" maxlength="4000" placeholder="Agenda, what to bring, who is attending…"></textarea></div>
+    <p class="muted small">Only people with your invite can see this room.</p>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Create room</button></form>`;
   $modal.hidden = false;
   $modal.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Create"><div class="sheet-head"><h2>Create</h2><button class="iconbtn" data-act="close" aria-label="Close">${ico('x')}</button></div>
-    <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting', 'brief')}${t('meetup', 'Meetup', 'cal')}${t('community', 'Community', 'group')}</div>${form}</div>`;
+    <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting', 'brief')}${t('meetup', 'Meetup', 'cal')}${t('community', 'Community', 'group')}${t('room', 'Room', 'qr')}</div>${form}</div>`;
   const first = $modal.querySelector('textarea, input'); if (first) first.focus();
 }
 function openReport(type, id) {
@@ -653,6 +729,21 @@ document.addEventListener('click', (ev) => {
       case 'follow': await api(`/users/${id}/follow`, {}); return rerender();
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
+      case 'checkin': await api(`/rooms/${id}/checkin`, { user_id: el.dataset.uid, undo: v === 'undo' }); return rerender();
+      case 'roominvite': if (v === 'new' && !confirm('The old QR code and link will stop working. Continue?')) return; await api(`/rooms/${id}/invite`, { action: v }); return rerender();
+      case 'delroom': if (confirm('Delete this room for everyone?')) { await api(`/rooms/${id}/delete`, {}); location.hash = '#/rooms'; } return;
+      case 'leaveroom': if (confirm('Leave this room?')) { await api(`/rooms/${id}/leave`, {}); location.hash = '#/rooms'; } return;
+      case 'joinroom': { const r = await api('/join/' + el.dataset.code, {}); clearInvite(); toast('You joined the room'); location.hash = '#/rooms/' + r.id; return; }
+      case 'copyinvite': { const i = document.getElementById('invlink'); try { await navigator.clipboard.writeText(i.value); } catch (e) { i.select(); document.execCommand('copy'); } return toast('Link copied'); }
+      case 'dlqr': { const c = document.getElementById('qr'); const a = document.createElement('a'); a.download = 'setup-invite-qr.png'; a.href = c.toDataURL('image/png'); a.click(); return; }
+      case 'printposter': {
+        const p = document.createElement('div'); p.id = 'poster';
+        p.innerHTML = `<div class="pl">Set UP · Private invitation</div><h1>${esc(el.dataset.title)}</h1><canvas></canvas><p>Scan with your phone camera to join</p><small>${esc(document.getElementById('invlink').value)}</small>`;
+        document.body.appendChild(p); drawQR(p.querySelector('canvas'), document.getElementById('invlink').value, 640);
+        document.body.classList.add('printing');
+        const done = () => { document.body.classList.remove('printing'); p.remove(); window.removeEventListener('afterprint', done); };
+        window.addEventListener('afterprint', done); setTimeout(() => window.print(), 50); return;
+      }
       case 'joincomm': await api(`/communities/${id}/join`, {}); return rerender();
       case 'maprole': ui.mapRole = v; return;
       case 'mapclose': { const c = document.getElementById('mapcard'); if (c) c.hidden = true; return; }
@@ -725,13 +816,14 @@ document.addEventListener('submit', (ev) => {
         case 'login': case 'signup': {
           const r = await api('/' + kind, data);
           if (r.confirm) { f.innerHTML = '<p class="card">Almost there! We sent a confirmation link to your email. Open it, then come back and log in.</p>'; return; }
-          await refreshMe(); location.hash = '#/'; return router();
+          await refreshMe(); { const inv = pendingInvite(); location.hash = inv ? '#/join/' + inv : '#/'; } return router();
         }
         case 'reset': await api('/reset', data); f.innerHTML = '<p class="card">If that email has an account, a reset link is on its way.</p>'; return;
         case 'newpassword': await api('/newpassword', data); await refreshMe(); toast('Password updated'); location.hash = '#/'; return;
         case 'post': await api('/posts', data); closeModal(); toast('Posted'); if (data.community_id) return router(); location.hash = '#/'; return router();
         case 'community': { const r = await api('/communities', data); closeModal(); location.hash = '#/communities/' + r.id; return; }
         case 'casting': { const r = await api('/castings', data); closeModal(); location.hash = '#/castings/' + r.id; return; }
+        case 'room': { const r = await api('/rooms', data); closeModal(); location.hash = '#/rooms/' + r.id; return; }
         case 'meetup': await api('/meetups', data); closeModal(); location.hash = '#/meetups'; ui.meetTab = 'mine'; return router();
         case 'apply': await api(`/castings/${id}/apply`, data); toast('Application sent'); return rerender();
         case 'profile': await api('/me', data); await refreshMe(); toast('Saved'); location.hash = '#/profile/' + S.me.id; return;
@@ -779,6 +871,7 @@ window.addEventListener('hashchange', () => { closeModal(); router(); });
 (async () => {
   const r = await api('/me').catch(() => ({ user: null, roles: [], categories: [] }));
   S.me = r.user; S.roles = r.roles; S.categories = r.categories;
+  if (S.me && pendingInvite() && (!location.hash || location.hash === '#/')) location.hash = '#/join/' + pendingInvite();
   router();
   setInterval(() => { if (S.me && !document.hidden && !document.getElementById('thread')) refreshMe(); }, 30000);
 })();

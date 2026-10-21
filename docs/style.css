@@ -477,3 +477,21 @@ input,select,textarea{background:var(--field);border-color:#3A4147;border-radius
 .cta{background:var(--card)!important;border-radius:12px;padding:56px 24px}
 .pbanner,.banner{background:linear-gradient(135deg,#2B3640,#1D2125)!important}
 .pt1{background:linear-gradient(135deg,#34404A,#1D2125)!important}
+
+/* ---------- private rooms ---------- */
+.room{display:block;margin-bottom:12px}.room h3{font-size:18px;margin:4px 0}
+.steps3{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;color:var(--soft);font-size:14px}.steps3 span{display:inline-flex;align-items:center;gap:6px}.steps3 .ico{width:18px;height:18px;color:var(--amber)}
+.qrbox{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}.qrbox>div{flex:1 1 240px;min-width:0}
+#qr{width:200px;height:200px;border-radius:8px;background:#fff;image-rendering:pixelated}
+#invlink{margin:8px 0;font-size:13px}
+.kicker .ico{width:14px;height:14px;vertical-align:-2px}
+#poster{display:none}
+@media print{
+  body.printing>*:not(#poster){display:none!important}
+  body.printing{background:#fff}
+  body.printing #poster{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:100vh;color:#000;text-align:center;font-family:'Inter',sans-serif}
+  #poster .pl{font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+  #poster h1{font-size:40px;margin:0;color:#000}
+  #poster canvas{width:420px;height:420px}
+  #poster p{font-size:20px;margin:0}#poster small{font-size:12px;color:#444}
+}
