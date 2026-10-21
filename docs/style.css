@@ -509,3 +509,17 @@ body.busy::before{content:'';position:fixed;top:0;left:0;height:3px;width:35%;ba
 .cta>*{position:relative}
 @media(max-width:700px){.lhero{padding:32px 18px;min-height:0}.lhero::before{background:linear-gradient(180deg,rgba(14,13,12,.85),rgba(14,13,12,.7))}.lhero-m{min-height:300px}.lhero-m .mk-post{right:auto;left:0}.lhero-m .mk-job{top:150px}.lhero-m .mk-room{right:auto;left:0}}
 .lhero-m .mk-post,.lhero-m .mk-room{display:none}.lhero-m .mk-job{right:0;top:auto;bottom:10px}
+
+/* ---------- v6 app screens: photo headers ---------- */
+.page-title{position:relative;overflow:hidden;border-radius:18px;padding:44px 28px 26px;margin:0 0 18px;color:#F2E9DA;font-size:44px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(14,13,12,.25),rgba(14,13,12,.85)),var(--ph,url(img/hero.jpg)) center/cover no-repeat}
+body[data-page=castings] .page-title,body[data-page=applications] .page-title{--ph:url(img/f-cast.jpg)}
+body[data-page=communities] .page-title,body[data-page=people] .page-title{--ph:url(img/f-comm.jpg)}
+body[data-page=rooms] .page-title{--ph:url(img/rooms.jpg)}
+body[data-page=meetups] .page-title,body[data-page=notifications] .page-title{--ph:url(img/f-map.jpg)}
+body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
+.pbanner,.banner{background:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.6)),url(img/hero.jpg) center 30%/cover no-repeat!important}
+.startpost{border-color:#3a342d}
+.mini:hover,.card.room:hover,.cast:hover,.event:hover{border-color:#5A5146}
+.card.room{transition:border-color .15s,transform .15s}.card.room:hover{transform:translateY(-2px)}
+@media(max-width:700px){.page-title{font-size:34px;padding:32px 18px 18px}}

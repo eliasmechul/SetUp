@@ -857,6 +857,7 @@ async function router() {
   document.body.classList.add('busy');
   if (mapObj) { mapObj.remove(); mapObj = null; }
   const hash = location.hash || '#/';
+  document.body.dataset.page = hash.split('/')[1] || 'home';
   for (const [re, fn] of routes) {
     const m = hash.match(re);
     if (m) {
