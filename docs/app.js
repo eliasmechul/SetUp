@@ -71,6 +71,11 @@ const cityList = () => `<datalist id="cities">${(window.CITIES || []).map((c) =>
 const availText = (u) => !u.open_to_work ? '' : (u.available_from && u.available_from > new Date().toISOString().slice(0, 10) ? 'Available from ' + new Date(u.available_from + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Open to work');
 const availBadge = (u) => (u.open_to_work ? `<span class="avail">● ${esc(availText(u))}</span>` : '');
 const kindPill = (p) => (p.kind && p.kind !== 'update' ? `<span class="pill kind">${esc(kindLabel(p.kind).replace(/s$/, ''))}</span>` : '');
+const strengthMeter = (m) => {
+  const checks = [m.avatar, m.headline && m.headline !== m.role, m.city && m.lat != null, m.bio, m.skills, m.reel_url];
+  const pct = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  return `<div class="meter"><div class="sub">Profile strength: <b>${pct}%</b></div><div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div></div>`;
+};
 const exPill = (x) => (x && x.sample ? '<span class="pill ex">Example</span>' : '');
 const sampleNote = (list) => (list && list[0] && list[0].sample ? '<p class="sample-note"><b>Examples.</b> These show how Set UP looks. Real members, jobs and posts replace them as people join.</p>' : '');
 const needLogin = () => { toast('Log in to do that'); location.hash = '#/login'; };
@@ -101,7 +106,12 @@ function shell(content) {
       ${m ? '' : '<div class="authbtns"><a class="btn ghost sm" href="#/login">Sign in</a><a class="btn sm" href="#/signup">Join now</a></div>'}
     </div></header>
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
-    <footer class="foot"><span>© Set UP</span><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></footer>
+    <footer class="foot"><div class="foot-in">
+      <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
+      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups</a></div>
+      <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
+      <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
+      <p class="foot-copy">© Set UP</p></div></footer>
     <nav class="tabbar" aria-label="Main">${bar}</nav>
   </div>`;
 }
@@ -121,11 +131,12 @@ function postCard(p) {
     ${p.body ? `<p class="post-body">${richText(p.body)}</p>` : ''}
     ${quoteBlock(p)}
     ${p.image ? `<img class="post-img" src="${esc(p.image)}" alt="Photo shared by ${esc(p.user.name)}" loading="lazy">` : ''}
-    <div class="actions">
-      <button class="act ${p.liked ? 'liked' : ''}" data-act="like" data-id="${p.id}" aria-label="Like" aria-pressed="${p.liked}">${ico('heart')}<span>${p.likes}</span></button>
-      <button class="act" data-act="comments" data-id="${p.id}" aria-label="Comments">${ico('chat')}<span>${p.comments}</span></button>
-      ${S.me && !p.sample ? `<button class="act" data-act="repost" data-id="${p.id}" aria-label="Repost">${ico('repost')}<span>Repost</span></button>` : ''}
-      ${mine ? `<button class="act" data-act="delpost" data-id="${p.id}">Delete</button>` : (S.me && !p.sample ? `<button class="act rep" data-act="report" data-type="post" data-id="${p.id}">Report</button>` : '')}
+    <div class="reactions sub"><span class="rl">${p.likes} ${p.likes === 1 ? 'like' : 'likes'}</span> · <span class="rc">${p.comments} ${p.comments === 1 ? 'comment' : 'comments'}</span></div>
+    <div class="actionbar">
+      <button class="act ${p.liked ? 'liked' : ''}" data-act="like" data-id="${p.id}" aria-pressed="${p.liked}">${ico('heart')}<span class="lbl">Like</span><span class="cnt" hidden>${p.likes}</span></button>
+      <button class="act" data-act="comments" data-id="${p.id}">${ico('chat')}<span class="lbl">Comment</span><span class="cnt" hidden>${p.comments}</span></button>
+      ${S.me && !p.sample ? `<button class="act" data-act="repost" data-id="${p.id}">${ico('repost')}<span class="lbl">Repost</span></button>` : ''}
+      ${mine ? `<button class="act" data-act="delpost" data-id="${p.id}"><span class="lbl">Delete</span></button>` : (S.me && !p.sample ? `<button class="act rep" data-act="report" data-type="post" data-id="${p.id}"><span class="lbl">Report</span></button>` : '')}
     </div>
     <div class="comments" hidden></div>
   </article>`;
@@ -166,14 +177,17 @@ route(/^#?\/?$/, async () => {
     api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] })), api('/castings').catch(() => ({ castings: [] }))]);
   const roles = cs.castings.slice(0, 3);
   if (!m) {
-    const pillars = [['pt1', 'SC. 01', 'Share your work', 'Post stills, reels and behind-the-scenes. Like, comment and share, like the networks you already know.', ''],
-      ['pt2', 'SC. 02', 'Find jobs and castings', 'Post a role or apply with your profile. Every applicant in one list, ready to shortlist.', '<span class="hand">Lead role.<br>3 shooting days.<br><b>Apply →</b></span>'],
-      ['pt3', 'SC. 03', 'Join communities', 'Groups for your craft and your city. Ask, answer and find your next collaborator.', '<span class="faces"><i class="av md c1">JW</i><i class="av md c0">KW</i><i class="av md c2">SR</i><i class="av md c3">TM</i></span>']];
-    const eye = '<span class="vfb vf-b"></span><span class="vf-rec"><i class="recdot"></i>REC 00:01:24:12</span><span class="vf-sc">SC. 04 · TAKE 03</span><span class="vf-flare"></span>';
+    const faq = [['Is Set UP free?', 'Yes. Creating a profile, posting, applying to castings, joining communities and using the map is free.'],
+      ['Who is it for?', 'Actors, directors, producers, cinematographers, editors, sound, writers and every other craft in film, plus students and people starting out.'],
+      ['How do producers find people?', 'On the talent map: pick a city, filter by role and availability, and connect or message people in one click.'],
+      ['Are the castings checked?', 'No. Set UP connects people and does not verify productions. Never pay to get a role, and use the Report button on anything suspicious.'],
+      ['Can I delete my account?', 'Yes. Ask us and your profile, posts, messages and files are removed.']];
+    const pill = (t) => `<span class="mk-pill">${t}</span>`;
     return view(`<div class="landing">
-      <section class="lhero"><div class="lhero-t"><p class="rec"><span class="recdot"></span>REC · THE NETWORK FOR FILM PEOPLE</p>
-        <h1>Write your<br><i>next scene.</i></h1><p class="handline">…then find the crew to shoot it.</p>
-        <p class="lead2">Share your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
+      <section class="lhero"><div class="lhero-t">
+        <p class="eyebrow">The network for film people</p>
+        <h1>Where film people connect, share and <i>get hired.</i></h1>
+        <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
         <form class="card joinform" data-form="signup"><h2>Join Set UP. It's free.</h2>
           <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
           <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
@@ -181,24 +195,44 @@ route(/^#?\/?$/, async () => {
           <div class="row"><div class="field"><label for="jr">I am a…</label><select id="jr" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
           <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
           <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
-          <p class="muted center">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
-        <div class="lhero-m" aria-hidden="true"><div class="photo-eye">${eye}</div>
-          <div class="notebook"><span class="rings"><i></i><i></i><i></i><i></i><i></i><i></i></span><div class="hand big">cast &amp; crew<br>wanted —<br><b class="red">Berlin</b>, 3 days</div><div class="hand">→ apply on Set UP</div></div></div></section>
+          <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
+        <div class="lhero-m" aria-hidden="true">
+          <div class="mk mk-post"><div class="mk-head"><span class="av c0">ML</span><div><b>Mara Linden</b><div class="sub">Cinematographer · Berlin</div></div></div>
+            <p>Wrapped the last shooting day on Night Ferry. Thank you to the whole camera crew. ${'<span class="tag">#shortfilm</span>'}</p><div class="mk-img"></div>
+            <div class="mk-bar"><span>Like</span><span>Comment</span><span>Repost</span></div></div>
+          <div class="mk mk-job"><span class="kicker">Casting · Acting</span><b>Junior actor, lead role</b><div class="sub">Berlin · Paid · 6 days left</div><span class="btn sm mk-btn">Apply</span></div>
+          <div class="mk mk-map"><div class="mk-mapbg"><span class="mp p1">14</span><span class="mp p2">ML</span><span class="mp p3">38</span></div><div class="mk-mapcard"><span class="av sm c1">JW</span><div><b>Jacob Washington</b><div class="sub">Director · 4 km</div></div>${pill('Available')}</div></div>
+        </div></section>
       <div class="strip"><span>Actors</span><span>Directors</span><span>Producers</span><span>Cinematographers</span><span>Editors</span><span>Sound</span><span>Writers</span></div>
-      <section class="lband"><p class="section-title">The three things people do here</p><h2>Share. Get hired. <i>Belong.</i></h2>
-        <div class="lgrid">${pillars.map(([c, k, t, d, x]) => `<div class="card pillar"><div class="ptop ${c}">${x}</div><div class="pbody2"><div class="kicker">${k}</div><h3>${t}</h3><p class="muted">${d}</p></div></div>`).join('')}</div></section>
-      <section class="mapband"><div class="mb-t"><p class="section-title" style="margin-top:0">SC. 04</p><h2 class="lh">Find your crew <i>on the map.</i></h2>
-        <p class="lead2">Producers and casting directors zoom to the city where they shoot, filter by role and availability, and connect in one click.</p><a class="btn ghost lg" href="#/map">Open the talent map</a></div>
-        <div class="mb-m" aria-hidden="true"><div class="miniMap"><span class="mp p1">14</span><span class="mp p2">ML</span><span class="mp p3">38</span><span class="mp p4">JW</span><span class="mp p5">SR</span></div></div></section>
-      <section class="lsec"><div class="lrow"><h2 class="lh">Open <i>roles</i></h2><a class="link" href="#/castings">All castings →</a></div>
+
+      <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
+        <div class="lgrid">
+          <div class="card feat"><span class="fico">${ico('img')}</span><h3>Share your work</h3><p class="muted">Post stills, reels and behind-the-scenes. Like, comment and repost. Organise posts by topic: showcase, question, tip, collab.</p></div>
+          <div class="card feat"><span class="fico">${ico('brief')}</span><h3>Find jobs and castings</h3><p class="muted">Post a role or apply with your profile in one tap. Every applicant lands in one list, ready to shortlist.</p></div>
+          <div class="card feat"><span class="fico">${ico('pin')}</span><h3>Find your crew on the map</h3><p class="muted">Search by role and city, see who is available and connect before you even message.</p></div>
+          <div class="card feat"><span class="fico">${ico('group')}</span><h3>Join communities</h3><p class="muted">Groups for your craft and your city. Ask, answer and meet your next collaborator at local meetups.</p></div>
+        </div></section>
+
+      <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
         ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
-      <section class="lsec"><h2 class="lh">Everyone who <i>makes a film</i></h2><div class="rolechips">${S.roles.map((r) => `<a class="chip" href="#/map" data-act="maprole" data-v="${esc(r)}">${esc(r)}</a>`).join('')}</div></section>
-      <section class="cta"><h2>Roll <i>camera.</i></h2><p class="handline">your next set starts with a profile</p><a class="btn lg" href="#/signup">Join Set UP</a></section>
+
+      <section class="lsec"><p class="eyebrow">How it works</p><h2 class="lh">From profile to set in three steps</h2>
+        <div class="lgrid3">
+          <div class="step"><span class="num">1</span><h3>Build your profile</h3><p class="muted">Add your craft, city, credits and showreel. Switch on "Open to work".</p></div>
+          <div class="step"><span class="num">2</span><h3>Find your people</h3><p class="muted">Search the map, join communities and send connection requests.</p></div>
+          <div class="step"><span class="num">3</span><h3>Get on set</h3><p class="muted">Apply to castings, post your own, and meet your crew in person.</p></div>
+        </div></section>
+
+      <section class="lsec"><h2 class="lh">Everyone who makes a film</h2><div class="rolechips">${S.roles.map((r) => `<a class="chip" href="#/map" data-act="maprole" data-v="${esc(r)}">${esc(r)}</a>`).join('')}</div></section>
+
+      <section class="lsec faq"><h2 class="lh">Questions</h2>${faq.map(([q, a2]) => `<details class="card"><summary>${esc(q)}</summary><p class="muted">${esc(a2)}</p></details>`).join('')}</section>
+
+      <section class="cta"><h2>Your next set is one search away.</h2><p>Create your free profile in two minutes.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
     </div>`, true);
   }
   const mc = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
-    <a class="link" href="#/me/edit">Edit profile</a></div></div>
+    ${strengthMeter(m)}<a class="link" href="#/me/edit">Edit profile</a></div></div>
     <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
   try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ }
@@ -604,7 +638,7 @@ document.addEventListener('click', (ev) => {
       case 'proftab': ui.profTab = v; return rerender();
       case 'like': {
         const r = await api(`/posts/${id}/like`, {});
-        el.classList.toggle('liked', r.liked); el.setAttribute('aria-pressed', r.liked); el.querySelector('span').textContent = r.likes; return;
+        el.classList.toggle('liked', r.liked); el.setAttribute('aria-pressed', r.liked); el.querySelector('.cnt').textContent = r.likes; const rl = el.closest('article').querySelector('.rl'); if (rl) rl.textContent = r.likes + (r.likes === 1 ? ' like' : ' likes'); return;
       }
       case 'comments': {
         const box = el.closest('article').querySelector('.comments');
@@ -701,7 +735,7 @@ document.addEventListener('submit', (ev) => {
         case 'meetup': await api('/meetups', data); closeModal(); location.hash = '#/meetups'; ui.meetTab = 'mine'; return router();
         case 'apply': await api(`/castings/${id}/apply`, data); toast('Application sent'); return rerender();
         case 'profile': await api('/me', data); await refreshMe(); toast('Saved'); location.hash = '#/profile/' + S.me.id; return;
-        case 'comment': { const r = await api(`/posts/${id}/comments`, data); const box = f.closest('.comments'); drawComments(box, id, r.comments); const art = box.closest('article'); art.querySelector('[data-act=comments] span').textContent = r.comments.length; return; }
+        case 'comment': { const r = await api(`/posts/${id}/comments`, data); const box = f.closest('.comments'); drawComments(box, id, r.comments); const art = box.closest('article'); art.querySelector('[data-act=comments] .cnt').textContent = r.comments.length; const rc = art.querySelector('.rc'); if (rc) rc.textContent = r.comments.length + (r.comments.length === 1 ? ' comment' : ' comments'); return; }
         case 'msg': await api('/messages/' + id, data); f.reset(); return rerender();
         case 'report': await api('/report', data); closeModal(); toast('Thank you. We will review this.'); return;
         case 'repost': await api('/posts', data); closeModal(); toast('Reposted'); return rerender();
@@ -726,6 +760,7 @@ async function refreshMe() {
 }
 async function router() {
   clearInterval(pollTimer);
+  document.body.classList.add('busy');
   if (mapObj) { mapObj.remove(); mapObj = null; }
   const hash = location.hash || '#/';
   for (const [re, fn] of routes) {
@@ -739,6 +774,7 @@ async function router() {
   }
   view('<div class="empty">Page not found<p><a class="link" href="#/">Back to feed</a></p></div>');
 }
+new MutationObserver(() => document.body.classList.remove('busy')).observe(document.getElementById('app'), { childList: true });
 window.addEventListener('hashchange', () => { closeModal(); router(); });
 (async () => {
   const r = await api('/me').catch(() => ({ user: null, roles: [], categories: [] }));

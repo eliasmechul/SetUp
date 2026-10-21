@@ -2,6 +2,13 @@
 (() => {
   const TR = {
     // navigation & footer
+    'Like': 'Beğen', 'Comment': 'Yorum yap', 'Product': 'Ürün', 'Legal': 'Yasal', 'Language': 'Dil', 'Questions': 'Sorular', 'How it works': 'Nasıl çalışır', 'What you can do': 'Neler yapabilirsin',
+    'The network for film people': 'Film insanlarının ağı', 'Where film people connect, share and ': 'Film insanlarının bağlandığı, paylaştığı ve ', 'get hired.': 'iş bulduğu yer.',
+    'From profile to set in three steps': 'Profilden sete üç adımda', 'Build your profile': 'Profilini oluştur', 'Find your people': 'İnsanlarını bul', 'Get on set': 'Sete çık',
+    'Everything a production needs, ': 'Bir prodüksiyonun ihtiyacı olan her şey, ', 'one network.': 'tek ağda.', 'Your next set is one search away.': 'Bir sonraki setin tek bir aramanın uzağında.', 'Create your free profile in two minutes.': 'Ücretsiz profilini iki dakikada oluştur.',
+    'Everyone who makes a film': 'Film yapan herkes', 'Is Set UP free?': 'Set UP ücretsiz mi?', 'Who is it for?': 'Kimler için?', 'How do producers find people?': 'Yapımcılar insanları nasıl bulur?', 'Are the castings checked?': 'İlanlar kontrol ediliyor mu?', 'Can I delete my account?': 'Hesabımı silebilir miyim?',
+    'Find your crew on the map': 'Ekibini haritada bul', 'Find jobs and castings': 'İş ve seçme ilanları bul', 'Share your work': 'İşini paylaş', 'Join communities': 'Topluluklara katıl', 'Profile strength:': 'Profil gücü:',
+    'The network for film people. Share your work, find jobs and castings, and find your crew on the map.': 'Film insanlarının ağı. İşini paylaş, iş ve seçme ilanları bul, ekibini haritada bul.',
     'Home': 'Ana sayfa', 'Map': 'Harita', 'Network': 'Ağ', 'Castings': 'Seçmeler', 'Groups': 'Gruplar', 'Meetups': 'Buluşmalar',
     'Messages': 'Mesajlar', 'Alerts': 'Bildirimler', 'Me': 'Ben', 'Log in': 'Giriş yap', 'Sign in': 'Giriş yap', 'Join now': 'Hemen katıl',
     'Privacy': 'Gizlilik', 'Terms': 'Şartlar', 'Impressum': 'Künye', 'English': 'English', 'Türkçe': 'Türkçe',
