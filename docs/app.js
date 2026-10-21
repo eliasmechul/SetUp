@@ -184,26 +184,22 @@ route(/^#?\/?$/, async () => {
       ['Are the castings checked?', 'No. Set UP connects people and does not verify productions. Never pay to get a role, and use the Report button on anything suspicious.'],
       ['Can I delete my account?', 'Yes. Ask us and your profile, posts, messages and files are removed.']];
     const pill = (t) => `<span class="mk-pill">${t}</span>`;
-    return view(`<div class="landing">
+    view(`<div class="landing">
       <section class="lhero"><div class="lhero-t">
         <p class="eyebrow">The network for film people</p>
         <h1>Where film people connect, share and <i>get hired.</i></h1>
         <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
-        <form class="card joinform" data-form="signup"><h2>Join Set UP. It's free.</h2>
-          <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
-          <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
-          <div class="field"><label for="jp">Password (8+ characters)</label><input id="jp" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
-          <div class="row"><div class="field"><label for="jr">I am a…</label><select id="jr" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
-          <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
-          <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
-          <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
-        <div class="lhero-m" aria-hidden="true">
-          <div class="mk mk-post"><div class="mk-head"><span class="av c0">ML</span><div><b>Mara Linden</b><div class="sub">Cinematographer · Berlin</div></div></div>
-            <p>Wrapped the last shooting day on Night Ferry. Thank you to the whole camera crew. ${'<span class="tag">#shortfilm</span>'}</p><div class="mk-img"></div>
-            <div class="mk-bar"><span>Like</span><span>Comment</span><span>Repost</span></div></div>
+        <p class="newpill"><b>NEW</b> Private rooms with QR invites</p>
+        <div class="ctas"><a class="btn lg" href="#/signup">Create your profile</a><a class="btn ghost lg" href="#/rooms">Host a private room</a></div>
+        <p class="trust"><span>Free for everyone</span><span>Actors · Crew · Producers · Casting</span><span>Works on your phone</span></p></div>
+        <div class="lhero-m" aria-hidden="true"><div class="artframe">
+          <svg viewBox="0 0 520 520" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1230"/><stop offset=".45" stop-color="#7a3d5c"/><stop offset=".75" stop-color="#e0804f"/><stop offset="1" stop-color="#ffc27a"/></linearGradient><radialGradient id="sn" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff3d0"/><stop offset=".3" stop-color="#ffd08a" stop-opacity=".8"/><stop offset="1" stop-color="#ff9a55" stop-opacity="0"/></radialGradient></defs><rect width="520" height="520" fill="url(#sk)"/><circle cx="330" cy="330" r="190" fill="url(#sn)"/><circle cx="330" cy="330" r="42" fill="#fff0c8"/><path d="M0 340c90-40 170-16 260 14s190 14 260-20v206H0z" fill="#4a2f52"/><path d="M0 400c110-36 220-10 330 12s140 6 190-8v116H0z" fill="#241a30"/><path d="M0 450c140-24 260-4 380 10s100 0 140-8v68H0z" fill="#0f0c14"/><g fill="#0b0910" stroke="#0b0910" stroke-width="3"><path d="M120 436l-20 46M120 436l20 46M120 436v46" fill="none"/><rect x="100" y="408" width="40" height="22" rx="3"/><rect x="86" y="404" width="16" height="14" rx="2"/><path d="M140 412l14-6v22l-14-4z"/></g><g fill="#0b0910" stroke="none"><circle cx="190" cy="430" r="6"/><path d="M182 438h16l4 22h-4l-2 20h-5l-1-14-1 14h-5l-2-20h-4z"/><circle cx="250" cy="436" r="6"/><path d="M242 444h16l4 22h-4l-2 20h-5l-1-14-1 14h-5l-2-20h-4z"/></g><g><circle cx="380" cy="396" r="40" fill="#ffe2a8" opacity=".2"/><path d="M380 480v-50M366 480h28" stroke="#0b0910" stroke-width="3"/><rect x="366" y="392" width="28" height="22" rx="3" fill="#0b0910"/><circle cx="380" cy="403" r="6" fill="#ffe2a8"/></g></svg>
+          <i class="bar t"></i><i class="bar b"></i><span class="rec">● REC · SCENE 24 · TAKE 3</span></div>
+          <div class="mk mk-post"><div class="mk-head"><span class="av c0">ML</span><div><b>Mara Linden</b><div class="sub">Cinematographer · Berlin</div></div></div><p>Wrapped Night Ferry today. Thank you to the whole camera crew.</p></div>
           <div class="mk mk-job"><span class="kicker">Casting · Acting</span><b>Junior actor, lead role</b><div class="sub">Berlin · Paid · 6 days left</div><span class="btn sm mk-btn">Apply</span></div>
-          <div class="mk mk-map"><div class="mk-mapbg"><span class="mp p1">14</span><span class="mp p2">ML</span><span class="mp p3">38</span></div><div class="mk-mapcard"><span class="av sm c1">JW</span><div><b>Jacob Washington</b><div class="sub">Director · 4 km</div></div>${pill('Available')}</div></div>
-        </div></section>
+          <div class="mk mk-room"><span class="qrchip">${ico('qr')}</span><div><b>Pitch night: Harbour Lights</b><div class="sub">Private room · 42 guests checked in</div></div></div>
+        </div>
+      </section>
       <div class="strip"><span>Actors</span><span>Directors</span><span>Producers</span><span>Cinematographers</span><span>Editors</span><span>Sound</span><span>Writers</span></div>
 
       <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
@@ -213,6 +209,12 @@ route(/^#?\/?$/, async () => {
           <div class="card feat"><span class="fico">${ico('pin')}</span><h3>Find your crew on the map</h3><p class="muted">Search by role and city, see who is available and connect before you even message.</p></div>
           <div class="card feat"><span class="fico">${ico('group')}</span><h3>Join communities</h3><p class="muted">Groups for your craft and your city. Ask, answer and meet your next collaborator at local meetups.</p></div>
         </div></section>
+
+      <section class="lsec roomsband"><div class="roomsin"><div><p class="eyebrow">Private rooms</p><h2 class="lh">Share the work with <i>invited guests only.</i></h2>
+        <p class="lead2">Producers and casting directors open a room for a program, pitch, presentation or screening. Guests join by scanning a QR code, and you check them in at the door.</p>
+        <ol class="rsteps"><li><span>1</span>Create a room with your program and slides</li><li><span>2</span>Print or send the QR invite</li><li><span>3</span>Guests scan, join and are checked in</li></ol>
+        <a class="btn" href="#/rooms">Open Private rooms</a></div>
+        <div class="invcard"><small>SET UP · PRIVATE INVITATION</small><b>Pitch night: Harbour Lights</b><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><span>Scan with your phone camera to join</span></div></div></section>
 
       <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
         ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
@@ -230,6 +232,8 @@ route(/^#?\/?$/, async () => {
 
       <section class="cta"><h2>Your next set is one search away.</h2><p>Create your free profile in two minutes.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
     </div>`, true);
+    { const cv = document.getElementById('demoqr'); if (cv && window.qrcode) drawQR(cv, location.origin + location.pathname + '#/rooms', 200); }
+    return;
   }
   const mc = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}

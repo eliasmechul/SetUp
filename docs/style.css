@@ -466,3 +466,29 @@ body.busy::before{content:'';position:fixed;top:0;left:0;height:3px;width:35%;ba
   #poster canvas{width:420px;height:420px}
   #poster p{font-size:20px;margin:0}#poster small{font-size:12px;color:#444}
 }
+
+/* ---------- v4 landing (from the Design canvas) ---------- */
+.lhero{background:var(--card);padding:56px 40px;gap:48px}
+.lhero-t{flex:1 1 440px;min-width:0}
+.lhero-t h1{font-size:84px;line-height:.98}
+.newpill{display:inline-flex;align-items:center;gap:8px;border:1px solid #3a342d;border-radius:999px;padding:6px 14px 6px 8px;font-size:13px;color:var(--soft);margin:0 0 6px}
+.newpill b{background:var(--amber);color:var(--ink);border-radius:999px;padding:2px 9px;font-size:11px;letter-spacing:.06em}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0 0}
+.ctas .btn{border-radius:999px;padding:0 30px}
+.trust{display:flex;flex-wrap:wrap;gap:8px 22px;margin:28px 0 0;color:var(--muted);font-size:14px}
+.lhero-m{flex:1 1 440px;min-height:540px;position:relative}
+.artframe{position:absolute;inset:0 0 40px 40px;border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+.artframe svg{width:100%;height:100%;display:block}
+.artframe .bar{position:absolute;left:0;right:0;height:32px;background:#000;opacity:.55}.artframe .bar.t{top:0}.artframe .bar.b{bottom:0}
+.artframe .rec{position:absolute;left:18px;bottom:6px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#F2E9DA}
+.lhero-m .mk-post{left:0;top:60px;width:260px}
+.lhero-m .mk-job{right:0;left:auto;top:250px;width:240px}
+.mk-room{position:absolute;left:24px;bottom:0;display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.mk-room b{font-size:14px}.qrchip{width:36px;height:36px;border-radius:8px;background:#fff;color:#000;display:flex;align-items:center;justify-content:center}
+.roomsband{margin:0}.roomsin{display:flex;flex-wrap:wrap;gap:40px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:48px;background-image:radial-gradient(60% 90% at 100% 0%,rgba(227,162,74,.22),transparent 70%)}
+.roomsin>div:first-child{flex:1 1 380px;min-width:0}
+.rsteps{list-style:none;padding:0;margin:0 0 22px;display:flex;flex-direction:column;gap:12px}
+.rsteps li{display:flex;gap:14px;align-items:center}.rsteps span{width:30px;height:30px;border-radius:50%;background:var(--amber);color:var(--ink);font-weight:700;display:flex;align-items:center;justify-content:center}
+.invcard{flex:1 1 300px;max-width:320px;margin:0 auto;background:#fff;color:#000;border-radius:18px;padding:26px;text-align:center;transform:rotate(3deg);box-shadow:0 30px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;gap:10px}
+.invcard small{font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.14em}.invcard b{font:400 28px/1.05 'Instrument Serif',serif}.invcard canvas{width:200px;height:200px}
+@media(max-width:700px){.lhero{padding:28px 18px}.lhero-t h1{font-size:46px}.lhero-m{min-height:470px}.lhero-m .mk-post{width:70%}.lhero-m .mk-job{width:62%;top:230px}.roomsin{padding:28px 20px}}
