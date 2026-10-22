@@ -370,7 +370,7 @@ route(/^#\/rooms\/(\d+)$/, async (id) => {
   const people = r.people.map((p) => `<div class="person rp"><a href="#/profile/${p.id}">${av(p)}</a>${who(p)}
     ${r.mine ? `<button class="btn ${p.checked_in ? '' : 'ghost'} sm" data-act="checkin" data-id="${r.id}" data-uid="${p.id}" data-v="${p.checked_in ? 'undo' : 'in'}">${p.checked_in ? 'Checked in ✓' : 'Check in'}</button>` : (p.checked_in ? '<span class="avail">● Checked in</span>' : '')}</div>`).join('');
   view(`<p><a class="link" href="#/rooms">${ico('back')} Private rooms</a></p>
-    <div class="card"><span class="kicker">${esc(roomKind(r.kind))} · ${ico('qr')} Invite only</span>
+    <div class="card roomhead"><span class="kicker">${esc(roomKind(r.kind))} · ${ico('qr')} Invite only</span>
       <h1 class="page-title">${esc(r.title)}</h1>
       <div class="meta">${r.starts_at ? `<span>${esc(new Date(r.starts_at).toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }))}</span>` : ''}${r.location ? `<span>${ico('pin')} ${esc(r.location)}</span>` : ''}<span>${r.members} ${r.members === 1 ? 'person' : 'people'}</span></div>
       ${r.description ? `<p class="post-body">${esc(r.description)}</p>` : ''}
@@ -395,7 +395,7 @@ route(/^#\/join\/([0-9a-fA-F]{8,64})$/, async (code) => {
     <div class="meta"><span>Hosted by ${esc(r.host)}</span>${when2 ? `<span>${esc(when2)}</span>` : ''}${r.location ? `<span>${ico('pin')} ${esc(r.location)}</span>` : ''}</div>`;
   if (!S.me) { keepInvite(code); return view(`<div class="card">${card}<p class="muted">Create a free Set UP profile or log in to join this private room.</p>
     <a class="btn block" href="#/signup">Join Set UP</a><p class="center"><a class="link" href="#/login">I already have an account</a></p></div>`); }
-  view(`<div class="card">${card}<button class="btn block lg" data-act="joinroom" data-code="${esc(code)}">Join this room</button></div>`);
+  view(`<div class="card roomhead">${card}<button class="btn block lg" data-act="joinroom" data-code="${esc(code)}">Join this room</button></div>`);
 });
 
 route(/^#\/castings$/, async () => {

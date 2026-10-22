@@ -523,3 +523,12 @@ body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
 .mini:hover,.card.room:hover,.cast:hover,.event:hover{border-color:#5A5146}
 .card.room{transition:border-color .15s,transform .15s}.card.room:hover{transform:translateY(-2px)}
 @media(max-width:700px){.page-title{font-size:34px;padding:32px 18px 18px}}
+
+/* ---------- v7 app parity with the design canvas ---------- */
+.roomhead{background:linear-gradient(rgba(14,13,12,.55),rgba(14,13,12,.92)),url(img/rooms.jpg) center/cover no-repeat!important;padding:28px}
+.roomhead .page-title{background:none;border:0;padding:0;margin:6px 0 10px;font-size:44px}
+.pcard,.feedcol .card,.rail .card,.lcol .card,.post{border-radius:16px}
+.post img.pimg,.post .pimage{border-radius:0}
+.pcard .pbanner{height:72px}
+.invite{border-radius:18px}
+.guest-in{color:var(--green)}
