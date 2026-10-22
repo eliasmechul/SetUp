@@ -236,18 +236,18 @@ route(/^#?\/?$/, async () => {
   const mc = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
     ${strengthMeter(m)}<a class="link" href="#/me/edit">Edit profile</a></div></div>
-    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
+    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/rooms">${ico('qr')} Private rooms</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
   try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ }
   const toJoin = cm.communities.filter((c) => !c.joined).slice(0, 3);
   const rail = `<aside class="rail" aria-label="Suggestions">
-    <div class="card"><h2 class="rail-title">Casting near you</h2>${roles.map((c) => `<a class="mini" href="#/castings/${c.id}"><div class="who"><div class="name">${esc(c.title)}</div><div class="sub">${esc(c.city || 'Remote')}${c.pay ? ' · ' + esc(c.pay) : ''}</div></div></a>`).join('') || '<p class="muted">No castings yet.</p>'}<a class="link" href="#/castings">All castings →</a></div>
+    <div class="card"><h2 class="rail-title">Hiring near you</h2>${roles.map((c) => `<a class="mini" href="#/castings/${c.id}"><div class="who"><div class="name">${esc(c.title)}</div><div class="sub">${esc(c.city || 'Remote')}${c.pay ? ' · ' + esc(c.pay) : ''}</div></div></a>`).join('') || '<p class="muted">No castings yet.</p>'}<a class="link" href="#/castings">All castings →</a></div>
     ${sug.length ? `<div class="card"><h2 class="rail-title">People you may know</h2>${sug.slice(0, 4).map(railPerson).join('')}</div>` : ''}
     <div class="card"><h2 class="rail-title">Communities</h2>${toJoin.map((c) => `<div class="mini"><div class="who"><a href="#/communities/${c.id}" class="name">${esc(c.name)}</a><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · ${esc(c.topic)}</div></div><button class="btn ghost sm" data-act="joincomm" data-id="${c.id}">Join</button></div>`).join('') || '<p class="muted">No communities to join yet.</p>'}<a class="link" href="#/communities">All communities →</a></div>
     <div class="card"><h2 class="rail-title">Upcoming meetups</h2>${mt.meetups.slice(0, 3).map(meetMini).join('') || '<p class="muted">No meetups yet.</p>'}<a class="link" href="#/meetups">All meetups →</a></div></aside>`;
   view(`<div class="feedgrid"><aside class="lcol">${mc}</aside><div class="feedcol">
     <div class="card startpost"><div class="sp-top">${av(m)}<button class="sp-input" data-act="compose">Start a post</button></div>
-      <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button></div></div>
+      <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button><button data-act="compose" data-v="room">${ico('qr')} Private room</button></div></div>
     ${sampleNote(feed.posts)}
     <div class="chips kindchips" role="group" aria-label="Topics">${KINDS.map(([k, l]) => `<button class="chip ${ui.feedKind === k ? 'on' : ''}" data-act="feedkind" data-v="${k}">${l}</button>`).join('')}</div>
     <div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
