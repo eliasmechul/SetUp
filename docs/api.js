@@ -407,7 +407,7 @@ const H = {
     if (city) query = query.ilike('city', `%${city}%`);
     const [rows, conns] = await Promise.all([query, me ? myConnections(me) : new Map()]);
     const prow = ok(rows);
-    if (!prow.length && !me) { const tot = await sb.from('setup_profiles').select('id', { count: 'exact', head: true }); if (!tot.count) return { people: SAMPLE.people(new URLSearchParams({ q: q.get('q') || '', role: q.get('role') || '' })) }; }
+    if (!prow.some((r) => r.id !== '99999999-9999-4999-8999-999999999999') && !me) { const tot = await sb.from('setup_profiles').select('id', { count: 'exact', head: true }); if (tot.count <= 1) return { people: SAMPLE.people(new URLSearchParams({ q: q.get('q') || '', role: q.get('role') || '' })) }; }
     return { people: prow.map((r) => ({ ...userJson(r), state: conns.get(r.id) || 'none' })) };
   },
   async profile(id) {
@@ -607,7 +607,8 @@ const H = {
 };
 
 // Example content is switched off: the network shows real members and official Set UP content only.
-if (!C.samples) { SAMPLE.people = () => []; SAMPLE.posts = () => []; SAMPLE.communities = () => []; SAMPLE.castings = () => []; SAMPLE.meetups = () => []; SAMPLE.profile = () => null; }
+// Posts and groups are real (official Set UP content). Sample people, castings and meetups stay, clearly tagged, until real ones exist.
+SAMPLE.posts = () => []; SAMPLE.communities = () => [];
 
 const R = [
   ['GET', '/me', 'me'], ['POST', '/me', 'update_me'], ['POST', '/signup', 'signup'], ['POST', '/report', 'report'], ['POST', '/login', 'login'],

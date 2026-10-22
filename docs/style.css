@@ -581,3 +581,5 @@ body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
 .wordmark img{width:auto;height:44px;max-width:60px;object-fit:contain;border-radius:8px;background:#0b0a09}
 .wordmark .set{font-size:34px}
 @media(max-width:700px){.wordmark img{height:40px}}
+
+.sample-note{display:none}
