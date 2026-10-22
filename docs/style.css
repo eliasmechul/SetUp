@@ -552,3 +552,13 @@ body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
   .post-head>.sub,.post-head>.pill{margin-left:56px}
   .gsearch{max-width:120px}
 }
+
+/* ---------- v10 simple visitor header (as in the design canvas) ---------- */
+.navbar.out .gsearch{display:none}
+.navbar.out .topnav{display:none;margin-left:20px;gap:6px}
+.navbar.out .authbtns{display:flex;margin-left:auto;align-items:center;gap:10px}
+.navbar.out .signin{font-weight:600;padding:10px 14px}
+.navbar.out .btn.sm{border-radius:999px;padding:0 22px}
+.ol{padding:10px 14px;color:var(--soft);font-size:15px;font-weight:500;border-radius:8px}
+.ol:hover,.ol.on{color:var(--text)}.ol.on{color:var(--amber)}
+@media(min-width:900px){.navbar.out .topnav{display:flex;margin-left:24px}}

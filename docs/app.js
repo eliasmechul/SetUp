@@ -95,16 +95,18 @@ function shell(content) {
     ['#/rooms', 'qr', 'Rooms', 0, 1], ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
   const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
     (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');
+  const outLinks = [['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/communities', 'Communities'], ['#/rooms', 'Private rooms']]
+    .map(([h, l]) => `<a class="ol ${active(h) ? 'on' : ''}" href="${h}">${l}</a>`).join('');
   const bar = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], null, ['#/castings', 'brief', 'Castings'], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Me' : 'Log in']]
     .map((t) => t ? `<a class="tab ${active(t[0]) ? 'on' : ''}" href="${t[0]}">${ico(t[1])}${t[2]}</a>`
       : `<button class="plus" data-act="compose" aria-label="Create">${ico('plus')}</button>`).join('');
   $app.innerHTML = `
   <div class="shell">
-    <header class="navbar"><div class="navin">
+    <header class="navbar ${m ? '' : 'out'}"><div class="navin">
       <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
       <form class="gsearch" data-form="gsearch" role="search"><label class="sr" for="gs">Search people</label>${ico('search')}<input id="gs" name="q" placeholder="Search people, roles, skills" autocomplete="off"></form>
-      <nav class="topnav" aria-label="Main">${top}</nav>
-      ${m ? '' : '<div class="authbtns"><a class="btn ghost sm" href="#/login">Sign in</a><a class="btn sm" href="#/signup">Join now</a></div>'}
+      <nav class="topnav" aria-label="Main">${m ? top : outLinks}</nav>
+      ${m ? '' : '<div class="authbtns"><a class="signin" href="#/login">Sign in</a><a class="btn sm" href="#/signup">Join free</a></div>'}
     </div></header>
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <footer class="foot"><div class="foot-in">
