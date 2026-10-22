@@ -109,7 +109,7 @@ function shell(content) {
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <footer class="foot"><div class="foot-in">
       <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
-      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/rooms">Private rooms</a><a href="#/meetups">Meetups</a></div>
+      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/rooms">Private rooms</a><a href="#/meetups">Meetups</a><a href="#/share">Share Set UP</a></div>
       <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
       <p class="foot-copy">© Set UP</p></div></footer>
@@ -396,6 +396,19 @@ route(/^#\/join\/([0-9a-fA-F]{8,64})$/, async (code) => {
   if (!S.me) { keepInvite(code); return view(`<div class="card">${card}<p class="muted">Create a free Set UP profile or log in to join this private room.</p>
     <a class="btn block" href="#/signup">Join Set UP</a><p class="center"><a class="link" href="#/login">I already have an account</a></p></div>`); }
   view(`<div class="card roomhead">${card}<button class="btn block lg" data-act="joinroom" data-code="${esc(code)}">Join this room</button></div>`);
+});
+
+
+route(/^#\/share$/, async () => {
+  const url = location.origin + location.pathname;
+  view(`<h1 class="page-title">Share Set UP</h1>
+    <div class="card invite"><div class="qrbox"><canvas id="qr" aria-label="QR code for Set UP"></canvas>
+      <div><p class="muted">Scan with a phone camera to open Set UP. Print it, put it on a poster or show it on screen at your event.</p>
+      <input id="invlink" readonly value="${esc(url)}" aria-label="Link">
+      <div class="pro-actions"><button class="btn sm" data-act="copyinvite">Copy link</button><button class="btn ghost sm" data-act="dlqr">Download QR</button>${navigator.share ? '<button class="btn ghost sm" data-act="nativeshare">Share…</button>' : ''}</div></div></div></div>
+    <div class="card"><h2 class="rail-title">Install it like an app</h2>
+      <p class="muted"><b>iPhone:</b> open this page in Safari, tap Share, then "Add to Home Screen".<br><b>Android:</b> open in Chrome, tap the menu, then "Install app" or "Add to Home screen".</p></div>`);
+  drawQR(document.getElementById('qr'), url, 240);
 });
 
 route(/^#\/castings$/, async () => {
@@ -736,6 +749,7 @@ document.addEventListener('click', (ev) => {
       case 'delroom': if (confirm('Delete this room for everyone?')) { await api(`/rooms/${id}/delete`, {}); location.hash = '#/rooms'; } return;
       case 'leaveroom': if (confirm('Leave this room?')) { await api(`/rooms/${id}/leave`, {}); location.hash = '#/rooms'; } return;
       case 'joinroom': { const r = await api('/join/' + el.dataset.code, {}); clearInvite(); toast('You joined the room'); location.hash = '#/rooms/' + r.id; return; }
+      case 'nativeshare': try { await navigator.share({ title: 'Set UP', text: 'The network for film people', url: document.getElementById('invlink').value }); } catch (e) { /* cancelled */ } return;
       case 'copyinvite': { const i = document.getElementById('invlink'); try { await navigator.clipboard.writeText(i.value); } catch (e) { i.select(); document.execCommand('copy'); } return toast('Link copied'); }
       case 'dlqr': { const c = document.getElementById('qr'); const a = document.createElement('a'); a.download = 'setup-invite-qr.png'; a.href = c.toDataURL('image/png'); a.click(); return; }
       case 'printposter': {
