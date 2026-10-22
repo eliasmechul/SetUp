@@ -583,3 +583,5 @@ body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
 @media(max-width:700px){.wordmark img{height:40px}}
 
 .sample-note{display:none}
+
+.feedtag{font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:6px 4px -6px}

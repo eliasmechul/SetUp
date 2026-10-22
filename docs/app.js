@@ -95,7 +95,7 @@ function shell(content) {
     ['#/rooms', 'qr', 'Rooms', 0, 1], ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
   const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
     (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');
-  const outLinks = [['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/communities', 'Communities'], ['#/rooms', 'Private rooms']]
+  const outLinks = [['#/feed', 'Feed'], ['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/communities', 'Communities'], ['#/rooms', 'Private rooms']]
     .map(([h, l]) => `<a class="ol ${active(h) ? 'on' : ''}" href="${h}">${l}</a>`).join('');
   const bar = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], null, ['#/castings', 'brief', 'Castings'], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Me' : 'Log in']]
     .map((t) => t ? `<a class="tab ${active(t[0]) ? 'on' : ''}" href="${t[0]}">${ico(t[1])}${t[2]}</a>`
@@ -177,12 +177,12 @@ function connBtn(id, state, small) {
 const routes = [];
 const route = (re, fn) => routes.push([re, fn]);
 
-route(/^#?\/?$/, async () => {
+const homeRoute = async (forceFeed) => {
   const m = S.me;
   const [feed, mt, cm, cs] = await Promise.all([api('/feed?scope=' + (m ? ui.feedScope : 'all') + (ui.feedKind ? '&kind=' + ui.feedKind : '')),
     api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] })), api('/castings').catch(() => ({ castings: [] }))]);
   const roles = cs.castings.slice(0, 3);
-  if (!m) {
+  if (!m && !forceFeed) {
     const faq = [['Is Set UP free?', 'Yes. Creating a profile, posting, applying to castings, joining communities and using the map is free.'],
       ['Who is it for?', 'Actors, directors, producers, cinematographers, editors, sound, writers and every other craft in film, plus students and people starting out.'],
       ['How do producers find people?', 'On the talent map: pick a city, filter by role and availability, and connect or message people in one click.'],
@@ -238,28 +238,38 @@ route(/^#?\/?$/, async () => {
     { const cv = document.getElementById('demoqr'); if (cv && window.qrcode) drawQR(cv, location.origin + location.pathname + '#/rooms', 200); }
     return;
   }
-  const mc = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
+  const joinCard = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><span class="name">Join Set UP</span><div class="sub">Create your free profile to post, comment, apply to castings and join groups.</div><a class="btn block" href="#/signup">Join free</a><p class="center small muted">Already a member? <a class="link" href="#/login">Sign in</a></p></div></div>
+    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/castings">${ico('brief')} Castings</a><a href="#/rooms">${ico('qr')} Private rooms</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a></div>`;
+  const mc = !m ? joinCard : `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
     ${strengthMeter(m)}<a class="link" href="#/me/edit">Edit profile</a></div></div>
     ${cm.communities.some((c) => c.joined) ? `<div class="card"><h2 class="rail-title">Your groups</h2>${cm.communities.filter((c) => c.joined).slice(0, 5).map((c) => `<a class="mini" href="#/communities/${c.id}"><div class="who"><div class="name">${esc(c.name)}</div><div class="sub">${c.members} member${c.members === 1 ? '' : 's'}</div></div></a>`).join('')}<a class="link" href="#/communities">Discover groups →</a></div>` : ''}
     <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/rooms">${ico('qr')} Private rooms</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
-  try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ }
+  if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
   const toJoin = cm.communities.filter((c) => !c.joined).slice(0, 3);
   const rail = `<aside class="rail" aria-label="Suggestions">
     <div class="card"><h2 class="rail-title">Hiring near you</h2>${roles.map((c) => `<a class="mini" href="#/castings/${c.id}"><div class="who"><div class="name">${esc(c.title)}</div><div class="sub">${esc(c.city || 'Remote')}${c.pay ? ' · ' + esc(c.pay) : ''}</div></div></a>`).join('') || '<p class="muted">No castings yet.</p>'}<a class="link" href="#/castings">All castings →</a></div>
     ${sug.length ? `<div class="card"><h2 class="rail-title">People you may know</h2>${sug.slice(0, 4).map(railPerson).join('')}</div>` : ''}
     <div class="card"><h2 class="rail-title">Communities</h2>${toJoin.map((c) => `<div class="mini"><div class="who"><a href="#/communities/${c.id}" class="name">${esc(c.name)}</a><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · ${esc(c.topic)}</div></div><button class="btn ghost sm" data-act="joincomm" data-id="${c.id}">Join</button></div>`).join('') || '<p class="muted">No communities to join yet.</p>'}<a class="link" href="#/communities">All communities →</a></div>
     <div class="card"><h2 class="rail-title">Upcoming meetups</h2>${mt.meetups.slice(0, 3).map(meetMini).join('') || '<p class="muted">No meetups yet.</p>'}<a class="link" href="#/meetups">All meetups →</a></div></aside>`;
+  const stream = feed.posts.map(postCard);
+  if (!ui.feedKind && (!m || ui.feedScope === 'all')) {
+    if (cs.castings[0]) stream.splice(Math.min(2, stream.length), 0, `<div class="feedtag">Casting call</div>${castCard(cs.castings[0])}`);
+    if (mt.meetups[0]) stream.splice(Math.min(4, stream.length), 0, `<div class="feedtag">Upcoming meetup</div><div class="card">${meetMini(mt.meetups[0])}<a class="link" href="#/meetups">All meetups →</a></div>`);
+    if (cm.communities[1]) stream.splice(Math.min(6, stream.length), 0, `<div class="feedtag">Suggested group</div>${commCard(cm.communities[1])}`);
+  }
   view(`<div class="feedgrid"><aside class="lcol">${mc}</aside><div class="feedcol">
-    <div class="card startpost"><div class="sp-top">${av(m)}<button class="sp-input" data-act="compose">Start a post</button></div>
+    <div class="card startpost"><div class="sp-top">${m ? av(m) : `<span class="av c0">?</span>`}<button class="sp-input" data-act="compose">${m ? 'Start a post' : 'Join to share your work…'}</button></div>
       <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button><button data-act="compose" data-v="room">${ico('qr')} Private room</button></div></div>
     ${sampleNote(feed.posts)}
     <div class="chips kindchips" role="group" aria-label="Topics">${KINDS.map(([k, l]) => `<button class="chip ${ui.feedKind === k ? 'on' : ''}" data-act="feedkind" data-v="${k}">${l}</button>`).join('')}</div>
-    <div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>
-    ${feed.posts.length ? feed.posts.map(postCard).join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people on the <a class="link" href="#/map">talent map</a>.' : 'No posts yet. Be the first!'}</div>`}
+    ${m ? `<div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>` : ''}
+    ${stream.length ? stream.join('') : `<div class="empty">${ui.feedScope === 'network' ? 'Nothing from your network yet. Connect with people on the <a class="link" href="#/map">talent map</a>.' : 'No posts yet. Be the first!'}</div>`}
   </div>${rail}</div>`, true);
-});
+};
+route(/^#?\/?$/, () => homeRoute(false));
+route(/^#\/feed$/, () => homeRoute(true));
 
 route(/^#\/map$/, async () => {
   const qs = new URLSearchParams({ role: ui.mapRole, q: ui.mapQ });
