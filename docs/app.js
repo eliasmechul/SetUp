@@ -92,10 +92,10 @@ function shell(content) {
   const m = S.me;
   const badge = (n) => (n ? `<span class="badge">${n > 9 ? '9+' : n}</span>` : '');
   const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/communities', 'group', 'Groups'],
-    ['#/rooms', 'qr', 'Rooms', 0, 1], ['#/meetups', 'cal', 'Meetups'], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
+    ['#/meetups', 'cal', 'Meetups', 0, 1], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
   const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
     (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');
-  const outLinks = [['#/feed', 'Feed'], ['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/communities', 'Communities'], ['#/rooms', 'Private rooms']]
+  const outLinks = [['#/feed', 'Feed'], ['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/communities', 'Communities'], ['#/meetups', 'Meetups']]
     .map(([h, l]) => `<a class="ol ${active(h) ? 'on' : ''}" href="${h}">${l}</a>`).join('');
   const bar = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], null, ['#/castings', 'brief', 'Castings'], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Me' : 'Log in']]
     .map((t) => t ? `<a class="tab ${active(t[0]) ? 'on' : ''}" href="${t[0]}">${ico(t[1])}${t[2]}</a>`
@@ -111,7 +111,7 @@ function shell(content) {
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <footer class="foot"><div class="foot-in">
       <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
-      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/rooms">Private rooms</a><a href="#/meetups">Meetups</a><a href="#/share">Share Set UP</a></div>
+      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
       <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
       <p class="foot-copy">© Set UP</p></div></footer>
@@ -194,8 +194,8 @@ const homeRoute = async (forceFeed) => {
         <p class="eyebrow">The network for film people</p>
         <h1>Where film people connect, share and <i>get hired.</i></h1>
         <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
-        <p class="newpill"><b>NEW</b> Private rooms with QR invites</p>
-        <div class="ctas"><a class="btn lg" href="#/signup">Create your profile</a><a class="btn ghost lg" href="#/rooms">Host a private room</a></div>
+        <p class="newpill"><b>NEW</b> QR invites and tickets for events</p>
+        <div class="ctas"><a class="btn lg" href="#/signup">Create your profile</a><a class="btn ghost lg" href="#/meetups">Host an event</a></div>
         <p class="trust"><span>Free for everyone</span><span>Actors · Crew · Producers · Casting</span><span>Works on your phone</span></p></div>
         <div class="lhero-m" aria-hidden="true">
           <div class="mk mk-post"><div class="mk-head"><span class="av c0">ML</span><div><b>Mara Linden</b><div class="sub">Cinematographer · Berlin</div></div></div><p>Wrapped Night Ferry today. Thank you to the whole camera crew.</p></div>
@@ -213,11 +213,11 @@ const homeRoute = async (forceFeed) => {
           <div class="card feat"><img class="fphoto" src="img/f-comm.jpg" alt="" loading="lazy"><span class="fico">${ico('group')}</span><h3>Join communities</h3><p class="muted">Groups for your craft and your city. Ask, answer and meet your next collaborator at local meetups.</p></div>
         </div></section>
 
-      <section class="lsec roomsband"><div class="roomsin"><div><p class="eyebrow">Private rooms</p><h2 class="lh">Share the work with <i>invited guests only.</i></h2>
-        <p class="lead2">Producers and casting directors open a room for a program, pitch, presentation or screening. Guests join by scanning a QR code, and you check them in at the door.</p>
-        <ol class="rsteps"><li><span>1</span>Create a room with your program and slides</li><li><span>2</span>Print or send the QR invite</li><li><span>3</span>Guests scan, join and are checked in</li></ol>
-        <a class="btn" href="#/rooms">Open Private rooms</a></div>
-        <div class="invcard"><small>SET UP · PRIVATE INVITATION</small><b>Pitch night: Harbour Lights</b><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><span>Scan with your phone camera to join</span></div></div></section>
+      <section class="lsec roomsband"><div class="roomsin"><div><p class="eyebrow">Meetups and special occasions</p><h2 class="lh">Every event gets <i>its own QR code.</i></h2>
+        <p class="lead2">Host a meetup, screening, premiere, workshop or casting day. Share the QR invite on a poster or in a message. Guests join in one tap and get a personal ticket QR that you scan at the door.</p>
+        <ol class="rsteps"><li><span>1</span>Create your event with date, place and program</li><li><span>2</span>Print or share the QR invite</li><li><span>3</span>Guests join and show their ticket QR at the door</li></ol>
+        <a class="btn" href="#/meetups">Host an event</a></div>
+        <div class="invcard"><small>SET UP · EVENT INVITATION</small><b>Pitch night: Harbour Lights</b><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><span>Scan with your phone camera to join</span></div></div></section>
 
       <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
         ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
@@ -235,16 +235,16 @@ const homeRoute = async (forceFeed) => {
 
       <section class="cta"><h2>Your next set is one search away.</h2><p>Create your free profile in two minutes.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
     </div>`, true);
-    { const cv = document.getElementById('demoqr'); if (cv && window.qrcode) drawQR(cv, location.origin + location.pathname + '#/rooms', 200); }
+    { const cv = document.getElementById('demoqr'); if (cv && window.qrcode) drawQR(cv, location.origin + location.pathname + '#/meetups', 200); }
     return;
   }
   const joinCard = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b plain"><span class="name">Join Set UP</span><div class="sub">Create your free profile to post, comment, apply to castings and join groups.</div><a class="btn block" href="#/signup">Join free</a><p class="center small muted">Already a member? <a class="link" href="#/login">Sign in</a></p></div></div>
-    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/castings">${ico('brief')} Castings</a><a href="#/rooms">${ico('qr')} Private rooms</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a></div>`;
+    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/castings">${ico('brief')} Castings</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups and events</a></div>`;
   const mc = !m ? joinCard : `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
     ${strengthMeter(m)}<a class="link" href="#/me/edit">Edit profile</a></div></div>
     ${cm.communities.some((c) => c.joined) ? `<div class="card"><h2 class="rail-title">Your groups</h2>${cm.communities.filter((c) => c.joined).slice(0, 5).map((c) => `<a class="mini" href="#/communities/${c.id}"><div class="who"><div class="name">${esc(c.name)}</div><div class="sub">${c.members} member${c.members === 1 ? '' : 's'}</div></div></a>`).join('')}<a class="link" href="#/communities">Discover groups →</a></div>` : ''}
-    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/rooms">${ico('qr')} Private rooms</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
+    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups and events</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
   if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
   const toJoin = cm.communities.filter((c) => !c.joined).slice(0, 3);
@@ -261,7 +261,7 @@ const homeRoute = async (forceFeed) => {
   }
   view(`<div class="feedgrid"><aside class="lcol">${mc}</aside><div class="feedcol">
     <div class="card startpost"><div class="sp-top">${m ? av(m) : `<span class="av c0">?</span>`}<button class="sp-input" data-act="compose">${m ? 'Start a post' : 'Join to share your work…'}</button></div>
-      <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button><button data-act="compose" data-v="room">${ico('qr')} Private room</button></div></div>
+      <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button></div></div>
     ${sampleNote(feed.posts)}
     <div class="chips kindchips" role="group" aria-label="Topics">${KINDS.map(([k, l]) => `<button class="chip ${ui.feedKind === k ? 'on' : ''}" data-act="feedkind" data-v="${k}">${l}</button>`).join('')}</div>
     ${m ? `<div class="seg"><button class="${ui.feedScope === 'all' ? 'on' : ''}" data-act="scope" data-v="all">Everyone</button><button class="${ui.feedScope === 'network' ? 'on' : ''}" data-act="scope" data-v="network">My network</button></div>` : ''}
@@ -430,6 +430,42 @@ route(/^#\/share$/, async () => {
   drawQR(document.getElementById('qr'), url, 240);
 });
 
+
+const ticketUrl = (mid, uid2) => location.origin + location.pathname + '#/checkin/' + mid + '/' + uid2;
+route(/^#\/meetups\/(\d+)$/, async (id) => {
+  const m = await api('/meetups/' + id);
+  const w = when(m.starts);
+  const link = location.origin + location.pathname + '#/meetups/' + m.id;
+  const guests = (m.people || []).map((p) => `<div class="person rp"><a href="#/profile/${p.id}">${av(p)}</a>${who(p)}
+    ${m.mine ? `<button class="btn ${p.checked_in ? '' : 'ghost'} sm" data-act="meetcheckin" data-id="${m.id}" data-uid="${p.id}" data-v="${p.checked_in ? 'undo' : 'in'}">${p.checked_in ? 'Checked in ✓' : 'Check in'}</button>` : (p.checked_in ? '<span class="avail">● Checked in</span>' : '')}</div>`).join('');
+  view(`<p><a class="link" href="#/meetups">${ico('back')} Meetups</a></p>
+    <div class="card roomhead"><span class="kicker">${ico('cal')} Meetup · ${m.going} going${m.mine ? ` · ${m.checked_in} checked in` : ''}</span>
+      <h1 class="page-title">${esc(m.title)}</h1>
+      <div class="meta"><span>${esc(w.mon)} ${w.day} · ${esc(w.text)}</span>${m.venue ? `<span>${ico('pin')} ${esc(m.venue)}${m.city ? ', ' + esc(m.city) : ''}</span>` : ''}<span>Hosted by <a class="link" href="#/profile/${m.host_id}">${esc(m.host)}</a></span></div>
+      ${m.description ? `<p class="post-body">${esc(m.description)}</p>` : ''}
+      <div class="pro-actions"><button class="btn ${m.joined ? 'ghost' : ''}" data-act="rsvp" data-id="${m.id}">${m.joined ? 'Going ✓' : 'Join this event'}</button>${m.mine ? `<button class="btn danger sm" data-act="delmeet" data-id="${m.id}">Delete</button>` : ''}</div></div>
+    ${m.joined && S.me ? `<div class="card invite"><h2 class="rail-title">Your ticket</h2><div class="qrbox"><canvas id="ticket" aria-label="Your entry QR code"></canvas>
+      <div><p class="muted">Show this QR code at the door. The host scans it with a phone camera and checks you in.</p><p><b>${esc(S.me.name)}</b></p><div class="pro-actions"><button class="btn ghost sm" data-act="dlticket">Download ticket</button></div></div></div></div>` : ''}
+    <div class="card invite"><h2 class="rail-title">Invite people</h2><div class="qrbox"><canvas id="qr" aria-label="Event QR code"></canvas>
+      <div><p class="muted">Share this QR code or link on a poster, a story or a message. Anyone who opens it lands on this event page.</p>
+      <input id="invlink" readonly value="${esc(link)}" aria-label="Event link">
+      <div class="pro-actions"><button class="btn sm" data-act="copyinvite">Copy link</button><button class="btn ghost sm" data-act="dlqr">Download QR</button><button class="btn ghost sm" data-act="printposter" data-title="${esc(m.title)}">Print poster</button></div></div></div></div>
+    ${m.sample ? '' : `<h2 class="section-title">Guests (${m.going})</h2><div class="card">${guests || '<p class="muted">Nobody has joined yet.</p>'}</div>`}`);
+  drawQR(document.getElementById('qr'), link, 240);
+  if (document.getElementById('ticket')) drawQR(document.getElementById('ticket'), ticketUrl(m.id, S.me.id), 240);
+});
+
+route(/^#\/checkin\/(\d+)\/([0-9a-f-]{36})$/, async (mid, guestId) => {
+  if (!S.me) { return view('<div class="card center"><h1 class="page-title">Check-in</h1><p class="muted">Log in as the host to check guests in.</p><a class="btn" href="#/login">Log in</a></div>'); }
+  const m = await api('/meetups/' + mid);
+  const g = (m.people || []).find((p) => p.id === guestId);
+  if (!m.mine) return view(`<div class="card center"><h1 class="page-title">${esc(m.title)}</h1><p class="muted">Only the host of this event can check guests in.</p><a class="btn" href="#/meetups/${m.id}">Open event</a></div>`);
+  if (!g) return view(`<div class="card center"><h1 class="page-title">Not on the guest list</h1><p class="muted">This person has not joined “${esc(m.title)}”.</p><a class="btn" href="#/meetups/${m.id}">Open guest list</a></div>`);
+  view(`<div class="card center"><span class="kicker">${ico('qr')} Check-in · ${esc(m.title)}</span><div style="margin:14px 0">${av(g, 'lg')}</div><h1 class="page-title">${esc(g.name)}</h1><p class="muted">${esc(g.headline || g.role)}</p>
+    ${g.checked_in ? '<p class="avail">● Already checked in</p>' : `<button class="btn block lg" data-act="meetcheckin" data-id="${m.id}" data-uid="${g.id}" data-v="in" data-back="1">Check in</button>`}
+    <p><a class="link" href="#/meetups/${m.id}">Guest list (${m.checked_in} of ${m.going} in)</a></p></div>`);
+});
+
 route(/^#\/castings$/, async () => {
   const qs = new URLSearchParams({ category: ui.castCat, q: ui.castQ, city: ui.castCity });
   const { castings } = await api('/castings?' + qs);
@@ -484,11 +520,11 @@ route(/^#\/meetups$/, async () => {
     ${S.me ? '<p><button class="link" data-act="compose" data-v="meetup">+ Host a meetup</button></p>' : ''}
     ${meetups.length ? meetups.map((m) => { const w = when(m.starts); const mine = S.me && S.me.id === m.host_id; return `<div class="card"><div class="event">
       <div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div>
-      <div class="info"><h3>${esc(m.title)}</h3>${exPill(m)}<div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}${m.city ? ', ' + esc(m.city) : ''}</div>
+      <div class="info"><a href="#/meetups/${m.id}"><h3>${esc(m.title)}</h3></a>${exPill(m)}<div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}${m.city ? ', ' + esc(m.city) : ''}</div>
       <div class="sub">${m.going} going · Hosted by <a class="link" href="#/profile/${m.host_id}">${esc(m.host)}</a></div></div>
       <button class="btn sm ${m.joined ? 'ghost' : ''}" data-act="rsvp" data-id="${m.id}">${m.joined ? 'Going ✓' : 'Join'}</button></div>
       ${m.description ? `<p class="post-body" style="margin:10px 0 0">${esc(m.description)}</p>` : ''}
-      ${mine ? `<button class="link" data-act="delmeet" data-id="${m.id}">Delete meetup</button>` : ''}</div>`; }).join('')
+      <a class="link" href="#/meetups/${m.id}">${ico('qr')} QR invite and ticket</a> ${mine ? `<button class="link" data-act="delmeet" data-id="${m.id}">Delete meetup</button>` : ''}</div>`; }).join('')
       : '<div class="empty">No meetups yet. Host the first one!</div>'}`);
 });
 
@@ -763,6 +799,8 @@ document.addEventListener('click', (ev) => {
       case 'follow': await api(`/users/${id}/follow`, {}); return rerender();
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
+      case 'meetcheckin': await api(`/meetups/${id}/checkin`, { user_id: el.dataset.uid, undo: v === 'undo' }); if (el.dataset.back) toast('Checked in'); return rerender();
+      case 'dlticket': { const c = document.getElementById('ticket'); const a2 = document.createElement('a'); a2.download = 'setup-ticket.png'; a2.href = c.toDataURL('image/png'); a2.click(); return; }
       case 'checkin': await api(`/rooms/${id}/checkin`, { user_id: el.dataset.uid, undo: v === 'undo' }); return rerender();
       case 'roominvite': if (v === 'new' && !confirm('The old QR code and link will stop working. Continue?')) return; await api(`/rooms/${id}/invite`, { action: v }); return rerender();
       case 'delroom': if (confirm('Delete this room for everyone?')) { await api(`/rooms/${id}/delete`, {}); location.hash = '#/rooms'; } return;

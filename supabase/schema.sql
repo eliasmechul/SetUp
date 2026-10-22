@@ -414,3 +414,10 @@ create trigger setup_rl_rooms before insert on public.setup_rooms for each row e
 grant select, insert, update, delete on public.setup_rooms, public.setup_room_members to authenticated;
 create policy setup_rm_insert_owner on public.setup_room_members for insert to authenticated
   with check (user_id = (select auth.uid()) and exists(select 1 from public.setup_rooms r where r.id = room_id and r.user_id = (select auth.uid())));
+
+-- Meetup QR tickets: hosts check guests in.
+alter table public.setup_rsvps add column if not exists checked_in_at timestamptz;
+create policy setup_rsvps_update_host on public.setup_rsvps for update to authenticated
+  using (exists(select 1 from public.setup_meetups m where m.id = meetup_id and m.user_id = (select auth.uid())))
+  with check (exists(select 1 from public.setup_meetups m where m.id = meetup_id and m.user_id = (select auth.uid())));
+grant update (checked_in_at) on public.setup_rsvps to authenticated;

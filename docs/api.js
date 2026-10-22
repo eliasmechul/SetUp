@@ -560,6 +560,23 @@ const H = {
     if (!del.length) ok(await sb.from('setup_rsvps').insert({ meetup_id: id, user_id: me }));
     return { joined: !del.length };
   },
+  async meetup(id) {
+    const me = await myId();
+    const sm = SAMPLE.meetups().find((m) => m.id === id);
+    if (sm) return { ...sm, people: [], joined: false, mine: false, going: sm.going || 0, checked_in: 0 };
+    const r = ok(await sb.from('setup_meetups').select('*, host:setup_profiles!setup_meetups_user_id_fkey(name)').eq('id', id).maybeSingle());
+    if (!r) throw fail(404, 'Event not found');
+    const rs = ok(await sb.from('setup_rsvps').select(`user_id,checked_in_at,user:setup_profiles!setup_rsvps_user_id_fkey(${PCOLS})`).eq('meetup_id', id).limit(500));
+    return { id: r.id, title: r.title, city: r.city, venue: r.venue, starts: r.starts, description: r.description, host: r.host.name, host_id: r.user_id,
+      mine: !!me && me === r.user_id, joined: rs.some((x) => x.user_id === me), going: rs.length, checked_in: rs.filter((x) => x.checked_in_at).length,
+      people: rs.map((x) => ({ ...userJson(x.user), checked_in: !!x.checked_in_at })) };
+  },
+  async meetup_checkin(id, b) {
+    await uid();
+    const r = ok(await sb.from('setup_rsvps').update({ checked_in_at: b.undo ? null : new Date().toISOString() }).eq('meetup_id', id).eq('user_id', clean(b.user_id, 40, true, 'User')).select('user_id').maybeSingle());
+    if (!r) throw fail(403, 'Only the host can check in guests who have joined this event');
+    return { ok: true };
+  },
   async delete_meetup(id) { ok(await sb.from('setup_meetups').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
 
   /* notifications & messages */
@@ -626,7 +643,7 @@ const R = [
   ['GET', '/join/([0-9a-fA-F]{8,64})', 'room_preview'], ['POST', '/join/([0-9a-fA-F]{8,64})', 'join_room'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
-  ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'],
+  ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'], ['GET', '/meetups/(\\d+)', 'meetup'], ['POST', '/meetups/(\\d+)/checkin', 'meetup_checkin'],
   ['POST', '/meetups/(\\d+)/delete', 'delete_meetup'], ['GET', '/notifications', 'notifications'],
   ['POST', '/notifications/read', 'read_notifications'], ['GET', '/messages', 'conversations'],
   ['GET', `/messages/(${UUID})`, 'thread'], ['POST', `/messages/(${UUID})`, 'send_message'],
