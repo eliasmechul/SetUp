@@ -544,3 +544,11 @@ body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
   .lhero-m{display:none}
   .page-title{border-radius:16px}
 }
+
+/* ---------- v9 QA fixes ---------- */
+@media(max-width:700px){
+  .post-head{align-items:flex-start;flex-wrap:wrap}
+  .post-head .who{flex:1 1 calc(100% - 60px)}
+  .post-head>.sub,.post-head>.pill{margin-left:56px}
+  .gsearch{max-width:120px}
+}
