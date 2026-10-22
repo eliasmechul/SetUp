@@ -238,7 +238,7 @@ const homeRoute = async (forceFeed) => {
     { const cv = document.getElementById('demoqr'); if (cv && window.qrcode) drawQR(cv, location.origin + location.pathname + '#/rooms', 200); }
     return;
   }
-  const joinCard = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><span class="name">Join Set UP</span><div class="sub">Create your free profile to post, comment, apply to castings and join groups.</div><a class="btn block" href="#/signup">Join free</a><p class="center small muted">Already a member? <a class="link" href="#/login">Sign in</a></p></div></div>
+  const joinCard = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b plain"><span class="name">Join Set UP</span><div class="sub">Create your free profile to post, comment, apply to castings and join groups.</div><a class="btn block" href="#/signup">Join free</a><p class="center small muted">Already a member? <a class="link" href="#/login">Sign in</a></p></div></div>
     <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/castings">${ico('brief')} Castings</a><a href="#/rooms">${ico('qr')} Private rooms</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a></div>`;
   const mc = !m ? joinCard : `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
