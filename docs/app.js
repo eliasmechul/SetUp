@@ -342,6 +342,23 @@ route(/^#\/communities\/(\d+)$/, async (id) => {
         <div class="card"><h2 class="rail-title">Members</h2><div class="skills">${c.people.map((u) => `<a href="#/profile/${u.id}" title="${esc(u.name)}">${av(u)}</a>`).join('')}</div>${c.members > c.people.length ? `<p class="muted small">and ${c.members - c.people.length} more</p>` : ''}</div></aside></div>`, true);
 });
 
+/* ---------- private rooms ---------- */
+const ROOM_KINDS = [['presentation', 'Presentation'], ['program', 'Program'], ['screening', 'Screening'], ['casting_day', 'Casting day'], ['other', 'Other']];
+const roomKind = (k) => (ROOM_KINDS.find((x) => x[0] === k) || ['', 'Room'])[1];
+const inviteUrl = (code) => location.origin + location.pathname + '#/join/' + code;
+const keepInvite = (code) => { try { localStorage.setItem('setup_invite', code); } catch (e) { /* private mode */ } };
+const pendingInvite = () => { try { return localStorage.getItem('setup_invite') || ''; } catch (e) { return ''; } };
+const clearInvite = () => { try { localStorage.removeItem('setup_invite'); } catch (e) { /* ignore */ } };
+function drawQR(canvas, text, px) {
+  const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(), quiet = 4, cell = Math.max(2, Math.floor(px / (n + quiet * 2)));
+  canvas.width = canvas.height = cell * (n + quiet * 2);
+  const g = canvas.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, canvas.width, canvas.height); g.fillStyle = '#000';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+}
+const roomCard = (r) => `<a class="card room" href="#/rooms/${r.id}"><span class="kicker">${esc(roomKind(r.kind))}${r.mine ? ' · Hosted by you' : ''}</span>
+  <h3>${esc(r.title)}</h3><div class="sub">${r.starts_at ? esc(new Date(r.starts_at).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })) + ' · ' : ''}${r.location ? esc(r.location) + ' · ' : ''}${r.members} ${r.members === 1 ? 'person' : 'people'}</div></a>`;
+
 route(/^#\/rooms$/, async () => {
   const intro = `<h1 class="page-title">Private rooms</h1>
     <div class="card"><h2 class="rail-title">Share work with the right people only</h2>
