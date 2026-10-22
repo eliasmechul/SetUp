@@ -606,6 +606,9 @@ const H = {
   },
 };
 
+// Example content is switched off: the network shows real members and official Set UP content only.
+if (!C.samples) { SAMPLE.people = () => []; SAMPLE.posts = () => []; SAMPLE.communities = () => []; SAMPLE.castings = () => []; SAMPLE.meetups = () => []; SAMPLE.profile = () => null; }
+
 const R = [
   ['GET', '/me', 'me'], ['POST', '/me', 'update_me'], ['POST', '/signup', 'signup'], ['POST', '/report', 'report'], ['POST', '/login', 'login'],
   ['POST', '/logout', 'logout'], ['POST', '/reset', 'reset'], ['POST', '/newpassword', 'newpassword'], ['POST', '/upload', 'upload'],

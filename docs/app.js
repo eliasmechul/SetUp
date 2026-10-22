@@ -146,10 +146,13 @@ function postCard(p) {
 }
 const meetMini = (m) => { const w = when(m.starts); return `<div class="mini"><div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div><div><div class="name">${esc(m.title)}</div><div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}</div></div></div>`; };
 const railPerson = (u) => `<div class="person rp"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}${connBtn(u.id, 'none', true)}</div>`;
-const commCard = (c) => `<div class="card"><div class="event"><div class="date"><span>${esc(c.topic.slice(0, 5))}</span><b>${c.members}</b></div>
-  <div class="info"><a href="#/communities/${c.id}"><h3>${esc(c.name)}</h3></a>${exPill(c)}<div class="sub">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''} · ${c.members} member${c.members === 1 ? '' : 's'}</div>
-  ${c.description ? `<div class="sub">${esc(c.description)}</div>` : ''}</div>
-  <button class="btn sm ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓' : 'Join'}</button></div></div>`;
+const COVERS = ['f-comm', 'f-map', 'f-cast', 'f-share', 'rooms', 'hero'];
+const coverOf = (c) => `img/${COVERS[Math.abs([...String(c.topic + c.id)].reduce((h, ch) => h * 31 + ch.charCodeAt(0), 7)) % COVERS.length]}.jpg`;
+const commCard = (c) => `<article class="card comm"><a class="ccover" href="#/communities/${c.id}" style="background-image:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.7)),url(${coverOf(c)})" aria-label="${esc(c.name)}"><span class="ctopic">${esc(c.topic)}</span></a>
+  <div class="cbody"><a href="#/communities/${c.id}"><h3>${esc(c.name)}</h3></a>${exPill(c)}
+  <div class="sub">${c.members} member${c.members === 1 ? '' : 's'}${c.city ? ' · ' + esc(c.city) : ''}</div>
+  ${c.description ? `<p class="cdesc">${esc(c.description)}</p>` : ''}
+  <button class="btn sm ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓' : 'Join group'}</button></div></article>`;
 function castCard(c) {
   const status = c.applied ? '<span class="pill ok">Applied</span>' : '';
   return `<a class="cast" href="#/castings/${c.id}"><div class="in">
@@ -238,6 +241,7 @@ route(/^#?\/?$/, async () => {
   const mc = `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
     ${strengthMeter(m)}<a class="link" href="#/me/edit">Edit profile</a></div></div>
+    ${cm.communities.some((c) => c.joined) ? `<div class="card"><h2 class="rail-title">Your groups</h2>${cm.communities.filter((c) => c.joined).slice(0, 5).map((c) => `<a class="mini" href="#/communities/${c.id}"><div class="who"><div class="name">${esc(c.name)}</div><div class="sub">${c.members} member${c.members === 1 ? '' : 's'}</div></div></a>`).join('')}<a class="link" href="#/communities">Discover groups →</a></div>` : ''}
     <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/rooms">${ico('qr')} Private rooms</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
   try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ }
@@ -322,35 +326,21 @@ route(/^#\/communities$/, async () => {
 route(/^#\/communities\/(\d+)$/, async (id) => {
   const c = await api('/communities/' + id);
   const mine = S.me && S.me.id === c.owner_id;
+  const member = c.joined || mine;
+  const composer = S.me ? (member ? `<div class="card startpost"><div class="sp-top">${av(S.me)}<button class="sp-input" data-act="compose" data-v="post" data-cid="${c.id}">Write something to ${esc(c.name)}…</button></div>
+      <div class="sp-btns"><button data-act="compose" data-v="post" data-cid="${c.id}">${ico('img')} Photo</button><button data-act="compose" data-v="post" data-cid="${c.id}">${ico('chat')} Ask a question</button></div></div>`
+    : `<div class="card center"><p class="muted">Join this group to post and comment.</p><button class="btn" data-act="joincomm" data-id="${c.id}">Join group</button></div>`)
+    : `<div class="card center"><p class="muted">Log in to join this group and take part in the discussion.</p><a class="btn" href="#/signup">Join Set UP</a></div>`;
   view(`<p><a class="link" href="#/communities">${ico('back')} Communities</a></p>
-    <div class="card"><span class="kicker">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''}</span>
-      <h1 class="page-title">${esc(c.name)}</h1>
-      ${c.description ? `<p class="post-body">${esc(c.description)}</p>` : ''}
-      <div class="meta"><span>${c.members} member${c.members === 1 ? '' : 's'}</span></div>
-      <div class="skills" style="margin:12px 0">${c.people.map((u) => `<a href="#/profile/${u.id}" title="${esc(u.name)}">${av(u)}</a>`).join('')}</div>
-      <div class="pro-actions">${mine ? `<button class="btn danger sm" data-act="delcomm" data-id="${c.id}">Delete community</button>` : `<button class="btn ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓ (tap to leave)' : 'Join community'}</button>`}
-      ${c.joined || mine ? `<button class="btn" data-act="compose" data-v="post" data-cid="${c.id}">Post in community</button>` : ''}</div></div>
-    <h2 class="section-title">Discussion</h2>
-    ${c.posts.length ? c.posts.map(postCard).join('') : `<div class="empty">No posts yet.${c.joined ? ' Start the conversation!' : ' Join to start the conversation.'}</div>`}`);
+    <div class="gcover" style="background-image:linear-gradient(180deg,rgba(14,13,12,.05),rgba(14,13,12,.75)),url(${coverOf(c)})"><span class="ctopic">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''}</span></div>
+    <div class="ghead card"><div><h1 class="gname">${esc(c.name)}</h1><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · Public group</div></div>
+      <div class="pro-actions">${mine ? `<button class="btn danger sm" data-act="delcomm" data-id="${c.id}">Delete group</button>` : `<button class="btn ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓' : 'Join group'}</button>`}</div></div>
+    <div class="ggrid"><div class="gmain">${composer}
+      <h2 class="section-title">Discussion</h2>
+      ${c.posts.length ? c.posts.map(postCard).join('') : `<div class="empty">No posts yet.${member ? ' Start the conversation!' : ' Join to start the conversation.'}</div>`}</div>
+      <aside class="gside"><div class="card"><h2 class="rail-title">About</h2><p class="post-body">${c.description ? esc(c.description) : 'A group for film people.'}</p><div class="sub">Created ${esc(ago(c.created))}</div></div>
+        <div class="card"><h2 class="rail-title">Members</h2><div class="skills">${c.people.map((u) => `<a href="#/profile/${u.id}" title="${esc(u.name)}">${av(u)}</a>`).join('')}</div>${c.members > c.people.length ? `<p class="muted small">and ${c.members - c.people.length} more</p>` : ''}</div></aside></div>`, true);
 });
-
-
-/* ---------- private rooms ---------- */
-const ROOM_KINDS = [['presentation', 'Presentation'], ['program', 'Program'], ['screening', 'Screening'], ['casting_day', 'Casting day'], ['other', 'Other']];
-const roomKind = (k) => (ROOM_KINDS.find((x) => x[0] === k) || ['', 'Room'])[1];
-const inviteUrl = (code) => location.origin + location.pathname + '#/join/' + code;
-const keepInvite = (code) => { try { localStorage.setItem('setup_invite', code); } catch (e) { /* private mode */ } };
-const pendingInvite = () => { try { return localStorage.getItem('setup_invite') || ''; } catch (e) { return ''; } };
-const clearInvite = () => { try { localStorage.removeItem('setup_invite'); } catch (e) { /* ignore */ } };
-function drawQR(canvas, text, px) {
-  const q = window.qrcode(0, 'M'); q.addData(text); q.make();
-  const n = q.getModuleCount(), quiet = 4, cell = Math.max(2, Math.floor(px / (n + quiet * 2)));
-  canvas.width = canvas.height = cell * (n + quiet * 2);
-  const g = canvas.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, canvas.width, canvas.height); g.fillStyle = '#000';
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
-}
-const roomCard = (r) => `<a class="card room" href="#/rooms/${r.id}"><span class="kicker">${esc(roomKind(r.kind))}${r.mine ? ' · Hosted by you' : ''}</span>
-  <h3>${esc(r.title)}</h3><div class="sub">${r.starts_at ? esc(new Date(r.starts_at).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })) + ' · ' : ''}${r.location ? esc(r.location) + ' · ' : ''}${r.members} ${r.members === 1 ? 'person' : 'people'}</div></a>`;
 
 route(/^#\/rooms$/, async () => {
   const intro = `<h1 class="page-title">Private rooms</h1>

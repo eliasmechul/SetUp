@@ -562,3 +562,22 @@ body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
 .ol{padding:10px 14px;color:var(--soft);font-size:15px;font-weight:500;border-radius:8px}
 .ol:hover,.ol.on{color:var(--text)}.ol.on{color:var(--amber)}
 @media(min-width:900px){.navbar.out .topnav{display:flex;margin-left:24px}}
+
+/* ---------- v11 groups (like Facebook groups / LinkedIn communities) ---------- */
+.comm{padding:0;overflow:hidden;margin-bottom:16px}
+.ccover{display:block;height:110px;background-size:cover;background-position:center;position:relative}
+.ctopic{position:absolute;left:14px;bottom:10px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#F2E9DA}
+.cbody{padding:14px 18px 18px}.cbody h3{font-size:22px}
+.cdesc{color:var(--soft);margin:6px 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gcover{height:220px;border-radius:18px 18px 0 0;background-size:cover;background-position:center;position:relative;border:1px solid var(--line);border-bottom:0}
+.ghead{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-radius:0 0 18px 18px;margin-bottom:18px}
+.gname{font-size:34px;line-height:1.1}
+.ggrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.gmain>*{margin-bottom:14px}
+@media(max-width:900px){.ggrid{grid-template-columns:1fr}.gcover{height:150px}.gname{font-size:28px}}
+@media(min-width:760px){#view .comm{display:grid;grid-template-columns:200px 1fr}.comm .ccover{height:auto;min-height:140px}}
+
+/* logo: show the whole mark, larger */
+.wordmark img{width:auto;height:44px;max-width:60px;object-fit:contain;border-radius:8px;background:#0b0a09}
+.wordmark .set{font-size:34px}
+@media(max-width:700px){.wordmark img{height:40px}}
