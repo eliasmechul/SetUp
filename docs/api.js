@@ -10,7 +10,7 @@ const ROLES = ['Actor', 'Director', 'Producer', 'Cinematographer', 'Editor', 'Wr
   'Costume & Makeup', 'VFX & Animation', 'Crew', 'Student', 'Other'];
 const CATEGORIES = ['Acting', 'Crew', 'Voice', 'Extras', 'Other'];
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
-const PCOLS = 'id,name,role,headline,city,avatar,open_to_work,available_from';
+const PCOLS = 'id,name,role,headline,city,avatar,open_to_work,available_from,plan';
 
 const fail = (status, message) => { const e = new Error(message); e.status = status; return e; };
 const ok = ({ data, error }) => {
@@ -31,12 +31,17 @@ const clean = (v, max, required, label) => {
 };
 // strip characters that have meaning inside PostgREST filter strings
 const safe = (s) => s.replace(/[,()*%\\:"']/g, ' ').trim();
-const userJson = (r) => ({ id: r.id, name: r.name, role: r.role, headline: r.headline, city: r.city, avatar: r.avatar,
+const userJson = (r) => ({ pro: r.plan === 'pro', id: r.id, name: r.name, role: r.role, headline: r.headline, city: r.city, avatar: r.avatar,
   open_to_work: !!r.open_to_work, available_from: r.available_from || '' });
 const iso = (r) => r.created_at;
 const projectJson = (r, me) => ({ id: r.id, title: r.title, logline: r.logline, genre: r.genre, status: r.status, city: r.city, owner_id: r.user_id, owner: r.owner.name, mine: !!me && me === r.user_id, team: r.team[0].count, created: r.created_at });
 const roomJson = (r, me) => ({ id: r.id, title: r.title, kind: r.kind, description: r.description, starts_at: r.starts_at, location: r.location,
   link: r.link, owner_id: r.user_id, mine: r.user_id === me, members: r.members[0].count, created: r.created_at });
+
+async function requirePro(me, what) {
+  const p = ok(await sb.from('setup_profiles').select('plan').eq('id', me).maybeSingle());
+  if (!p || p.plan !== 'pro') throw fail(403, `Posting ${what} is part of Set UP Pro. Upgrade on the Pro page.`);
+}
 
 async function ensureProfile(user) {
   const { data } = await sb.from('setup_profiles').select('*').eq('id', user.id).maybeSingle();
@@ -452,6 +457,19 @@ const H = {
     return { ok: true };
   },
   async delete_availability(id) { ok(await sb.from('setup_availability').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
+  async pro_status() {
+    const rows = ok(await sb.from('setup_settings').select('key,value').eq('key', 'pro_open'));
+    const me = await myId();
+    let pro = false;
+    if (me) { const p = ok(await sb.from('setup_profiles').select('plan').eq('id', me).maybeSingle()); pro = !!p && p.plan === 'pro'; }
+    return { pro_open: !!rows[0] && rows[0].value === 'true', pro };
+  },
+  async activate_pro() {
+    await uid();
+    const { error } = await sb.rpc('setup_activate_pro');
+    if (error) throw fail(400, error.message);
+    return { ok: true };
+  },
   async delete_project(id) { ok(await sb.from('setup_projects').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
   async crew_invite(id, b) {
     await uid();
@@ -594,6 +612,7 @@ const H = {
   },
   async create_casting(_, b) {
     const me = await uid();
+    await requirePro(me, 'castings');
     const dl = clean(b.deadline, 10);
     const r = ok(await sb.from('setup_castings').insert({ user_id: me, title: clean(b.title, 120, true, 'Title'),
       category: CATEGORIES.includes(b.category) ? b.category : 'Other', production: clean(b.production, 120), city: clean(b.city, 80),
@@ -631,6 +650,7 @@ const H = {
   },
   async create_meetup(_, b) {
     const me = await uid();
+    await requirePro(me, 'events');
     const starts = clean(b.starts, 16, true, 'Date and time');
     if (!/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/.test(starts)) throw fail(400, 'Enter a valid date');
     const r = ok(await sb.from('setup_meetups').insert({ user_id: me, title: clean(b.title, 120, true, 'Title'), city: clean(b.city, 80),
@@ -729,6 +749,7 @@ const R = [
   ['POST', '/projects/(\\d+)/status', 'project_status'], ['POST', '/projects/(\\d+)/invite', 'crew_invite'], ['POST', '/projects/(\\d+)/respond', 'crew_respond'],
   ['POST', '/projects/(\\d+)/remove', 'crew_remove'], ['GET', '/invitations', 'my_invitations'],
   ['POST', '/applications/(\\d+)/stage', 'set_stage'], ['POST', '/availability', 'add_availability'], ['POST', '/availability/(\\d+)/delete', 'delete_availability'],
+  ['GET', '/pro', 'pro_status'], ['POST', '/pro/activate', 'activate_pro'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
   ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'], ['GET', '/meetups/(\\d+)', 'meetup'], ['POST', '/meetups/(\\d+)/checkin', 'meetup_checkin'],

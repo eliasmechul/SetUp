@@ -532,3 +532,33 @@ revoke all on public.setup_availability from anon, authenticated;
 grant select on public.setup_availability to anon, authenticated;
 grant insert, delete on public.setup_availability to authenticated;
 create trigger setup_rl_availability before insert on public.setup_availability for each row execute function public.setup_rate_limit('40', 'user_id');
+
+-- Pro accounts: only Pro members can post castings and events. Plan can only be changed through setup_activate_pro().
+alter table public.setup_profiles add column if not exists plan text not null default 'free' check (plan in ('free','pro'));
+create table if not exists public.setup_settings(key text primary key, value text not null);
+insert into public.setup_settings(key, value) values ('pro_open', 'true') on conflict (key) do nothing;
+alter table public.setup_settings enable row level security;
+create policy setup_settings_read on public.setup_settings for select to anon, authenticated using (true);
+revoke all on public.setup_settings from anon, authenticated;
+grant select on public.setup_settings to anon, authenticated;
+revoke update, insert on public.setup_profiles from anon, authenticated;
+grant update (name, role, headline, city, bio, skills, avatar, lat, lng, open_to_work, available_from, reel_url) on public.setup_profiles to authenticated;
+grant insert (id, name, role, headline, city, bio, skills, avatar, lat, lng, open_to_work, available_from, reel_url) on public.setup_profiles to authenticated;
+create function public.setup_is_pro() returns boolean language sql stable security definer set search_path = public as
+$$ select exists(select 1 from public.setup_profiles where id = (select auth.uid()) and plan = 'pro') $$;
+revoke all on function public.setup_is_pro() from public, anon;
+grant execute on function public.setup_is_pro() to authenticated;
+create function public.setup_activate_pro() returns void language plpgsql security definer set search_path = public as $$
+begin
+  if (select auth.uid()) is null then raise exception 'Please log in' using errcode = '28000'; end if;
+  if not exists(select 1 from public.setup_settings where key = 'pro_open' and value = 'true') then
+    raise exception 'Pro accounts are by request right now. Write to us to get access.';
+  end if;
+  update public.setup_profiles set plan = 'pro' where id = (select auth.uid());
+end $$;
+revoke all on function public.setup_activate_pro() from public, anon;
+grant execute on function public.setup_activate_pro() to authenticated;
+drop policy setup_castings_insert on public.setup_castings;
+create policy setup_castings_insert on public.setup_castings for insert to authenticated with check (user_id = (select auth.uid()) and public.setup_is_pro());
+drop policy setup_meetups_insert on public.setup_meetups;
+create policy setup_meetups_insert on public.setup_meetups for insert to authenticated with check (user_id = (select auth.uid()) and public.setup_is_pro());

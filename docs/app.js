@@ -64,7 +64,9 @@ function av(u, cls = '') {
   const ini = (u.name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   return `<div class="av ${cls} c${hue(u.id)}" aria-hidden="true">${esc(ini)}</div>`;
 }
-const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div>${exPill(u)}${u.open_to_work ? `<div>${availBadge(u)}</div>` : ''}</a>`;
+const isPro = () => !!(S.me && S.me.plan === 'pro');
+const proTag = (u) => (u && u.pro ? '<span class="pill pro">PRO</span>' : '');
+const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)} ${proTag(u)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div>${exPill(u)}${u.open_to_work ? `<div>${availBadge(u)}</div>` : ''}</a>`;
 const initials = (n) => (n || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const geo = (txt) => { const t = String(txt || '').trim().toLowerCase(); if (!t || !window.CITIES) return null;
   return window.CITIES.find((c) => c.label.toLowerCase() === t || c.name.toLowerCase() === t) || null; };
@@ -111,7 +113,7 @@ function shell(content) {
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <footer class="foot"><div class="foot-in">
       <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
-      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/projects">Projects</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
+      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/pro">Set UP Pro</a><a href="#/projects">Projects</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
       <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
       <p class="foot-copy"><span>© ${new Date().getFullYear()} Set UP · Made for film people</span><a href="#/" data-act="top">Back to top ↑</a></p></div></footer>
@@ -233,6 +235,12 @@ const homeRoute = async (forceFeed) => {
         <a class="btn" href="#/meetups">Host an event</a></div>
         <div class="invcard"><small>SET UP · EVENT INVITATION</small><b>Pitch night: Harbour Lights</b><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><span>Scan with your phone camera to join</span></div></div></section>
 
+      <section class="lsec"><p class="eyebrow">For producers and casting directors</p><h2 class="lh">Hire and host with <i>Set UP Pro.</i></h2>
+        <div class="lgrid3"><div class="step"><span class="num">${ico('brief')}</span><h3>Post castings</h3><p class="muted">Publish roles and move applicants from new to cast in one pipeline.</p></div>
+          <div class="step"><span class="num">${ico('cal')}</span><h3>Host events</h3><p class="muted">Meetups, screenings and premieres with QR invites and ticket check-in.</p></div>
+          <div class="step"><span class="num">${ico('pin')}</span><h3>Be found</h3><p class="muted">A Pro badge in the feed, on the map and in search.</p></div></div>
+        <p><a class="btn" href="#/pro">See Set UP Pro</a></p></section>
+
       <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
         ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
 
@@ -257,6 +265,7 @@ const homeRoute = async (forceFeed) => {
   const mc = !m ? joinCard : `<div class="card pcard"><div class="pbanner"></div><div class="pc-b"><a href="#/profile/${m.id}">${av(m, 'lg')}</a><a class="name" href="#/profile/${m.id}">${esc(m.name)}</a>
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
     ${strengthMeter(m)}<a class="link" href="#/me/edit">Edit profile</a></div></div>
+    ${isPro() ? '' : '<div class="card upsell"><span class="pill pro">PRO</span><b>Post castings and host events</b><p class="muted small">Producers and casting directors: get Set UP Pro.</p><a class="btn sm" href="#/pro">Get Pro</a></div>'}
     ${cm.communities.some((c) => c.joined) ? `<div class="card"><h2 class="rail-title">Your groups</h2>${cm.communities.filter((c) => c.joined).slice(0, 5).map((c) => `<a class="mini" href="#/communities/${c.id}"><div class="who"><div class="name">${esc(c.name)}</div><div class="sub">${c.members} member${c.members === 1 ? '' : 's'}</div></div></a>`).join('')}<a class="link" href="#/communities">Discover groups →</a></div>` : ''}
     <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/projects">${ico('brief')} Projects</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups and events</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
@@ -529,6 +538,18 @@ route(/^#\/projects\/(\d+)$/, async (id) => {
           <div class="field"><label for="cd2">Days or dates</label><input id="cd2" name="days" maxlength="120" placeholder="e.g. 12–16 Nov"></div>
           <div class="field"><label for="cn2">Note</label><textarea id="cn2" name="note" maxlength="500" placeholder="What the job involves, pay, location"></textarea></div>
           <p class="err" role="alert"></p><button class="btn block" type="submit">Send crew request</button></form></div>` : `<div class="card"><h2 class="rail-title">Want to work on this?</h2><p class="muted">Message ${esc(p.owner)} or apply to their castings.</p><a class="btn ghost sm" href="#/profile/${p.owner_id}">View profile</a></div>`}</aside></div>`, true);
+});
+
+
+route(/^#\/pro$/, async () => {
+  const st = S.me ? await api('/pro') : { pro_open: true, pro: false };
+  const perks = [['brief', 'Post casting calls', 'Publish roles and manage every applicant through shortlist, callback and cast.'], ['cal', 'Host events', 'Create meetups, screenings and special occasions with a QR invite and personal ticket QR codes.'],
+    ['qr', 'Check guests in', 'Scan the ticket at the door and see who is in, live.'], ['users', 'Pro badge', 'Stand out in the feed, on the map and in search.']];
+  view(`<h1 class="page-title">Set UP Pro</h1>
+    <div class="card prohero"><span class="pill pro">PRO</span><h2>For producers, casting directors and organisers.</h2><p class="muted">Free members can share work, join groups, apply to castings and join events. Pro adds the tools to hire and to host.</p>
+      ${!S.me ? '<a class="btn lg" href="#/signup">Join Set UP to get Pro</a>' : st.pro ? '<p class="avail">● Your Pro account is active. You can post castings and events.</p><p><button class="btn" data-act="compose" data-v="casting">Post a casting</button> <button class="btn ghost" data-act="compose" data-v="meetup">Host an event</button></p>'
+        : st.pro_open ? '<button class="btn lg" data-act="activatepro">Activate Pro, free during early access</button>' : '<p class="muted">Pro accounts are by request right now.</p><a class="btn lg" href="mailto:?subject=Set%20UP%20Pro%20access">Request Pro access</a>'}</div>
+    <div class="lgrid">${perks.map(([i, t, d]) => `<div class="card feat"><span class="fico">${ico(i)}</span><h3>${t}</h3><p class="muted">${d}</p></div>`).join('')}</div>`);
 });
 
 route(/^#\/castings$/, async () => {
@@ -814,6 +835,8 @@ function composer(kind = 'post', cid = '') {
     <div class="field"><label for="pc">City</label><input id="pc" name="city" maxlength="80"></div>
     <div class="field"><label for="pd">About the project</label><textarea id="pd" name="description" maxlength="3000"></textarea></div>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Create project</button></form>`;
+  if ((kind === 'casting' || kind === 'meetup') && !isPro()) form = `<div class="progate"><span class="pill pro">PRO</span><h3>${kind === 'casting' ? 'Post casting calls' : 'Host events with QR tickets'} with Set UP Pro</h3>
+    <p class="muted">Pro accounts for producers and casting directors can post castings and events, check guests in with QR tickets and are shown with a Pro badge.</p><a class="btn block" href="#/pro" data-act="close">See Set UP Pro</a></div>`;
   $modal.hidden = false;
   $modal.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Create"><div class="sheet-head"><h2>Create</h2><button class="iconbtn" data-act="close" aria-label="Close">${ico('x')}</button></div>
     <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting', 'brief')}${t('meetup', 'Meetup', 'cal')}${t('community', 'Community', 'group')}${t('project', 'Project', 'brief')}</div>${form}</div>`;
@@ -881,6 +904,7 @@ document.addEventListener('click', (ev) => {
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
       case 'top': window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+      case 'activatepro': await api('/pro/activate', {}); await refreshMe(); toast('Pro is active'); return rerender();
       case 'appfilter': ui.appStage = v; return rerender();
       case 'appstage': await api(`/applications/${id}/stage`, { stage: v }); return rerender();
       case 'delavail': await api(`/availability/${id}/delete`, {}); return rerender();
