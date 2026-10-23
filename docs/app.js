@@ -114,11 +114,23 @@ function shell(content) {
       <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/projects">Projects</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
       <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
-      <p class="foot-copy">© Set UP</p></div></footer>
+      <p class="foot-copy"><span>© ${new Date().getFullYear()} Set UP · Made for film people</span><a href="#/" data-act="top">Back to top ↑</a></p></div></footer>
     <nav class="tabbar" aria-label="Main">${bar}</nav>
   </div>`;
 }
-function view(html, isWide) { wide = !!isWide; shell(html); window.scrollTo(0, 0); }
+function view(html, isWide) {
+  wide = !!isWide; shell(html); window.scrollTo(0, 0);
+  const v = document.getElementById('view');
+  if (v) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
+  revealOnScroll();
+}
+function revealOnScroll() {
+  const els = document.querySelectorAll('.landing .lsec, .landing .lband, .landing .cta, .landing .strip');
+  if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
+  els.forEach((el) => { el.classList.add('rv'); io.observe(el); });
+}
+window.addEventListener('scroll', () => document.body.classList.toggle('scrolled', window.scrollY > 8), { passive: true });
 function setView(html) { const v = document.getElementById('view'); if (v) v.innerHTML = html; }
 
 /* ---------- components ---------- */
@@ -192,7 +204,7 @@ const homeRoute = async (forceFeed) => {
       ['Can I delete my account?', 'Yes. Ask us and your profile, posts, messages and files are removed.']];
     const pill = (t) => `<span class="mk-pill">${t}</span>`;
     view(`<div class="landing">
-      <section class="lhero"><div class="lhero-t">
+      <section class="lhero"><div class="herobg" aria-hidden="true"></div><div class="lhero-t">
         <p class="eyebrow">The network for film people</p>
         <h1>Where film people connect, share and <i>get hired.</i></h1>
         <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
@@ -868,6 +880,7 @@ document.addEventListener('click', (ev) => {
       case 'follow': await api(`/users/${id}/follow`, {}); return rerender();
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
+      case 'top': window.scrollTo({ top: 0, behavior: 'smooth' }); return;
       case 'appfilter': ui.appStage = v; return rerender();
       case 'appstage': await api(`/applications/${id}/stage`, { stage: v }); return rerender();
       case 'delavail': await api(`/availability/${id}/delete`, {}); return rerender();
@@ -1020,7 +1033,7 @@ async function router() {
       return;
     }
   }
-  view('<div class="empty">Page not found<p><a class="link" href="#/">Back to feed</a></p></div>');
+  view('<div class="notfound"><span class="nf-code">404</span><h1>This page is not on the call sheet.</h1><p class="muted">The link may be old or mistyped.</p><p><a class="btn" href="#/">Back to Set UP</a> <a class="btn ghost" href="#/feed">Open the feed</a></p></div>');
 }
 new MutationObserver(() => document.body.classList.remove('busy')).observe(document.getElementById('app'), { childList: true });
 window.addEventListener('hashchange', () => { closeModal(); router(); });
