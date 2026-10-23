@@ -683,3 +683,4 @@ body{background-image:radial-gradient(900px 500px at 85% -5%,rgba(240,169,79,.07
 .progate{text-align:center;padding:10px 4px 6px}.progate h3{font:400 26px/1.15 'Instrument Serif',serif;margin:10px 0 8px}
 .prohero{padding:30px}.prohero h2{font:400 34px/1.1 'Instrument Serif',serif;margin:12px 0 8px}
 .upsell{display:flex;flex-direction:column;gap:6px;align-items:flex-start;background:linear-gradient(135deg,rgba(240,169,79,.16),rgba(90,130,210,.1))!important;border-color:#51658A!important}
+.card>.event{border:0;box-shadow:none;background:none;padding:0;transform:none}

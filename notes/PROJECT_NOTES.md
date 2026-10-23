@@ -53,3 +53,9 @@ The mailbox itself must be created by the account owner. Status: script written,
 - Uploaded photos are resized in the browser to max 1600 px (JPEG) before upload; GIFs are sent as they are.
 
 Photos: img/*.jpg come from Unsplash (free license, no attribution required): see unsplash.com/license.
+
+## Status (Oct 2026)
+- Live: feed, groups, castings with pipeline, meetups with QR invite + ticket check-in, projects with crew requests, availability, showreel embed, Pro plan (castings + events), share page, PWA.
+- Pro: `setup_settings.pro_open = 'true'` lets anyone self-activate Pro (early access, no payments). Set to 'false' to hand out Pro manually (update setup_profiles.plan). Real payments need a payment provider account (not set up).
+- Sample people/castings/meetups still show (tagged Example) until real ones exist. Remove `SAMPLE.*` fallbacks in docs/api.js before a public launch.
+- Still needed before launch: domain (setupfilm.com), real SMTP, legal pages, original logo, real photos.
