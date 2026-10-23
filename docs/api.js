@@ -34,6 +34,7 @@ const safe = (s) => s.replace(/[,()*%\\:"']/g, ' ').trim();
 const userJson = (r) => ({ id: r.id, name: r.name, role: r.role, headline: r.headline, city: r.city, avatar: r.avatar,
   open_to_work: !!r.open_to_work, available_from: r.available_from || '' });
 const iso = (r) => r.created_at;
+const projectJson = (r, me) => ({ id: r.id, title: r.title, logline: r.logline, genre: r.genre, status: r.status, city: r.city, owner_id: r.user_id, owner: r.owner.name, mine: !!me && me === r.user_id, team: r.team[0].count, created: r.created_at });
 const roomJson = (r, me) => ({ id: r.id, title: r.title, kind: r.kind, description: r.description, starts_at: r.starts_at, location: r.location,
   link: r.link, owner_id: r.user_id, mine: r.user_id === me, members: r.members[0].count, created: r.created_at });
 
@@ -395,6 +396,69 @@ const H = {
     return { id };
   },
 
+
+  /* projects and crew requests */
+  async projects(q) {
+    const me = await myId();
+    let query = sb.from('setup_projects').select('*, owner:setup_profiles!setup_projects_user_id_fkey(name), team:setup_project_members(count)').order('created_at', { ascending: false }).limit(100);
+    if (q.get('mine') && me) {
+      const ids = ok(await sb.from('setup_project_members').select('project_id').eq('user_id', me).eq('status', 'accepted')).map((x) => x.project_id);
+      query = query.or(ids.length ? `user_id.eq.${me},id.in.(${ids.join(',')})` : `user_id.eq.${me}`);
+    }
+    const rows = ok(await query);
+    return { projects: rows.map((r) => projectJson(r, me)) };
+  },
+  async project(id) {
+    const me = await myId();
+    const r = ok(await sb.from('setup_projects').select('*, owner:setup_profiles!setup_projects_user_id_fkey(name), team:setup_project_members(count)').eq('id', id).maybeSingle());
+    if (!r) throw fail(404, 'Project not found');
+    const mem = ok(await sb.from('setup_project_members').select(`user_id,role,days,note,status,user:setup_profiles!setup_project_members_user_id_fkey(${PCOLS})`).eq('project_id', id).order('created_at').limit(200));
+    const out = projectJson(r, me);
+    out.description = r.description;
+    out.team = mem.filter((x) => x.status === 'accepted').map((x) => ({ ...userJson(x.user), crew_role: x.role, days: x.days }));
+    out.pending = out.mine ? mem.filter((x) => x.status !== 'accepted').map((x) => ({ ...userJson(x.user), crew_role: x.role, days: x.days, status: x.status })) : [];
+    const mine = mem.find((x) => x.user_id === me);
+    out.invite = mine && mine.status === 'invited' ? { role: mine.role, days: mine.days, note: mine.note } : null;
+    out.member = !!mine && mine.status === 'accepted';
+    return out;
+  },
+  async create_project(_, b) {
+    const me = await uid();
+    const stat = ['development', 'pre_production', 'shooting', 'post_production', 'released'];
+    const r = ok(await sb.from('setup_projects').insert({ user_id: me, title: clean(b.title, 120, true, 'Title'), logline: clean(b.logline, 300), genre: clean(b.genre, 60),
+      status: stat.includes(b.status) ? b.status : 'development', city: clean(b.city, 80), description: clean(b.description, 3000) }).select('id').single());
+    return { id: r.id };
+  },
+  async project_status(id, b) {
+    const stat = ['development', 'pre_production', 'shooting', 'post_production', 'released'];
+    if (!stat.includes(b.status)) throw fail(400, 'Unknown status');
+    ok(await sb.from('setup_projects').update({ status: b.status }).eq('id', id).eq('user_id', await uid()));
+    return { ok: true };
+  },
+  async delete_project(id) { ok(await sb.from('setup_projects').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
+  async crew_invite(id, b) {
+    await uid();
+    ok(await sb.from('setup_project_members').insert({ project_id: id, user_id: clean(b.user_id, 40, true, 'Person'), role: clean(b.role, 80, true, 'Role'), days: clean(b.days, 120), note: clean(b.note, 500), status: 'invited' }));
+    return { ok: true };
+  },
+  async crew_respond(id, b) {
+    const me = await uid();
+    if (!['accepted', 'declined'].includes(b.status)) throw fail(400, 'Unknown answer');
+    const r = ok(await sb.from('setup_project_members').update({ status: b.status }).eq('project_id', id).eq('user_id', me).select('id').maybeSingle());
+    if (!r) throw fail(404, 'No invitation found');
+    return { ok: true };
+  },
+  async crew_remove(id, b) {
+    const me = await uid();
+    ok(await sb.from('setup_project_members').delete().eq('project_id', id).eq('user_id', b.user_id || me));
+    return { ok: true };
+  },
+  async my_invitations() {
+    const me = await uid();
+    const rows = ok(await sb.from('setup_project_members').select('role,days,note,project:setup_projects(id,title,user_id,owner:setup_profiles!setup_projects_user_id_fkey(name))').eq('user_id', me).eq('status', 'invited'));
+    return { invitations: rows.map((x) => ({ project_id: x.project.id, title: x.project.title, owner: x.project.owner.name, role: x.role, days: x.days, note: x.note })) };
+  },
+
   /* people & network */
   async people(q) {
     const me = await myId();
@@ -641,6 +705,9 @@ const R = [
   ['GET', '/rooms', 'rooms'], ['POST', '/rooms', 'create_room'], ['GET', '/rooms/(\\d+)', 'room'], ['POST', '/rooms/(\\d+)/invite', 'room_invite'],
   ['POST', '/rooms/(\\d+)/checkin', 'room_checkin'], ['POST', '/rooms/(\\d+)/leave', 'leave_room'], ['POST', '/rooms/(\\d+)/delete', 'delete_room'],
   ['GET', '/join/([0-9a-fA-F]{8,64})', 'room_preview'], ['POST', '/join/([0-9a-fA-F]{8,64})', 'join_room'],
+  ['GET', '/projects', 'projects'], ['POST', '/projects', 'create_project'], ['GET', '/projects/(\\d+)', 'project'], ['POST', '/projects/(\\d+)/delete', 'delete_project'],
+  ['POST', '/projects/(\\d+)/status', 'project_status'], ['POST', '/projects/(\\d+)/invite', 'crew_invite'], ['POST', '/projects/(\\d+)/respond', 'crew_respond'],
+  ['POST', '/projects/(\\d+)/remove', 'crew_remove'], ['GET', '/invitations', 'my_invitations'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
   ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'], ['GET', '/meetups/(\\d+)', 'meetup'], ['POST', '/meetups/(\\d+)/checkin', 'meetup_checkin'],
@@ -657,7 +724,7 @@ window.api = async (path, body) => {
     if (m === method && match) {
       const args = match.slice(1).map((g) => (/^\d+$/.test(g) && !/^(join_room|room_preview)$/.test(h) ? Number(g) : g));
       if (args.some(isSample) && (method === 'POST' || h === 'thread')) throw fail(400, SAMPLE_MSG);
-      if (['feed', 'people', 'castings', 'meetups', 'communities', 'map_people', 'rooms'].includes(h)) return H[h](new URLSearchParams(qs || ''));
+      if (['feed', 'people', 'castings', 'meetups', 'communities', 'map_people', 'rooms', 'projects'].includes(h)) return H[h](new URLSearchParams(qs || ''));
       return args.length ? H[h](...args, body || {}) : H[h](undefined, body || {});
     }
   }

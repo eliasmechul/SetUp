@@ -587,3 +587,8 @@ body[data-page=messages] .page-title{--ph:url(img/f-share.jpg)}
 .feedtag{font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:6px 4px -6px}
 .pc-b.plain{margin-top:0!important;padding-top:16px}
 .pc-b.plain .btn{margin:12px 0 6px}
+
+/* ---------- projects ---------- */
+form.inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+form.inline input,form.inline select{flex:1 1 140px;min-height:40px;width:auto}
+#presults{margin:8px 0 14px}

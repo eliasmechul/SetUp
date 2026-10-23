@@ -91,11 +91,11 @@ let wide = false;
 function shell(content) {
   const m = S.me;
   const badge = (n) => (n ? `<span class="badge">${n > 9 ? '9+' : n}</span>` : '');
-  const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/communities', 'group', 'Groups'],
+  const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/projects', 'cal', 'Projects'], ['#/communities', 'group', 'Groups'],
     ['#/meetups', 'cal', 'Meetups', 0, 1], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
   const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
     (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');
-  const outLinks = [['#/feed', 'Feed'], ['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/communities', 'Communities'], ['#/meetups', 'Meetups']]
+  const outLinks = [['#/feed', 'Feed'], ['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/projects', 'Projects'], ['#/communities', 'Communities'], ['#/meetups', 'Meetups']]
     .map(([h, l]) => `<a class="ol ${active(h) ? 'on' : ''}" href="${h}">${l}</a>`).join('');
   const bar = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], null, ['#/castings', 'brief', 'Castings'], [m ? '#/profile/' + m.id : '#/login', 'user', m ? 'Me' : 'Log in']]
     .map((t) => t ? `<a class="tab ${active(t[0]) ? 'on' : ''}" href="${t[0]}">${ico(t[1])}${t[2]}</a>`
@@ -111,7 +111,7 @@ function shell(content) {
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <footer class="foot"><div class="foot-in">
       <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
-      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
+      <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/projects">Projects</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
       <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
       <p class="foot-copy">© Set UP</p></div></footer>
@@ -244,7 +244,7 @@ const homeRoute = async (forceFeed) => {
     <div class="sub">${esc(m.headline || m.role)}${m.city ? ' · ' + esc(m.city) : ''}</div>${m.open_to_work ? `<div>${availBadge(m)}</div>` : ''}
     ${strengthMeter(m)}<a class="link" href="#/me/edit">Edit profile</a></div></div>
     ${cm.communities.some((c) => c.joined) ? `<div class="card"><h2 class="rail-title">Your groups</h2>${cm.communities.filter((c) => c.joined).slice(0, 5).map((c) => `<a class="mini" href="#/communities/${c.id}"><div class="who"><div class="name">${esc(c.name)}</div><div class="sub">${c.members} member${c.members === 1 ? '' : 's'}</div></div></a>`).join('')}<a class="link" href="#/communities">Discover groups →</a></div>` : ''}
-    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups and events</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
+    <div class="card shortcuts"><a href="#/map">${ico('pin')} Talent map</a><a href="#/projects">${ico('brief')} Projects</a><a href="#/communities">${ico('group')} Communities</a><a href="#/meetups">${ico('cal')} Meetups and events</a><a href="#/applications">${ico('brief')} My applications</a></div>`;
   let sug = [];
   if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
   const toJoin = cm.communities.filter((c) => !c.joined).slice(0, 3);
@@ -466,6 +466,50 @@ route(/^#\/checkin\/(\d+)\/([0-9a-f-]{36})$/, async (mid, guestId) => {
     <p><a class="link" href="#/meetups/${m.id}">Guest list (${m.checked_in} of ${m.going} in)</a></p></div>`);
 });
 
+
+const PSTATUS = [['development', 'Development'], ['pre_production', 'Pre-production'], ['shooting', 'Shooting'], ['post_production', 'Post-production'], ['released', 'Released']];
+const pstatus = (k) => (PSTATUS.find((x) => x[0] === k) || ['', k])[1];
+const projCard = (p) => `<article class="card comm"><a class="ccover" href="#/projects/${p.id}" style="background-image:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.7)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})" aria-label="${esc(p.title)}"><span class="ctopic">${esc(pstatus(p.status))}</span></a>
+  <div class="cbody"><a href="#/projects/${p.id}"><h3>${esc(p.title)}</h3></a><div class="sub">${p.genre ? esc(p.genre) + ' · ' : ''}${p.city ? esc(p.city) + ' · ' : ''}by ${esc(p.owner)} · ${p.team} in the team</div>
+  ${p.logline ? `<p class="cdesc">${esc(p.logline)}</p>` : ''}</div></article>`;
+
+route(/^#\/projects$/, async () => {
+  const inv = S.me ? (await api('/invitations').catch(() => ({ invitations: [] }))).invitations : [];
+  const mine = S.me ? (await api('/projects?mine=1')).projects : [];
+  const all = (await api('/projects')).projects.filter((p) => !mine.some((m) => m.id === p.id));
+  view(`<h1 class="page-title">Projects</h1>
+    <div class="card"><p class="muted">Every film starts as a project. Create yours, build your team, invite crew for a role and the days you need them, and they accept or decline in one tap.</p>
+      ${S.me ? '<button class="btn" data-act="compose" data-v="project">+ Start a project</button>' : '<a class="btn" href="#/signup">Join Set UP to start a project</a>'}</div>
+    ${inv.length ? `<h2 class="section-title">Crew requests for you</h2>${inv.map((i) => `<div class="card"><span class="kicker">${ico('brief')} ${esc(i.role)}${i.days ? ' · ' + esc(i.days) : ''}</span><h3><a href="#/projects/${i.project_id}">${esc(i.title)}</a></h3><div class="sub">From ${esc(i.owner)}</div>${i.note ? `<p class="post-body">${esc(i.note)}</p>` : ''}
+      <div class="pro-actions"><button class="btn" data-act="crewrespond" data-id="${i.project_id}" data-v="accepted">Accept</button><button class="btn ghost" data-act="crewrespond" data-id="${i.project_id}" data-v="declined">Decline</button></div></div>`).join('')}` : ''}
+    ${mine.length ? `<h2 class="section-title">Your projects</h2>${mine.map(projCard).join('')}` : ''}
+    <h2 class="section-title">Discover projects</h2>${all.length ? all.map(projCard).join('') : '<div class="empty">No other projects yet. Start the first one!</div>'}`);
+});
+
+route(/^#\/projects\/(\d+)$/, async (id) => {
+  const p = await api('/projects/' + id);
+  const team = p.team.map((t) => `<div class="person rp"><a href="#/profile/${t.id}">${av(t)}</a><a class="who" href="#/profile/${t.id}"><div class="name">${esc(t.name)}</div><div class="sub">${esc(t.crew_role)}${t.days ? ' · ' + esc(t.days) : ''}</div></a>${p.mine ? `<button class="link" data-act="crewremove" data-id="${p.id}" data-uid="${t.id}">Remove</button>` : ''}</div>`).join('');
+  const pending = p.pending.map((t) => `<div class="person rp"><a href="#/profile/${t.id}">${av(t)}</a><a class="who" href="#/profile/${t.id}"><div class="name">${esc(t.name)}</div><div class="sub">${esc(t.crew_role)} · ${t.status === 'invited' ? 'waiting for an answer' : 'declined'}</div></a><button class="link" data-act="crewremove" data-id="${p.id}" data-uid="${t.id}">Remove</button></div>`).join('');
+  view(`<p><a class="link" href="#/projects">${ico('back')} Projects</a></p>
+    <div class="gcover" style="background-image:linear-gradient(180deg,rgba(14,13,12,.05),rgba(14,13,12,.75)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})"><span class="ctopic">${esc(pstatus(p.status))}${p.genre ? ' · ' + esc(p.genre) : ''}</span></div>
+    <div class="ghead card"><div><h1 class="gname">${esc(p.title)}</h1><div class="sub">by <a class="link" href="#/profile/${p.owner_id}">${esc(p.owner)}</a>${p.city ? ' · ' + esc(p.city) : ''} · ${p.team} in the team</div></div>
+      <div class="pro-actions">${p.mine ? `<form data-form="projstatus" data-id="${p.id}" class="inline"><label class="sr" for="ps">Status</label><select id="ps" name="status">${PSTATUS.map(([k, l]) => `<option value="${k}" ${k === p.status ? 'selected' : ''}>${l}</option>`).join('')}</select><button class="btn ghost sm" type="submit">Update</button></form><button class="btn danger sm" data-act="delproject" data-id="${p.id}">Delete</button>` : ''}</div></div>
+    ${p.invite ? `<div class="card"><span class="kicker">${ico('brief')} You are invited</span><h3>${esc(p.invite.role)}${p.invite.days ? ' · ' + esc(p.invite.days) : ''}</h3>${p.invite.note ? `<p class="post-body">${esc(p.invite.note)}</p>` : ''}<div class="pro-actions"><button class="btn" data-act="crewrespond" data-id="${p.id}" data-v="accepted">Accept</button><button class="btn ghost" data-act="crewrespond" data-id="${p.id}" data-v="declined">Decline</button></div></div>` : ''}
+    <div class="ggrid"><div class="gmain">
+      ${p.logline ? `<div class="card"><p class="lead2">${esc(p.logline)}</p></div>` : ''}
+      ${p.description ? `<div class="card"><h2 class="rail-title">About the project</h2><p class="post-body">${esc(p.description)}</p></div>` : ''}
+      <div class="card"><h2 class="rail-title">Team</h2>${team || '<p class="muted">Nobody on the team yet.</p>'}${p.member && !p.mine ? `<p><button class="link" data-act="crewremove" data-id="${p.id}">Leave this project</button></p>` : ''}</div>
+      ${p.mine && pending ? `<div class="card"><h2 class="rail-title">Requests</h2>${pending}</div>` : ''}</div>
+      <aside class="gside">${p.mine ? `<div class="card"><h2 class="rail-title">Invite crew</h2>
+        <form data-form="projpeople" data-id="${p.id}" class="inline"><label class="sr" for="pp">Search people</label><input id="pp" name="q" placeholder="Search by name, role or city"><button class="btn sm" type="submit">Search</button></form>
+        <div id="presults"></div>
+        <form data-form="crewinvite" data-id="${p.id}"><input type="hidden" name="user_id"><p id="picked" class="muted">Search and pick a person first.</p>
+          <div class="field"><label for="cr">Role</label><input id="cr" name="role" required maxlength="80" placeholder="e.g. Gaffer, 1st AD, Lead actor"></div>
+          <div class="field"><label for="cd2">Days or dates</label><input id="cd2" name="days" maxlength="120" placeholder="e.g. 12–16 Nov"></div>
+          <div class="field"><label for="cn2">Note</label><textarea id="cn2" name="note" maxlength="500" placeholder="What the job involves, pay, location"></textarea></div>
+          <p class="err" role="alert"></p><button class="btn block" type="submit">Send crew request</button></form></div>` : `<div class="card"><h2 class="rail-title">Want to work on this?</h2><p class="muted">Message ${esc(p.owner)} or apply to their castings.</p><a class="btn ghost sm" href="#/profile/${p.owner_id}">View profile</a></div>`}</aside></div>`, true);
+});
+
 route(/^#\/castings$/, async () => {
   const qs = new URLSearchParams({ category: ui.castCat, q: ui.castQ, city: ui.castCity });
   const { castings } = await api('/castings?' + qs);
@@ -594,9 +638,9 @@ route(/^#\/notifications$/, async () => {
   const text = (n) => ({
     like: 'liked your post', comment: 'commented on your post', follow: 'started following you',
     connect_request: 'wants to connect', connect_accept: 'accepted your connection',
-    application: `applied to “${esc(n.label)}”`, rsvp: `is going to “${esc(n.label)}”`,
+    application: `applied to “${esc(n.label)}”`, crew_invite: `invited you to join “${esc(n.label)}”`, crew_accept: `joined your project “${esc(n.label)}”`, crew_decline: `declined your crew request for “${esc(n.label)}”`, rsvp: `is going to “${esc(n.label)}”`,
   }[n.kind] || 'did something');
-  const link = (n) => (n.kind === 'application' ? `#/castings/${n.ref}` : n.kind === 'rsvp' ? '#/meetups' : `#/profile/${n.actor.id}`);
+  const link = (n) => (/^crew_/.test(n.kind) ? `#/projects/${n.ref}` : n.kind === 'application' ? `#/castings/${n.ref}` : n.kind === 'rsvp' ? '#/meetups' : `#/profile/${n.actor.id}`);
   view(`<h1 class="page-title">Alerts</h1>
     ${requests.length ? `<h2 class="section-title">Connection requests</h2>${requests.map((u) => `<div class="card person"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}<button class="btn sm" data-act="accept" data-id="${u.id}">Accept</button><button class="btn ghost sm" data-act="decline" data-id="${u.id}">Ignore</button></div>`).join('')}<h2 class="section-title">Activity</h2>` : ''}
     ${notifications.length ? notifications.map((n) => `<a class="card person" href="${link(n)}">${av(n.actor)}<div class="who"><div><b>${esc(n.actor.name)}</b> ${text(n)}</div><div class="sub">${ago(n.created)}</div></div>${n.read ? '' : '<span class="dot" aria-label="New"></span>'}</a>`).join('') : '<div class="empty">Nothing yet. Post something or apply to a casting.</div>'}`);
@@ -733,9 +777,17 @@ function composer(kind = 'post', cid = '') {
     <div class="field"><label for="rds">Program / notes for guests</label><textarea id="rds" name="description" maxlength="4000" placeholder="Agenda, what to bring, who is attending…"></textarea></div>
     <p class="muted small">Only people with your invite can see this room.</p>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Create room</button></form>`;
+  if (kind === 'project') form = `<form data-form="project">
+    <div class="field"><label for="pt">Project title</label><input id="pt" name="title" required maxlength="120" placeholder="e.g. Harbour Lights"></div>
+    <div class="field"><label for="pl">Logline</label><input id="pl" name="logline" maxlength="300" placeholder="One sentence that sells the film"></div>
+    <div class="row"><div class="field"><label for="pg">Genre</label><input id="pg" name="genre" maxlength="60" placeholder="Drama, short, documentary…"></div>
+    <div class="field"><label for="ps2">Status</label><select id="ps2" name="status">${PSTATUS.map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></div></div>
+    <div class="field"><label for="pc">City</label><input id="pc" name="city" maxlength="80"></div>
+    <div class="field"><label for="pd">About the project</label><textarea id="pd" name="description" maxlength="3000"></textarea></div>
+    <p class="err" role="alert"></p><button class="btn block" type="submit">Create project</button></form>`;
   $modal.hidden = false;
   $modal.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Create"><div class="sheet-head"><h2>Create</h2><button class="iconbtn" data-act="close" aria-label="Close">${ico('x')}</button></div>
-    <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting', 'brief')}${t('meetup', 'Meetup', 'cal')}${t('community', 'Community', 'group')}${t('room', 'Room', 'qr')}</div>${form}</div>`;
+    <div class="types">${t('post', 'Post', 'img')}${t('casting', 'Casting', 'brief')}${t('meetup', 'Meetup', 'cal')}${t('community', 'Community', 'group')}${t('project', 'Project', 'brief')}</div>${form}</div>`;
   const first = $modal.querySelector('textarea, input'); if (first) first.focus();
 }
 function openReport(type, id) {
@@ -799,6 +851,10 @@ document.addEventListener('click', (ev) => {
       case 'follow': await api(`/users/${id}/follow`, {}); return rerender();
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
+      case 'crewrespond': await api(`/projects/${id}/respond`, { status: v }); toast(v === 'accepted' ? 'You joined the team' : 'Declined'); return rerender();
+      case 'crewremove': if (confirm(el.dataset.uid ? 'Remove this person from the project?' : 'Leave this project?')) { await api(`/projects/${id}/remove`, { user_id: el.dataset.uid || '' }); rerender(); } return;
+      case 'delproject': if (confirm('Delete this project and its team?')) { await api(`/projects/${id}/delete`, {}); location.hash = '#/projects'; } return;
+      case 'crewpick': { const f = document.querySelector('form[data-form=crewinvite]'); f.elements.user_id.value = el.dataset.uid; document.getElementById('picked').innerHTML = 'Inviting <b>' + esc(el.dataset.name) + '</b>'; f.elements.role.focus(); return; }
       case 'meetcheckin': await api(`/meetups/${id}/checkin`, { user_id: el.dataset.uid, undo: v === 'undo' }); if (el.dataset.back) toast('Checked in'); return rerender();
       case 'dlticket': { const c = document.getElementById('ticket'); const a2 = document.createElement('a'); a2.download = 'setup-ticket.png'; a2.href = c.toDataURL('image/png'); a2.click(); return; }
       case 'checkin': await api(`/rooms/${id}/checkin`, { user_id: el.dataset.uid, undo: v === 'undo' }); return rerender();
@@ -896,6 +952,11 @@ document.addEventListener('submit', (ev) => {
         case 'post': await api('/posts', data); closeModal(); toast('Posted'); if (data.community_id) return router(); location.hash = '#/'; return router();
         case 'community': { const r = await api('/communities', data); closeModal(); location.hash = '#/communities/' + r.id; return; }
         case 'casting': { const r = await api('/castings', data); closeModal(); location.hash = '#/castings/' + r.id; return; }
+        case 'project': { const r = await api('/projects', data); closeModal(); location.hash = '#/projects/' + r.id; return; }
+        case 'projstatus': await api(`/projects/${id}/status`, data); toast('Status updated'); return rerender();
+        case 'projpeople': { const { people } = await api('/people?q=' + encodeURIComponent(data.q || '')); const box = document.getElementById('presults');
+          box.innerHTML = people.slice(0, 6).map((u) => `<div class="mini"><div class="who"><div class="name">${esc(u.name)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div></div><button class="btn ghost sm" type="button" data-act="crewpick" data-uid="${u.id}" data-name="${esc(u.name)}">Pick</button></div>`).join('') || '<p class="muted">Nobody found.</p>'; return; }
+        case 'crewinvite': if (!data.user_id) throw new Error('Pick a person first'); await api(`/projects/${id}/invite`, data); toast('Crew request sent'); return rerender();
         case 'room': { const r = await api('/rooms', data); closeModal(); location.hash = '#/rooms/' + r.id; return; }
         case 'meetup': await api('/meetups', data); closeModal(); location.hash = '#/meetups'; ui.meetTab = 'mine'; return router();
         case 'apply': await api(`/castings/${id}/apply`, data); toast('Application sent'); return rerender();
