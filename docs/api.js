@@ -435,6 +435,23 @@ const H = {
     ok(await sb.from('setup_projects').update({ status: b.status }).eq('id', id).eq('user_id', await uid()));
     return { ok: true };
   },
+  async set_stage(id, b) {
+    const stages = ['new', 'shortlist', 'callback', 'cast', 'declined'];
+    if (!stages.includes(b.stage)) throw fail(400, 'Unknown stage');
+    await uid();
+    const r = ok(await sb.from('setup_applications').update({ stage: b.stage }).eq('id', id).select('id').maybeSingle());
+    if (!r) throw fail(403, 'Only the person who posted this casting can change an application stage');
+    return { ok: true };
+  },
+  async add_availability(_, b) {
+    const me = await uid();
+    const re = /^\d{4}-\d{2}-\d{2}$/;
+    if (!re.test(b.from_date || '') || !re.test(b.to_date || '')) throw fail(400, 'Choose a start and an end date');
+    if (b.to_date < b.from_date) throw fail(400, 'The end date is before the start date');
+    ok(await sb.from('setup_availability').insert({ user_id: me, from_date: b.from_date, to_date: b.to_date, kind: b.kind === 'busy' ? 'busy' : 'available', note: clean(b.note, 120) }));
+    return { ok: true };
+  },
+  async delete_availability(id) { ok(await sb.from('setup_availability').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
   async delete_project(id) { ok(await sb.from('setup_projects').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
   async crew_invite(id, b) {
     await uid();
@@ -488,7 +505,9 @@ const H = {
     ]);
     const s = ok(stats);
     const credits = ok(await sb.from('setup_credits').select('*').eq('user_id', id).order('year', { ascending: false }).order('id', { ascending: false }));
-    return { ...userJson(p), bio: p.bio, skills: p.skills, created: iso(p), reel_url: p.reel_url, lat: p.lat, lng: p.lng, credits, followers: s.followers, connections: s.connections,
+    const today = new Date().toISOString().slice(0, 10);
+    const availability = ok(await sb.from('setup_availability').select('id,from_date,to_date,kind,note').eq('user_id', id).gte('to_date', today).order('from_date').limit(30));
+    return { ...userJson(p), bio: p.bio, skills: p.skills, created: iso(p), reel_url: p.reel_url, lat: p.lat, lng: p.lng, credits, availability, followers: s.followers, connections: s.connections,
       state: me === id ? 'self' : (conns.get(id) || 'none'), following: ok(fol).length > 0,
       posts: await shapePosts(ok(posts), me), castings: ok(castings).map(castingShape) };
   },
@@ -564,11 +583,12 @@ const H = {
     if (!r) throw fail(404, 'Casting not found');
     const j = castingShape(r);
     if (me === r.user_id) {
-      const apps = ok(await sb.from('setup_applications').select(`message,created_at,user:setup_profiles!setup_applications_user_id_fkey(${PCOLS})`).eq('casting_id', id).order('id', { ascending: false }));
-      j.applications = apps.map((a) => ({ ...userJson(a.user), message: a.message, applied_at: iso(a) }));
+      const apps = ok(await sb.from('setup_applications').select(`id,stage,message,created_at,user:setup_profiles!setup_applications_user_id_fkey(${PCOLS})`).eq('casting_id', id).order('id', { ascending: false }));
+      j.applications = apps.map((a) => ({ ...userJson(a.user), app_id: a.id, stage: a.stage, message: a.message, applied_at: iso(a) }));
       j.applied = false;
     } else {
-      j.applied = me ? ok(await sb.from('setup_applications').select('id').eq('casting_id', id).eq('user_id', me)).length > 0 : false;
+      const mine = me ? ok(await sb.from('setup_applications').select('id,stage').eq('casting_id', id).eq('user_id', me)) : [];
+      j.applied = mine.length > 0; j.my_stage = mine[0] ? mine[0].stage : '';
     }
     return j;
   },
@@ -588,8 +608,8 @@ const H = {
   async delete_casting(id) { ok(await sb.from('setup_castings').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
   async my_applications() {
     const me = await uid();
-    const rows = ok(await sb.from('setup_applications').select('created_at, casting:setup_castings(*, poster:setup_profiles!setup_castings_user_id_fkey(name))').eq('user_id', me).order('id', { ascending: false }));
-    return { castings: rows.filter((r) => r.casting).map((r) => ({ ...castingShape(r.casting), applied: true, applied_at: iso(r) })) };
+    const rows = ok(await sb.from('setup_applications').select('created_at, stage, casting:setup_castings(*, poster:setup_profiles!setup_castings_user_id_fkey(name))').eq('user_id', me).order('id', { ascending: false }));
+    return { castings: rows.filter((r) => r.casting).map((r) => ({ ...castingShape(r.casting), applied: true, stage: r.stage, applied_at: iso(r) })) };
   },
 
   /* meetups */
@@ -708,6 +728,7 @@ const R = [
   ['GET', '/projects', 'projects'], ['POST', '/projects', 'create_project'], ['GET', '/projects/(\\d+)', 'project'], ['POST', '/projects/(\\d+)/delete', 'delete_project'],
   ['POST', '/projects/(\\d+)/status', 'project_status'], ['POST', '/projects/(\\d+)/invite', 'crew_invite'], ['POST', '/projects/(\\d+)/respond', 'crew_respond'],
   ['POST', '/projects/(\\d+)/remove', 'crew_remove'], ['GET', '/invitations', 'my_invitations'],
+  ['POST', '/applications/(\\d+)/stage', 'set_stage'], ['POST', '/availability', 'add_availability'], ['POST', '/availability/(\\d+)/delete', 'delete_availability'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
   ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'], ['GET', '/meetups/(\\d+)', 'meetup'], ['POST', '/meetups/(\\d+)/checkin', 'meetup_checkin'],

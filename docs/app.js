@@ -153,8 +153,10 @@ const commCard = (c) => `<article class="card comm"><a class="ccover" href="#/co
   <div class="sub">${c.members} member${c.members === 1 ? '' : 's'}${c.city ? ' · ' + esc(c.city) : ''}</div>
   ${c.description ? `<p class="cdesc">${esc(c.description)}</p>` : ''}
   <button class="btn sm ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓' : 'Join group'}</button></div></article>`;
+const STAGES = [['new', 'New'], ['shortlist', 'Shortlist'], ['callback', 'Callback'], ['cast', 'Cast'], ['declined', 'Not selected']];
+const stageLabel = (k) => (STAGES.find((x) => x[0] === k) || ['', k])[1];
 function castCard(c) {
-  const status = c.applied ? '<span class="pill ok">Applied</span>' : '';
+  const status = c.applied ? `<span class="pill ok">${c.stage && c.stage !== 'new' ? esc(stageLabel(c.stage)) : 'Applied'}</span>` : '';
   return `<a class="cast" href="#/castings/${c.id}"><div class="in">
     <span class="kicker">${esc(c.category)} casting ${exPill(c)}</span><h3>${esc(c.title)}</h3>
     <div class="meta">${c.production ? `<span>${esc(c.production)}</span>` : ''}${c.city ? `<span>${esc(c.city)}</span>` : ''}${c.pay ? `<span>${esc(c.pay)}</span>` : ''}${c.deadline ? `<span>Closes ${esc(when(c.deadline).text)}</span>` : ''}</div>
@@ -431,6 +433,13 @@ route(/^#\/share$/, async () => {
 });
 
 
+function embedOf(url) {
+  let m = String(url).match(/^https:\/\/(?:www\.)?(?:youtube\.com\/watch\?(?:[^#]*&)?v=|youtu\.be\/)([\w-]{11})/);
+  if (m) return `<div class="embed"><iframe src="https://www.youtube-nocookie.com/embed/${m[1]}" title="Showreel" loading="lazy" allowfullscreen referrerpolicy="no-referrer"></iframe></div>`;
+  m = String(url).match(/^https:\/\/(?:www\.)?vimeo\.com\/(\d+)/);
+  if (m) return `<div class="embed"><iframe src="https://player.vimeo.com/video/${m[1]}" title="Showreel" loading="lazy" allowfullscreen referrerpolicy="no-referrer"></iframe></div>`;
+  return '';
+}
 const ticketUrl = (mid, uid2) => location.origin + location.pathname + '#/checkin/' + mid + '/' + uid2;
 route(/^#\/meetups\/(\d+)$/, async (id) => {
   const m = await api('/meetups/' + id);
@@ -536,11 +545,15 @@ route(/^#\/castings\/(\d+)$/, async (id) => {
   let body = '';
   if (mine) {
     const apps = c.applications || [];
-    body = `<h2 class="section-title">${apps.length} applicant${apps.length === 1 ? '' : 's'}</h2>` +
-      (apps.map((a) => `<div class="card"><div class="person"><a href="#/profile/${a.id}">${av(a)}</a>${who(a)}<a class="btn ghost sm" href="#/messages/${a.id}">Message</a></div>${a.message ? `<p class="post-body" style="margin-top:10px">${esc(a.message)}</p>` : ''}<div class="sub">Applied ${ago(a.applied_at)}</div></div>`).join('') || '<div class="empty">No applications yet.</div>') +
+    const counts = Object.fromEntries(STAGES.map(([k]) => [k, apps.filter((x) => x.stage === k).length]));
+    const shown = ui.appStage ? apps.filter((x) => x.stage === ui.appStage) : apps;
+    body = `<h2 class="section-title">${apps.length} applicant${apps.length === 1 ? '' : 's'}</h2>
+      <div class="chips" role="group" aria-label="Pipeline"><button class="chip ${ui.appStage ? '' : 'on'}" data-act="appfilter" data-v="">All ${apps.length}</button>${STAGES.map(([k, l]) => `<button class="chip ${ui.appStage === k ? 'on' : ''}" data-act="appfilter" data-v="${k}">${l} ${counts[k]}</button>`).join('')}</div>` +
+      (shown.map((a) => `<div class="card"><div class="person"><a href="#/profile/${a.id}">${av(a)}</a>${who(a)}<a class="btn ghost sm" href="#/messages/${a.id}">Message</a></div>${a.message ? `<p class="post-body" style="margin-top:10px">${esc(a.message)}</p>` : ''}<div class="sub">Applied ${ago(a.applied_at)}</div>
+        <div class="chips stagebar" role="group" aria-label="Stage">${STAGES.map(([k, l]) => `<button class="chip ${a.stage === k ? 'on' : ''}" data-act="appstage" data-id="${a.app_id}" data-v="${k}">${l}</button>`).join('')}</div></div>`).join('') || '<div class="empty">No applications here.</div>') +
       `<button class="btn danger block" data-act="delcast" data-id="${c.id}">Delete this casting</button>`;
   } else if (c.applied) {
-    body = '<div class="card"><span class="pill ok">Applied</span> <span class="muted">The poster has your profile and message.</span></div>';
+    body = `<div class="card"><span class="pill ok">${c.my_stage && c.my_stage !== 'new' ? esc(stageLabel(c.my_stage)) : 'Applied'}</span> <span class="muted">${c.my_stage && c.my_stage !== 'new' ? 'The poster has updated your application.' : 'The poster has your profile and message.'}</span></div>`;
   } else if (S.me) {
     body = `<form class="card" data-form="apply" data-id="${c.id}"><h2 class="section-title" style="margin-top:0">Apply</h2>` +
       `<p class="muted">Your Set UP profile is sent with your application.</p>
@@ -596,7 +609,11 @@ route(/^#\/profile\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
         <div class="muted">${esc(u.city || 'Location not set')} · <b class="blue">${u.connections} connection${u.connections === 1 ? '' : 's'}</b> · ${u.followers} follower${u.followers === 1 ? '' : 's'}</div>${u.open_to_work ? `<div class="avail-big">${availBadge(u)}</div>` : ''}</div>
         <div class="pbtns">${buttons}</div></div></div></section>
     ${u.bio ? `<section class="card"><h2 class="sec">About</h2><p class="post-body">${esc(u.bio)}</p></section>` : ''}
-    ${u.reel_url ? `<section class="card"><h2 class="sec">Showreel</h2><a class="btn ghost" href="${esc(u.reel_url)}" target="_blank" rel="noopener noreferrer">Watch showreel ↗</a></section>` : ''}
+    ${u.reel_url ? `<section class="card"><h2 class="sec">Showreel</h2>${embedOf(u.reel_url)}<a class="btn ghost" href="${esc(u.reel_url)}" target="_blank" rel="noopener noreferrer">Watch showreel ↗</a></section>` : ''}
+    <section class="card"><h2 class="sec">Availability</h2>${(u.availability || []).length ? (u.availability || []).map((x) => `<div class="credit"><span class="fico sm">${ico('cal')}</span><div><div class="name">${x.kind === 'busy' ? 'Busy' : 'Available'} · ${esc(x.from_date)} to ${esc(x.to_date)}</div>${x.note ? `<div class="sub">${esc(x.note)}</div>` : ''}</div>${u.state === 'self' ? `<button class="link" data-act="delavail" data-id="${x.id}">Remove</button>` : ''}</div>`).join('') : '<p class="muted">No dates added.</p>'}
+      ${u.state === 'self' ? `<form data-form="avail" class="availform"><div class="row"><div class="field"><label for="af">From</label><input id="af" name="from_date" type="date" required></div><div class="field"><label for="at">To</label><input id="at" name="to_date" type="date" required></div></div>
+        <div class="row"><div class="field"><label for="ak">Type</label><select id="ak" name="kind"><option value="available">Available</option><option value="busy">Busy</option></select></div><div class="field"><label for="an">Note</label><input id="an" name="note" maxlength="120" placeholder="e.g. free for shoots in Berlin"></div></div>
+        <p class="err" role="alert"></p><button class="btn ghost sm" type="submit">Add dates</button></form>` : ''}</section>
     <section class="card"><h2 class="sec">Experience</h2>${u.credits.length ? u.credits.map((c) => `<div class="credit"><span class="fico sm">${ico('brief')}</span><div><div class="name">${esc(c.title)}${c.role ? ' · ' + esc(c.role) : ''}</div><div class="sub">${esc([c.kind, c.year].filter(Boolean).join(' · '))}</div>${c.description ? `<p class="post-body">${esc(c.description)}</p>` : ''}</div></div>`).join('') : `<p class="muted">${self ? 'Add your credits so producers can see your experience.' : 'No credits added yet.'}</p>`}${self ? '<a class="link" href="#/me/edit">+ Add credits</a>' : ''}</section>
     ${skills.length ? `<section class="card"><h2 class="sec">Skills</h2><div class="skills">${skills.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div></section>` : ''}
     <h2 class="sec2">Posts</h2>${u.posts.map(postCard).join('') || '<div class="empty">No posts yet.</div>'}
@@ -638,9 +655,9 @@ route(/^#\/notifications$/, async () => {
   const text = (n) => ({
     like: 'liked your post', comment: 'commented on your post', follow: 'started following you',
     connect_request: 'wants to connect', connect_accept: 'accepted your connection',
-    application: `applied to “${esc(n.label)}”`, crew_invite: `invited you to join “${esc(n.label)}”`, crew_accept: `joined your project “${esc(n.label)}”`, crew_decline: `declined your crew request for “${esc(n.label)}”`, rsvp: `is going to “${esc(n.label)}”`,
+    application: `applied to “${esc(n.label)}”`, app_stage: (() => { const [st, ...t] = String(n.label).split('::'); return `moved your application for “${esc(t.join('::'))}” to ${esc(stageLabel(st))}`; })(), crew_invite: `invited you to join “${esc(n.label)}”`, crew_accept: `joined your project “${esc(n.label)}”`, crew_decline: `declined your crew request for “${esc(n.label)}”`, rsvp: `is going to “${esc(n.label)}”`,
   }[n.kind] || 'did something');
-  const link = (n) => (/^crew_/.test(n.kind) ? `#/projects/${n.ref}` : n.kind === 'application' ? `#/castings/${n.ref}` : n.kind === 'rsvp' ? '#/meetups' : `#/profile/${n.actor.id}`);
+  const link = (n) => (n.kind === 'app_stage' ? `#/castings/${n.ref}` : /^crew_/.test(n.kind) ? `#/projects/${n.ref}` : n.kind === 'application' ? `#/castings/${n.ref}` : n.kind === 'rsvp' ? '#/meetups' : `#/profile/${n.actor.id}`);
   view(`<h1 class="page-title">Alerts</h1>
     ${requests.length ? `<h2 class="section-title">Connection requests</h2>${requests.map((u) => `<div class="card person"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}<button class="btn sm" data-act="accept" data-id="${u.id}">Accept</button><button class="btn ghost sm" data-act="decline" data-id="${u.id}">Ignore</button></div>`).join('')}<h2 class="section-title">Activity</h2>` : ''}
     ${notifications.length ? notifications.map((n) => `<a class="card person" href="${link(n)}">${av(n.actor)}<div class="who"><div><b>${esc(n.actor.name)}</b> ${text(n)}</div><div class="sub">${ago(n.created)}</div></div>${n.read ? '' : '<span class="dot" aria-label="New"></span>'}</a>`).join('') : '<div class="empty">Nothing yet. Post something or apply to a casting.</div>'}`);
@@ -851,6 +868,9 @@ document.addEventListener('click', (ev) => {
       case 'follow': await api(`/users/${id}/follow`, {}); return rerender();
       case 'rsvp': await api(`/meetups/${id}/rsvp`, {}); return rerender();
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
+      case 'appfilter': ui.appStage = v; return rerender();
+      case 'appstage': await api(`/applications/${id}/stage`, { stage: v }); return rerender();
+      case 'delavail': await api(`/availability/${id}/delete`, {}); return rerender();
       case 'crewrespond': await api(`/projects/${id}/respond`, { status: v }); toast(v === 'accepted' ? 'You joined the team' : 'Declined'); return rerender();
       case 'crewremove': if (confirm(el.dataset.uid ? 'Remove this person from the project?' : 'Leave this project?')) { await api(`/projects/${id}/remove`, { user_id: el.dataset.uid || '' }); rerender(); } return;
       case 'delproject': if (confirm('Delete this project and its team?')) { await api(`/projects/${id}/delete`, {}); location.hash = '#/projects'; } return;
@@ -952,6 +972,7 @@ document.addEventListener('submit', (ev) => {
         case 'post': await api('/posts', data); closeModal(); toast('Posted'); if (data.community_id) return router(); location.hash = '#/'; return router();
         case 'community': { const r = await api('/communities', data); closeModal(); location.hash = '#/communities/' + r.id; return; }
         case 'casting': { const r = await api('/castings', data); closeModal(); location.hash = '#/castings/' + r.id; return; }
+        case 'avail': await api('/availability', data); toast('Saved'); return rerender();
         case 'project': { const r = await api('/projects', data); closeModal(); location.hash = '#/projects/' + r.id; return; }
         case 'projstatus': await api(`/projects/${id}/status`, data); toast('Status updated'); return rerender();
         case 'projpeople': { const { people } = await api('/people?q=' + encodeURIComponent(data.q || '')); const box = document.getElementById('presults');

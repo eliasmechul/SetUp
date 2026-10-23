@@ -495,3 +495,40 @@ grant update (checked_in_at) on public.setup_rsvps to authenticated;
 revoke all on public.setup_rooms, public.setup_room_members from anon;
 revoke update on public.setup_room_members from authenticated;
 grant update (checked_in_at) on public.setup_room_members to authenticated;
+
+-- Casting pipeline and availability
+alter table public.setup_applications add column if not exists stage text not null default 'new' check (stage in ('new','shortlist','callback','cast','declined'));
+create policy setup_applications_stage on public.setup_applications for update to authenticated
+  using (exists(select 1 from public.setup_castings c where c.id = casting_id and c.user_id = (select auth.uid())))
+  with check (exists(select 1 from public.setup_castings c where c.id = casting_id and c.user_id = (select auth.uid())));
+revoke update on public.setup_applications from authenticated;
+grant update (stage) on public.setup_applications to authenticated;
+create function public.setup_trg_stage() returns trigger language plpgsql security definer set search_path = '' as $$
+declare c record;
+begin
+  if new.stage is distinct from old.stage and new.stage <> 'new' then
+    select user_id, title into c from public.setup_castings where id = new.casting_id;
+    perform public.setup_notify(new.user_id, 'app_stage', c.user_id, new.casting_id, new.stage || '::' || c.title);
+  end if;
+  return new;
+end $$;
+revoke all on function public.setup_trg_stage() from public, anon, authenticated;
+create trigger setup_stage_notify after update on public.setup_applications for each row execute function public.setup_trg_stage();
+create table public.setup_availability(
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.setup_profiles(id) on delete cascade,
+  from_date text not null check (from_date ~ '^\d{4}-\d{2}-\d{2}$'),
+  to_date text not null check (to_date ~ '^\d{4}-\d{2}-\d{2}$'),
+  kind text not null default 'available' check (kind in ('available','busy')),
+  note text not null default '' check (char_length(note) <= 120),
+  created_at timestamptz not null default now(),
+  check (to_date >= from_date));
+create index setup_availability_user on public.setup_availability(user_id);
+alter table public.setup_availability enable row level security;
+create policy setup_availability_read on public.setup_availability for select to anon, authenticated using (true);
+create policy setup_availability_insert on public.setup_availability for insert to authenticated with check (user_id = (select auth.uid()));
+create policy setup_availability_delete on public.setup_availability for delete to authenticated using (user_id = (select auth.uid()));
+revoke all on public.setup_availability from anon, authenticated;
+grant select on public.setup_availability to anon, authenticated;
+grant insert, delete on public.setup_availability to authenticated;
+create trigger setup_rl_availability before insert on public.setup_availability for each row execute function public.setup_rate_limit('40', 'user_id');
