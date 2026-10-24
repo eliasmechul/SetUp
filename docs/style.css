@@ -772,3 +772,7 @@ body{background-image:radial-gradient(900px 500px at 85% -5%,rgba(240,169,79,.07
 .tk-stub canvas{width:120px;height:120px}
 @media(max-width:600px){.ticket{flex-direction:column;transform:none}.tk-main{border-radius:16px 16px 0 0}.tk-stub{width:auto;border-radius:0 0 16px 16px;border-left:0;border-top:2px dashed rgba(26,18,5,.35)}.tk-stub::before{left:-11px;top:-12px}.tk-stub::after{left:auto;right:-11px;top:-12px;bottom:auto}}
 @media(prefers-reduced-motion:reduce){.mq-track,.grain,.recdot{animation:none}}
+.bento{grid-auto-rows:240px}
+.t2 h3,.t3 h3,.t4 h3{font-size:26px}
+.tile p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tile .reel{margin-bottom:auto}
