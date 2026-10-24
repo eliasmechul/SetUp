@@ -776,3 +776,10 @@ body{background-image:radial-gradient(900px 500px at 85% -5%,rgba(240,169,79,.07
 .t2 h3,.t3 h3,.t4 h3{font-size:26px}
 .tile p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .tile .reel{margin-bottom:auto}
+
+a.tile{cursor:pointer;text-decoration:none}
+.tile .go{position:absolute;top:18px;right:18px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:18px;color:#F6F2EA;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(6px);transition:background .25s var(--ease),color .25s var(--ease),transform .25s var(--ease)}
+a.tile:hover .go,a.tile:focus-visible .go{background:var(--amber);color:#1a1205;border-color:var(--amber);transform:rotate(-45deg)}
+a.tile:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.trust a{padding:5px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(15,23,36,.5);color:var(--soft);transition:background .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease)}
+.trust a:hover{background:var(--amber);border-color:var(--amber);color:#1a1205}

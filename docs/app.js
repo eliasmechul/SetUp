@@ -212,7 +212,7 @@ const homeRoute = async (forceFeed) => {
         <h1>Where film people connect, share and <i>get hired.</i></h1>
         <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
         <p class="newpill"><b>NEW</b> QR invites and tickets for events</p>
-                <p class="trust"><span>Actors</span><span>Directors</span><span>Producers</span><span>Crew</span><span>Casting</span></p></div>
+                <p class="trust"><a href="#/map" data-act="maprole" data-v="Actor">Actors</a><a href="#/map" data-act="maprole" data-v="Director">Directors</a><a href="#/map" data-act="maprole" data-v="Producer">Producers</a><a href="#/map" data-act="maprole" data-v="Crew">Crew</a><a href="#/castings">Casting</a></p></div>
         <div class="lhero-f"><form class="card joinform" data-form="signup"><h2>Join Set UP</h2><p class="muted small">Free for everyone in film.</p>
           <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
           <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
@@ -226,10 +226,10 @@ const homeRoute = async (forceFeed) => {
 
       <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
         <div class="bento">
-          <article class="tile t1" style="--img:url(img/f-share.jpg)"><span class="reel">REEL 01</span><h3>Share your work</h3><p>Stills, reels and behind-the-scenes. Tag a post as showcase, question, tip or collab so the right people see it.</p></article>
-          <article class="tile t2" style="--img:url(img/f-cast.jpg)"><span class="reel">REEL 02</span><h3>Find jobs and castings</h3><p>Post a role or apply with your profile in one tap.</p></article>
-          <article class="tile t3" style="--img:url(img/f-map.jpg)"><span class="reel">REEL 03</span><h3>Find your crew on the map</h3><p>Role, city, availability. Connect before you message.</p></article>
-          <article class="tile t4" style="--img:url(img/f-comm.jpg)"><span class="reel">REEL 04</span><h3>Join communities</h3><p>Groups for your craft and your city, plus meetups where you meet your next collaborator.</p></article>
+          <a class="tile t1" href="#/feed" aria-label="Open the feed" style="--img:url(img/f-share.jpg)"><span class="reel">REEL 01</span><h3>Share your work</h3><p>Stills, reels and behind-the-scenes. Tag a post as showcase, question, tip or collab so the right people see it.</p><span class="go" aria-hidden="true">→</span></a>
+          <a class="tile t2" href="#/castings" aria-label="Browse castings" style="--img:url(img/f-cast.jpg)"><span class="reel">REEL 02</span><h3>Find jobs and castings</h3><p>Post a role or apply with your profile in one tap.</p><span class="go" aria-hidden="true">→</span></a>
+          <a class="tile t3" href="#/map" aria-label="Open the talent map" style="--img:url(img/f-map.jpg)"><span class="reel">REEL 03</span><h3>Find your crew on the map</h3><p>Role, city, availability. Connect before you message.</p><span class="go" aria-hidden="true">→</span></a>
+          <a class="tile t4" href="#/communities" aria-label="Explore communities" style="--img:url(img/f-comm.jpg)"><span class="reel">REEL 04</span><h3>Join communities</h3><p>Groups for your craft and your city, plus meetups where you meet your next collaborator.</p><span class="go" aria-hidden="true">→</span></a>
         </div></section>
 
       <section class="lsec roomsband"><div class="roomsin"><div><p class="eyebrow">Meetups and special occasions</p><h2 class="lh">Every event gets <i>its own QR code.</i></h2>
