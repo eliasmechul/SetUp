@@ -688,3 +688,14 @@ body{background-image:radial-gradient(900px 500px at 85% -5%,rgba(240,169,79,.07
 .landing .step{background:linear-gradient(180deg,#19263a,#172234);border:1px solid var(--line);border-radius:var(--r-md);padding:22px;box-shadow:var(--shadow-1)}
 .landing .step h3{margin:12px 0 6px}
 .landing .step .num .ico{width:18px;height:18px}
+
+/* ---------- v14 platform hero: headline left, sign-up card right ---------- */
+.lhero{align-items:center;gap:56px}
+.lhero-f{flex:0 1 400px;min-width:300px;margin-left:auto}
+.lhero-f .joinform{background:rgba(15,23,36,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);padding:26px;box-shadow:var(--shadow-2)}
+.lhero-f .joinform h2{font:400 30px/1.1 'Instrument Serif',serif;margin:0 0 2px}
+.lhero-f .field{margin-bottom:12px}
+.lhero-t h1{font-size:68px}
+.trust span{padding:5px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(15,23,36,.5)}
+@media(max-width:900px){.lhero-f{flex:1 1 100%;margin:0}.lhero-t h1{font-size:46px}}
+@media(max-width:700px){.lhero-f{display:block!important}.lhero{padding-top:230px}}

@@ -211,14 +211,16 @@ const homeRoute = async (forceFeed) => {
         <h1>Where film people connect, share and <i>get hired.</i></h1>
         <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
         <p class="newpill"><b>NEW</b> QR invites and tickets for events</p>
-        <div class="ctas"><a class="btn lg" href="#/signup">Create your profile</a><a class="btn ghost lg" href="#/meetups">Host an event</a></div>
-        <p class="trust"><span>Free for everyone</span><span>Actors · Crew · Producers · Casting</span><span>Works on your phone</span></p></div>
-        <div class="lhero-m" aria-hidden="true">
-          <div class="mk mk-post"><div class="mk-head"><span class="av c0">ML</span><div><b>Mara Linden</b><div class="sub">Cinematographer · Berlin</div></div></div><p>Wrapped Night Ferry today. Thank you to the whole camera crew.</p></div>
-          <div class="mk mk-job"><span class="kicker">Casting · Acting</span><b>Junior actor, lead role</b><div class="sub">Berlin · Paid · 6 days left</div><span class="btn sm mk-btn">Apply</span></div>
-          <div class="mk mk-room"><span class="qrchip">${ico('qr')}</span><div><b>Pitch night: Harbour Lights</b><div class="sub">Private room · 42 guests checked in</div></div></div>
-        </div>
-      </section>
+                <p class="trust"><span>Actors</span><span>Directors</span><span>Producers</span><span>Crew</span><span>Casting</span></p></div>
+        <div class="lhero-f"><form class="card joinform" data-form="signup"><h2>Join Set UP</h2><p class="muted small">Free for everyone in film.</p>
+          <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
+          <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
+          <div class="field"><label for="jp">Password (8+ characters)</label><input id="jp" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
+          <div class="row"><div class="field"><label for="jr">I am a…</label><select id="jr" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
+          <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
+          <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
+          <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
+        </section>
       <div class="strip"><span>Actors</span><span>Directors</span><span>Producers</span><span>Cinematographers</span><span>Editors</span><span>Sound</span><span>Writers</span></div>
 
       <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
@@ -235,23 +237,8 @@ const homeRoute = async (forceFeed) => {
         <a class="btn" href="#/meetups">Host an event</a></div>
         <div class="invcard"><small>SET UP · EVENT INVITATION</small><b>Pitch night: Harbour Lights</b><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><span>Scan with your phone camera to join</span></div></div></section>
 
-      <section class="lsec"><p class="eyebrow">For producers and casting directors</p><h2 class="lh">Hire and host with <i>Set UP Pro.</i></h2>
-        <div class="lgrid3"><div class="step"><span class="num">${ico('brief')}</span><h3>Post castings</h3><p class="muted">Publish roles and move applicants from new to cast in one pipeline.</p></div>
-          <div class="step"><span class="num">${ico('cal')}</span><h3>Host events</h3><p class="muted">Meetups, screenings and premieres with QR invites and ticket check-in.</p></div>
-          <div class="step"><span class="num">${ico('pin')}</span><h3>Be found</h3><p class="muted">A Pro badge in the feed, on the map and in search.</p></div></div>
-        <p><a class="btn" href="#/pro">See Set UP Pro</a></p></section>
-
       <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
         ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
-
-      <section class="lsec"><p class="eyebrow">How it works</p><h2 class="lh">From profile to set in three steps</h2>
-        <div class="lgrid3">
-          <div class="step"><span class="num">1</span><h3>Build your profile</h3><p class="muted">Add your craft, city, credits and showreel. Switch on "Open to work".</p></div>
-          <div class="step"><span class="num">2</span><h3>Find your people</h3><p class="muted">Search the map, join communities and send connection requests.</p></div>
-          <div class="step"><span class="num">3</span><h3>Get on set</h3><p class="muted">Apply to castings, post your own, and meet your crew in person.</p></div>
-        </div></section>
-
-      <section class="lsec"><h2 class="lh">Everyone who makes a film</h2><div class="rolechips">${S.roles.map((r) => `<a class="chip" href="#/map" data-act="maprole" data-v="${esc(r)}">${esc(r)}</a>`).join('')}</div></section>
 
       <section class="lsec faq"><h2 class="lh">Questions</h2>${faq.map(([q, a2]) => `<details class="card"><summary>${esc(q)}</summary><p class="muted">${esc(a2)}</p></details>`).join('')}</section>
 
