@@ -760,3 +760,5 @@ input::placeholder,textarea::placeholder{color:#9AA5B5}
 .mk,.mk-job,.mk-post,.mk-room{background:#fff;color:#1F2A37}
 .invcard{box-shadow:var(--shadow-2)}
 @media(max-width:700px){.lhero{background:#0F1724!important}}
+.lhero-f .joinform .btn,.lhero-f .joinform .btn:hover{color:#fff;opacity:1;background:#D4502D;border-color:#D4502D}
+.lhero-f .joinform .btn:hover{background:#BE4322}
