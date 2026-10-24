@@ -160,7 +160,7 @@ function postCard(p) {
 }
 const meetMini = (m) => { const w = when(m.starts); return `<div class="mini"><div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div><div><div class="name">${esc(m.title)}</div><div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}</div></div></div>`; };
 const railPerson = (u) => `<div class="person rp"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}${connBtn(u.id, 'none', true)}</div>`;
-const COVERS = ['f-comm', 'f-map', 'f-cast', 'f-share', 'rooms', 'hero'];
+const COVERS = ['f-comm', 'c-clap', 'f-map', 'c-studio', 'f-cast', 'c-sony', 'f-share', 'c-rig', 'rooms', 'c-slate', 'hero'];
 const coverOf = (c) => `img/${COVERS[Math.abs([...String(c.topic + c.id)].reduce((h, ch) => h * 31 + ch.charCodeAt(0), 7)) % COVERS.length]}.jpg`;
 const commCard = (c) => `<article class="card comm"><a class="ccover" href="#/communities/${c.id}" style="background-image:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.7)),url(${coverOf(c)})" aria-label="${esc(c.name)}"><span class="ctopic">${esc(c.topic)}</span></a>
   <div class="cbody"><a href="#/communities/${c.id}"><h3>${esc(c.name)}</h3></a>${exPill(c)}
