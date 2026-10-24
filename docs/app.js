@@ -126,6 +126,7 @@ function view(html, isWide) {
   if (v) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
   revealOnScroll();
 }
+if (!window.__tc) { window.__tc = setInterval(() => { const el = document.getElementById('tc'); if (!el) return; const t = Date.now(); const f = Math.floor((t % 1000) / 41.67); const sec = Math.floor(t / 1000); const p = (n, l = 2) => String(n).padStart(l, '0'); el.textContent = `${p(Math.floor(sec / 3600) % 24)}:${p(Math.floor(sec / 60) % 60)}:${p(sec % 60)}:${p(f)}`; }, 80); }
 function revealOnScroll() {
   const els = document.querySelectorAll('.landing .lsec, .landing .lband, .landing .cta, .landing .strip');
   if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -206,7 +207,7 @@ const homeRoute = async (forceFeed) => {
       ['Can I delete my account?', 'Yes. Ask us and your profile, posts, messages and files are removed.']];
     const pill = (t) => `<span class="mk-pill">${t}</span>`;
     view(`<div class="landing">
-      <section class="lhero"><div class="herobg" aria-hidden="true"></div><div class="lhero-t">
+      <section class="lhero"><div class="herobg" aria-hidden="true"></div><div class="grain" aria-hidden="true"></div><div class="lbar t" aria-hidden="true"><span><i class="recdot"></i> REC</span><span class="tc" id="tc">00:24:03:12</span><span>SCENE 24 · TAKE 3</span></div><div class="lbar b" aria-hidden="true"><span>2.39 : 1</span><span>SET UP · FILM PEOPLE</span><span>ISO 800 · 24 FPS</span></div><div class="lhero-t">
         <p class="eyebrow">The network for film people</p>
         <h1>Where film people connect, share and <i>get hired.</i></h1>
         <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
@@ -221,21 +222,21 @@ const homeRoute = async (forceFeed) => {
           <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
           <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
         </section>
-      <div class="strip"><span>Actors</span><span>Directors</span><span>Producers</span><span>Cinematographers</span><span>Editors</span><span>Sound</span><span>Writers</span></div>
+      <div class="marquee" aria-hidden="true"><div class="mq-track">${[...Array(2)].map(() => ['Actors','Directors','Producers','Cinematographers','Editors','Sound','Writers','Gaffers','Casting directors','Berlin','Istanbul','London','Paris','Hamburg','Vienna','Munich'].map((w) => `<span>${w}</span>`).join('')).join('')}</div></div>
 
       <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
-        <div class="lgrid">
-          <div class="card feat"><img class="fphoto" src="img/f-share.jpg" alt="" loading="lazy"><span class="fico">${ico('img')}</span><h3>Share your work</h3><p class="muted">Post stills, reels and behind-the-scenes. Like, comment and repost. Organise posts by topic: showcase, question, tip, collab.</p></div>
-          <div class="card feat"><img class="fphoto" src="img/f-cast.jpg" alt="" loading="lazy"><span class="fico">${ico('brief')}</span><h3>Find jobs and castings</h3><p class="muted">Post a role or apply with your profile in one tap. Every applicant lands in one list, ready to shortlist.</p></div>
-          <div class="card feat"><img class="fphoto" src="img/f-map.jpg" alt="" loading="lazy"><span class="fico">${ico('pin')}</span><h3>Find your crew on the map</h3><p class="muted">Search by role and city, see who is available and connect before you even message.</p></div>
-          <div class="card feat"><img class="fphoto" src="img/f-comm.jpg" alt="" loading="lazy"><span class="fico">${ico('group')}</span><h3>Join communities</h3><p class="muted">Groups for your craft and your city. Ask, answer and meet your next collaborator at local meetups.</p></div>
+        <div class="bento">
+          <article class="tile t1" style="--img:url(img/f-share.jpg)"><span class="reel">REEL 01</span><h3>Share your work</h3><p>Stills, reels and behind-the-scenes. Tag a post as showcase, question, tip or collab so the right people see it.</p></article>
+          <article class="tile t2" style="--img:url(img/f-cast.jpg)"><span class="reel">REEL 02</span><h3>Find jobs and castings</h3><p>Post a role or apply with your profile in one tap.</p></article>
+          <article class="tile t3" style="--img:url(img/f-map.jpg)"><span class="reel">REEL 03</span><h3>Find your crew on the map</h3><p>Role, city, availability. Connect before you message.</p></article>
+          <article class="tile t4" style="--img:url(img/f-comm.jpg)"><span class="reel">REEL 04</span><h3>Join communities</h3><p>Groups for your craft and your city, plus meetups where you meet your next collaborator.</p></article>
         </div></section>
 
       <section class="lsec roomsband"><div class="roomsin"><div><p class="eyebrow">Meetups and special occasions</p><h2 class="lh">Every event gets <i>its own QR code.</i></h2>
         <p class="lead2">Host a meetup, screening, premiere, workshop or casting day. Share the QR invite on a poster or in a message. Guests join in one tap and get a personal ticket QR that you scan at the door.</p>
         <ol class="rsteps"><li><span>1</span>Create your event with date, place and program</li><li><span>2</span>Print or share the QR invite</li><li><span>3</span>Guests join and show their ticket QR at the door</li></ol>
         <a class="btn" href="#/meetups">Host an event</a></div>
-        <div class="invcard"><small>SET UP · EVENT INVITATION</small><b>Pitch night: Harbour Lights</b><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><span>Scan with your phone camera to join</span></div></div></section>
+        <div class="ticket" aria-label="Example event ticket"><div class="tk-main"><small>SET UP PRESENTS</small><b>Pitch night:<br>Harbour Lights</b><span>FRI 7 NOV · 18:00 · STUDIO 4</span><em>ADMIT ONE</em></div><div class="tk-stub"><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><small>SCAN AT THE DOOR</small></div></div></div></section>
 
       <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
         ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
