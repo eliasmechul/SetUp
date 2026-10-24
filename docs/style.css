@@ -762,3 +762,25 @@ input::placeholder,textarea::placeholder{color:#9AA5B5}
 @media(max-width:700px){.lhero{background:#0F1724!important}}
 .lhero-f .joinform .btn,.lhero-f .joinform .btn:hover{color:#fff;opacity:1;background:#D4502D;border-color:#D4502D}
 .lhero-f .joinform .btn:hover{background:#BE4322}
+
+/* ---------- v16 proportions: tighter rhythm, balanced hero ---------- */
+.landing .lsec,.landing .lband{margin-top:56px}
+.landing .strip{margin:22px 0 0;padding:16px 4px}
+.landing .lh,.landing .lband h2{font-size:clamp(30px,3.4vw,44px);line-height:1.08}
+.landing .lgrid{gap:18px;margin-top:22px}
+.lhero{min-height:0;padding:44px 48px;gap:48px;align-items:center}
+.lhero-t{flex:1 1 480px;max-width:620px}
+.lhero-t h1{font-size:clamp(42px,5.2vw,72px);line-height:1.02}
+.lhero-t .lead2{font-size:18px;max-width:520px;margin:16px 0 20px}
+.lhero-f{flex:0 1 380px}
+.lhero-f .joinform{padding:22px}
+.lhero-f .joinform h2{font-size:28px}
+.lhero-f .field{margin-bottom:10px}
+.lhero-f input,.lhero-f select{min-height:44px}
+.lhero-f .btn.lg{min-height:48px;font-size:16px}
+.roomsin{padding:40px 44px}
+.cta{padding:56px 24px;margin:56px 0 24px}
+.cta h2{font-size:clamp(34px,4.4vw,56px)}
+@media(min-width:1500px){.main.wide{max-width:1240px}.landing{max-width:1240px;margin:0 auto}}
+@media(max-width:900px){.lhero{padding:28px 20px}}
+@media(max-width:700px){.lhero{padding:230px 18px 24px}.landing .lsec,.landing .lband{margin-top:40px}}
