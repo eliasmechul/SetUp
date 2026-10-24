@@ -470,6 +470,34 @@ const H = {
     if (error) throw fail(400, error.message);
     return { ok: true };
   },
+  async project_files(id) {
+    await uid();
+    const rows = ok(await sb.from('setup_project_files').select('id,name,path,size,created_at,user_id').eq('project_id', id).order('id', { ascending: false }));
+    let urls = [];
+    if (rows.length) { const r = await sb.storage.from('setup-project-files').createSignedUrls(rows.map((x) => x.path), 3600); urls = r.data || []; }
+    return { files: rows.map((x) => ({ id: x.id, name: x.name, size: x.size, created: iso(x), user_id: x.user_id, url: (urls.find((u) => u.path === x.path) || {}).signedUrl || '' })) };
+  },
+  async upload_project_file(id, b) {
+    const me = await uid();
+    const f = b.file;
+    if (!f || !f.name) throw fail(400, 'Choose a file');
+    if (f.size > 10485760) throw fail(400, 'Files can be up to 10 MB');
+    const safe = f.name.replace(/[^\w.\- ]+/g, '_').replace(/ /g, '_').slice(-120);
+    const path = `${id}/${crypto.randomUUID()}-${safe}`;
+    const up = await sb.storage.from('setup-project-files').upload(path, f, { contentType: f.type || undefined, upsert: false });
+    if (up.error) throw fail(400, /mime|type/i.test(up.error.message) ? 'This file type is not allowed. Use PDF, Word, Excel, text or images.' : 'Upload failed. Only the project team can add files.');
+    const ins = await sb.from('setup_project_files').insert({ project_id: id, user_id: me, name: safe.slice(0, 160), path, size: f.size });
+    if (ins.error) { await sb.storage.from('setup-project-files').remove([path]); throw fail(403, 'Only the project team can add files'); }
+    return { ok: true };
+  },
+  async delete_project_file(id) {
+    await uid();
+    const row = ok(await sb.from('setup_project_files').select('path').eq('id', id).maybeSingle());
+    if (!row) throw fail(404, 'File not found');
+    await sb.storage.from('setup-project-files').remove([row.path]);
+    ok(await sb.from('setup_project_files').delete().eq('id', id));
+    return { ok: true };
+  },
   async delete_project(id) { ok(await sb.from('setup_projects').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
   async crew_invite(id, b) {
     await uid();
@@ -750,6 +778,7 @@ const R = [
   ['POST', '/projects/(\\d+)/remove', 'crew_remove'], ['GET', '/invitations', 'my_invitations'],
   ['POST', '/applications/(\\d+)/stage', 'set_stage'], ['POST', '/availability', 'add_availability'], ['POST', '/availability/(\\d+)/delete', 'delete_availability'],
   ['GET', '/pro', 'pro_status'], ['POST', '/pro/activate', 'activate_pro'],
+  ['GET', '/projects/(\\d+)/files', 'project_files'], ['POST', '/projects/(\\d+)/files', 'upload_project_file'], ['POST', '/project-files/(\\d+)/delete', 'delete_project_file'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
   ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'], ['GET', '/meetups/(\\d+)', 'meetup'], ['POST', '/meetups/(\\d+)/checkin', 'meetup_checkin'],

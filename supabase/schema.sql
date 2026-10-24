@@ -562,3 +562,36 @@ drop policy setup_castings_insert on public.setup_castings;
 create policy setup_castings_insert on public.setup_castings for insert to authenticated with check (user_id = (select auth.uid()) and public.setup_is_pro());
 drop policy setup_meetups_insert on public.setup_meetups;
 create policy setup_meetups_insert on public.setup_meetups for insert to authenticated with check (user_id = (select auth.uid()) and public.setup_is_pro());
+
+-- Project files (call sheets, scripts, schedules): private bucket, only the project team.
+create function public.setup_can_access_project(pid bigint) returns boolean language sql stable security definer set search_path = public as
+$$ select exists(select 1 from public.setup_projects p where p.id = pid and p.user_id = (select auth.uid()))
+   or exists(select 1 from public.setup_project_members m where m.project_id = pid and m.user_id = (select auth.uid()) and m.status = 'accepted') $$;
+revoke all on function public.setup_can_access_project(bigint) from public, anon;
+grant execute on function public.setup_can_access_project(bigint) to authenticated;
+create table public.setup_project_files(
+  id bigint generated always as identity primary key,
+  project_id bigint not null references public.setup_projects(id) on delete cascade,
+  user_id uuid not null references public.setup_profiles(id) on delete cascade,
+  name text not null check (char_length(name) between 1 and 160),
+  path text not null unique check (char_length(path) <= 300),
+  size bigint not null default 0 check (size >= 0 and size <= 10485760),
+  created_at timestamptz not null default now());
+create index setup_pf_project on public.setup_project_files(project_id);
+alter table public.setup_project_files enable row level security;
+create policy setup_pf_read on public.setup_project_files for select to authenticated using (public.setup_can_access_project(project_id));
+create policy setup_pf_insert on public.setup_project_files for insert to authenticated with check (user_id = (select auth.uid()) and public.setup_can_access_project(project_id) and path like project_id::text || '/%');
+create policy setup_pf_delete on public.setup_project_files for delete to authenticated
+  using (user_id = (select auth.uid()) or exists(select 1 from public.setup_projects p where p.id = project_id and p.user_id = (select auth.uid())));
+revoke all on public.setup_project_files from anon, authenticated;
+grant select, insert, delete on public.setup_project_files to authenticated;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values
+ ('setup-project-files', 'setup-project-files', false, 10485760,
+  array['application/pdf','image/png','image/jpeg','image/webp','text/plain','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/msword','application/vnd.ms-excel'])
+ on conflict (id) do nothing;
+create policy setup_pf_obj_read on storage.objects for select to authenticated
+  using (case when bucket_id = 'setup-project-files' and (storage.foldername(name))[1] ~ '^[0-9]{1,12}$' then public.setup_can_access_project(((storage.foldername(name))[1])::bigint) else false end);
+create policy setup_pf_obj_insert on storage.objects for insert to authenticated
+  with check (case when bucket_id = 'setup-project-files' and (storage.foldername(name))[1] ~ '^[0-9]{1,12}$' then public.setup_can_access_project(((storage.foldername(name))[1])::bigint) else false end);
+create policy setup_pf_obj_delete on storage.objects for delete to authenticated
+  using (bucket_id = 'setup-project-files' and exists(select 1 from public.setup_project_files f where f.path = name and (f.user_id = (select auth.uid()) or exists(select 1 from public.setup_projects p where p.id = f.project_id and p.user_id = (select auth.uid())))));

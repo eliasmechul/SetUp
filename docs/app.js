@@ -461,6 +461,14 @@ function embedOf(url) {
   if (m) return `<div class="embed"><iframe src="https://player.vimeo.com/video/${m[1]}" title="Showreel" loading="lazy" allowfullscreen referrerpolicy="no-referrer"></iframe></div>`;
   return '';
 }
+const fmtSize = (n) => (n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
+async function loadProjectFiles(pid) {
+  const box = document.getElementById('pfiles'); if (!box) return;
+  try {
+    const { files } = await api(`/projects/${pid}/files`);
+    box.innerHTML = files.length ? files.map((f) => `<div class="person rp"><span class="fico sm">${ico('brief')}</span><div class="who"><a class="name" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${esc(f.name.replace(/^[0-9a-f-]{36}-/, ''))}</a><div class="sub">${fmtSize(f.size)} · ${ago(f.created)}</div></div><button class="link" data-act="delpfile" data-id="${f.id}" data-pid="${pid}">Delete</button></div>`).join('') : '<p class="muted">No files yet.</p>';
+  } catch (e) { box.innerHTML = `<p class="muted">${esc(e.message)}</p>`; }
+}
 const ticketUrl = (mid, uid2) => location.origin + location.pathname + '#/checkin/' + mid + '/' + uid2;
 route(/^#\/meetups\/(\d+)$/, async (id) => {
   const m = await api('/meetups/' + id);
@@ -529,7 +537,9 @@ route(/^#\/projects\/(\d+)$/, async (id) => {
       ${p.logline ? `<div class="card"><p class="lead2">${esc(p.logline)}</p></div>` : ''}
       ${p.description ? `<div class="card"><h2 class="rail-title">About the project</h2><p class="post-body">${esc(p.description)}</p></div>` : ''}
       <div class="card"><h2 class="rail-title">Team</h2>${team || '<p class="muted">Nobody on the team yet.</p>'}${p.member && !p.mine ? `<p><button class="link" data-act="crewremove" data-id="${p.id}">Leave this project</button></p>` : ''}</div>
-      ${p.mine && pending ? `<div class="card"><h2 class="rail-title">Requests</h2>${pending}</div>` : ''}</div>
+      ${p.mine && pending ? `<div class="card"><h2 class="rail-title">Requests</h2>${pending}</div>` : ''}
+      ${p.mine || p.member ? `<div class="card"><h2 class="rail-title">Files</h2><p class="muted small">Call sheets, schedules, scripts and notes. Only the team can see them. PDF, Word, Excel, text or images up to 10 MB.</p><div id="pfiles"><p class="muted">Loading…</p></div>
+        <label class="btn ghost sm">Upload a file<input class="sr" type="file" data-pfile="${p.id}" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,image/*"></label></div>` : ''}</div>
       <aside class="gside">${p.mine ? `<div class="card"><h2 class="rail-title">Invite crew</h2>
         <form data-form="projpeople" data-id="${p.id}" class="inline"><label class="sr" for="pp">Search people</label><input id="pp" name="q" placeholder="Search by name, role or city"><button class="btn sm" type="submit">Search</button></form>
         <div id="presults"></div>
@@ -538,6 +548,7 @@ route(/^#\/projects\/(\d+)$/, async (id) => {
           <div class="field"><label for="cd2">Days or dates</label><input id="cd2" name="days" maxlength="120" placeholder="e.g. 12–16 Nov"></div>
           <div class="field"><label for="cn2">Note</label><textarea id="cn2" name="note" maxlength="500" placeholder="What the job involves, pay, location"></textarea></div>
           <p class="err" role="alert"></p><button class="btn block" type="submit">Send crew request</button></form></div>` : `<div class="card"><h2 class="rail-title">Want to work on this?</h2><p class="muted">Message ${esc(p.owner)} or apply to their castings.</p><a class="btn ghost sm" href="#/profile/${p.owner_id}">View profile</a></div>`}</aside></div>`, true);
+  if (p.mine || p.member) loadProjectFiles(p.id);
 });
 
 
@@ -905,6 +916,7 @@ document.addEventListener('click', (ev) => {
       case 'delmeet': if (confirm('Delete this meetup?')) { await api(`/meetups/${id}/delete`, {}); rerender(); } return;
       case 'top': window.scrollTo({ top: 0, behavior: 'smooth' }); return;
       case 'activatepro': await api('/pro/activate', {}); await refreshMe(); toast('Pro is active'); return rerender();
+      case 'delpfile': if (confirm('Delete this file?')) { await api(`/project-files/${id}/delete`, {}); loadProjectFiles(el.dataset.pid); } return;
       case 'appfilter': ui.appStage = v; return rerender();
       case 'appstage': await api(`/applications/${id}/stage`, { stage: v }); return rerender();
       case 'delavail': await api(`/availability/${id}/delete`, {}); return rerender();
@@ -981,6 +993,12 @@ document.addEventListener('change', (ev) => {
     const pv = document.getElementById('pv'); if (pv) { pv.src = url; pv.hidden = false; }
     toast('Photo added');
   });
+});
+
+document.addEventListener('change', (ev) => {
+  const inp = ev.target.closest('[data-pfile]'); if (!inp || !inp.files[0]) return;
+  const pid = inp.dataset.pfile, file = inp.files[0];
+  guard(async () => { toast('Uploading…'); await api(`/projects/${pid}/files`, { file }); inp.value = ''; toast('File added'); loadProjectFiles(pid); });
 });
 
 document.addEventListener('submit', (ev) => {
