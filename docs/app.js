@@ -213,14 +213,14 @@ const homeRoute = async (forceFeed) => {
         <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
         <p class="newpill"><b>NEW</b> QR invites and tickets for events</p>
                 <p class="trust"><a href="#/map" data-act="maprole" data-v="Actor">Actors</a><a href="#/map" data-act="maprole" data-v="Director">Directors</a><a href="#/map" data-act="maprole" data-v="Producer">Producers</a><a href="#/map" data-act="maprole" data-v="Crew">Crew</a><a href="#/castings">Casting</a></p></div>
-        <div class="lhero-f"><form class="card joinform" data-form="signup"><h2>Join Set UP</h2><p class="muted small">Free for everyone in film.</p>
+        <div class="lhero-f"><form class="card joinform" data-form="signup"><span class="jpill">FREE FOR EVERYONE IN FILM</span><h2>Join Set UP</h2><ul class="jbul"><li>Share your work and join groups</li><li>Apply to castings, join events</li><li>Be found on the talent map</li></ul>
           <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
           <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
           <div class="field"><label for="jp">Password (8+ characters)</label><input id="jp" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
           <div class="row"><div class="field"><label for="jr">I am a…</label><select id="jr" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
           <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
           <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
-          <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p></form></div>
+          <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p><p class="jfine">By joining you agree to the <a href="#/terms">Terms</a> and <a href="#/privacy">Privacy</a>.</p></form></div>
         </section>
       <div class="marquee" aria-hidden="true"><div class="mq-track">${[...Array(2)].map(() => ['Actors','Directors','Producers','Cinematographers','Editors','Sound','Writers','Gaffers','Casting directors','Berlin','Istanbul','London','Paris','Hamburg','Vienna','Munich'].map((w) => `<span>${w}</span>`).join('')).join('')}</div></div>
 
