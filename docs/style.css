@@ -818,3 +818,14 @@ a.tile:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 @keyframes spFade{to{opacity:1}}
 @keyframes spOut{to{opacity:0;visibility:hidden}}
 @media(max-width:480px){.sp-logo{width:104px}.sp-set{font-size:48px}.sp-name{height:48px}}
+
+/* ---------- v18 growth features and cinema details ---------- */
+.dept{display:inline-block;font:500 9.5px 'IBM Plex Mono',monospace;letter-spacing:.16em;color:var(--amber);margin:1px 0 2px}
+.slate{position:absolute;right:12px;top:10px;font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#F6F2EA;background:rgba(5,8,15,.6);border:1px solid rgba(255,255,255,.3);padding:3px 8px;border-radius:5px;backdrop-filter:blur(4px)}
+.endorse{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}.endorse:first-of-type{border-top:0}
+.alertbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.xbtn{background:none;border:0;color:inherit;font-size:16px;line-height:1;margin-left:6px;cursor:pointer;opacity:.7}.xbtn:hover{opacity:1}
+.card.invite canvas{display:block;width:200px;height:200px;border-radius:10px;margin:6px 0 10px;background:#fff}
+.empty{background:linear-gradient(rgba(15,23,36,.84),rgba(15,23,36,.92)),url(img/c-studio.jpg) center/cover no-repeat;border:1px solid var(--line);color:#dbe3ee;padding:44px 20px}
+.skel{display:grid;gap:14px}.skel i{display:block;height:120px;border-radius:14px;background:linear-gradient(100deg,rgba(255,255,255,.04) 30%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.04) 70%);background-size:300% 100%;animation:sk 1.2s ease-in-out infinite}
+@keyframes sk{from{background-position:100% 0}to{background-position:0 0}}

@@ -595,3 +595,11 @@ create policy setup_pf_obj_insert on storage.objects for insert to authenticated
   with check (case when bucket_id = 'setup-project-files' and (storage.foldername(name))[1] ~ '^[0-9]{1,12}$' then public.setup_can_access_project(((storage.foldername(name))[1])::bigint) else false end);
 create policy setup_pf_obj_delete on storage.objects for delete to authenticated
   using (bucket_id = 'setup-project-files' and exists(select 1 from public.setup_project_files f where f.path = name and (f.user_id = (select auth.uid()) or exists(select 1 from public.setup_projects p where p.id = f.project_id and p.user_id = (select auth.uid())))));
+
+-- Growth features: project invite links, saved searches with alerts, shooting days, endorsements
+alter table public.setup_projects add column if not exists invite_code text unique default substr(md5(random()::text || clock_timestamp()::text || gen_random_uuid()::text), 1, 12);
+revoke select on public.setup_projects from anon, authenticated;
+grant select (id, user_id, title, logline, genre, status, city, description, created_at) on public.setup_projects to anon, authenticated;
+-- (functions setup_project_preview, setup_join_project, setup_project_invite, setup_project_new_code,
+--  tables setup_saved_searches, setup_project_days, setup_endorsements and their triggers were applied as migrations
+--  "setup_growth_features" and "setup_hide_project_invite_code".)

@@ -64,9 +64,11 @@ function av(u, cls = '') {
   const ini = (u.name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
   return `<div class="av ${cls} c${hue(u.id)}" aria-hidden="true">${esc(ini)}</div>`;
 }
+const DEPT = { Actor: 'CAST', Director: 'DIRECTION', Producer: 'PRODUCTION', Cinematographer: 'CAMERA DEPT.', Editor: 'POST', Writer: 'WRITING', Sound: 'SOUND DEPT.', 'Production Designer': 'ART DEPT.', 'Costume & Makeup': 'WARDROBE & MAKEUP', 'VFX & Animation': 'VFX', Crew: 'CREW', Student: 'STUDENT' };
+const deptTag = (u) => (u && DEPT[u.role] ? `<div class="dept">${DEPT[u.role]}</div>` : '');
 const isPro = () => !!(S.me && S.me.plan === 'pro');
 const proTag = (u) => (u && u.pro ? '<span class="pill pro">PRO</span>' : '');
-const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)} ${proTag(u)}</div><div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div>${exPill(u)}${u.open_to_work ? `<div>${availBadge(u)}</div>` : ''}</a>`;
+const who = (u) => `<a class="who" href="#/profile/${u.id}"><div class="name">${esc(u.name)} ${proTag(u)}</div>${deptTag(u)}<div class="sub">${esc(u.headline || u.role)}${u.city ? ' · ' + esc(u.city) : ''}</div>${exPill(u)}${u.open_to_work ? `<div>${availBadge(u)}</div>` : ''}</a>`;
 const initials = (n) => (n || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 const geo = (txt) => { const t = String(txt || '').trim().toLowerCase(); if (!t || !window.CITIES) return null;
   return window.CITIES.find((c) => c.label.toLowerCase() === t || c.name.toLowerCase() === t) || null; };
@@ -125,6 +127,7 @@ function view(html, isWide) {
   const v = document.getElementById('view');
   if (v) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
   revealOnScroll();
+  document.querySelectorAll('canvas[data-qr]').forEach((c) => drawQR(c, c.dataset.qr, +c.dataset.px || 240));
 }
 if (!window.__tc) { window.__tc = setInterval(() => { const el = document.getElementById('tc'); if (!el) return; const t = Date.now(); const f = Math.floor((t % 1000) / 41.67); const sec = Math.floor(t / 1000); const p = (n, l = 2) => String(n).padStart(l, '0'); el.textContent = `${p(Math.floor(sec / 3600) % 24)}:${p(Math.floor(sec / 60) % 60)}:${p(sec % 60)}:${p(f)}`; }, 80); }
 function revealOnScroll() {
@@ -368,6 +371,9 @@ const ROOM_KINDS = [['presentation', 'Presentation'], ['program', 'Program'], ['
 const roomKind = (k) => (ROOM_KINDS.find((x) => x[0] === k) || ['', 'Room'])[1];
 const inviteUrl = (code) => location.origin + location.pathname + '#/join/' + code;
 const keepInvite = (code) => { try { localStorage.setItem('setup_invite', code); } catch (e) { /* private mode */ } };
+const takeNextPeek = () => { try { return localStorage.getItem('setup_next') || ''; } catch (e) { return ''; } };
+const keepNext = (h) => { try { localStorage.setItem('setup_next', h); } catch (e) { /* ignore */ } };
+const takeNext = () => { try { const h = localStorage.getItem('setup_next') || ''; localStorage.removeItem('setup_next'); return h; } catch (e) { return ''; } };
 const pendingInvite = () => { try { return localStorage.getItem('setup_invite') || ''; } catch (e) { return ''; } };
 const clearInvite = () => { try { localStorage.removeItem('setup_invite'); } catch (e) { /* ignore */ } };
 function drawQR(canvas, text, px) {
@@ -495,7 +501,7 @@ route(/^#\/checkin\/(\d+)\/([0-9a-f-]{36})$/, async (mid, guestId) => {
 
 const PSTATUS = [['development', 'Development'], ['pre_production', 'Pre-production'], ['shooting', 'Shooting'], ['post_production', 'Post-production'], ['released', 'Released']];
 const pstatus = (k) => (PSTATUS.find((x) => x[0] === k) || ['', k])[1];
-const projCard = (p) => `<article class="card comm"><a class="ccover" href="#/projects/${p.id}" style="background-image:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.7)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})" aria-label="${esc(p.title)}"><span class="ctopic">${esc(pstatus(p.status))}</span></a>
+const projCard = (p, i = 0) => `<article class="card comm"><a class="ccover" href="#/projects/${p.id}" style="background-image:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.7)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})" aria-label="${esc(p.title)}"><span class="slate">SC ${String(i + 1).padStart(2, '0')}</span><span class="ctopic">${esc(pstatus(p.status))}</span></a>
   <div class="cbody"><a href="#/projects/${p.id}"><h3>${esc(p.title)}</h3></a><div class="sub">${p.genre ? esc(p.genre) + ' · ' : ''}${p.city ? esc(p.city) + ' · ' : ''}by ${esc(p.owner)} · ${p.team} in the team</div>
   ${p.logline ? `<p class="cdesc">${esc(p.logline)}</p>` : ''}</div></article>`;
 
@@ -508,8 +514,8 @@ route(/^#\/projects$/, async () => {
       ${S.me ? '<button class="btn" data-act="compose" data-v="project">+ Start a project</button>' : '<a class="btn" href="#/signup">Join Set UP to start a project</a>'}</div>
     ${inv.length ? `<h2 class="section-title">Crew requests for you</h2>${inv.map((i) => `<div class="card"><span class="kicker">${ico('brief')} ${esc(i.role)}${i.days ? ' · ' + esc(i.days) : ''}</span><h3><a href="#/projects/${i.project_id}">${esc(i.title)}</a></h3><div class="sub">From ${esc(i.owner)}</div>${i.note ? `<p class="post-body">${esc(i.note)}</p>` : ''}
       <div class="pro-actions"><button class="btn" data-act="crewrespond" data-id="${i.project_id}" data-v="accepted">Accept</button><button class="btn ghost" data-act="crewrespond" data-id="${i.project_id}" data-v="declined">Decline</button></div></div>`).join('')}` : ''}
-    ${mine.length ? `<h2 class="section-title">Your projects</h2>${mine.map(projCard).join('')}` : ''}
-    <h2 class="section-title">Discover projects</h2>${all.length ? all.map(projCard).join('') : '<div class="empty">No other projects yet. Start the first one!</div>'}`);
+    ${mine.length ? `<h2 class="section-title">Your projects</h2>${mine.map((p, i) => projCard(p, i)).join('')}` : ''}
+    <h2 class="section-title">Discover projects</h2>${all.length ? all.map((p, i) => projCard(p, i)).join('') : '<div class="empty">No other projects yet. Start the first one!</div>'}`);
 });
 
 route(/^#\/projects\/(\d+)$/, async (id) => {
@@ -524,11 +530,14 @@ route(/^#\/projects\/(\d+)$/, async (id) => {
     <div class="ggrid"><div class="gmain">
       ${p.logline ? `<div class="card"><p class="lead2">${esc(p.logline)}</p></div>` : ''}
       ${p.description ? `<div class="card"><h2 class="rail-title">About the project</h2><p class="post-body">${esc(p.description)}</p></div>` : ''}
+      <div class="card"><h2 class="rail-title">Shooting days</h2>${(p.days || []).length ? p.days.map((d) => { const w = when(d.day); return `<div class="person rp"><div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div><div class="who"><div class="name">${esc(d.label || 'Shooting day')}</div><div class="sub">${esc(w.text)}${d.call_time ? ' · call ' + esc(d.call_time) : ''}</div></div>${p.mine ? `<button class="link" data-act="daydel" data-id="${d.id}">Remove</button>` : ''}</div>`; }).join('') : '<p class="muted">No shooting days yet.</p>'}
+        ${p.mine ? `<form data-form="projday" data-id="${p.id}" class="availform"><div class="row"><div class="field"><label for="pdd">Date</label><input id="pdd" name="day" type="date" required></div><div class="field"><label for="pdc">Call time</label><input id="pdc" name="call_time" maxlength="20" placeholder="07:30"></div></div><div class="field"><label for="pdl">What is shot</label><input id="pdl" name="label" maxlength="120" placeholder="Scene 12, harbour, exterior"></div><p class="err" role="alert"></p><button class="btn ghost sm" type="submit">Add shooting day</button></form>` : ''}</div>
       <div class="card"><h2 class="rail-title">Team</h2>${team || '<p class="muted">Nobody on the team yet.</p>'}${p.member && !p.mine ? `<p><button class="link" data-act="crewremove" data-id="${p.id}">Leave this project</button></p>` : ''}</div>
       ${p.mine && pending ? `<div class="card"><h2 class="rail-title">Requests</h2>${pending}</div>` : ''}
       ${p.mine || p.member ? `<div class="card"><h2 class="rail-title">Files</h2><p class="muted small">Call sheets, schedules, scripts and notes. Only the team can see them. PDF, Word, Excel, text or images up to 10 MB.</p><div id="pfiles"><p class="muted">Loading…</p></div>
         <label class="btn ghost sm">Upload a file<input class="sr" type="file" data-pfile="${p.id}" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,image/*"></label></div>` : ''}</div>
-      <aside class="gside">${p.mine ? `<div class="card"><h2 class="rail-title">Invite crew</h2>
+      <aside class="gside">${p.mine && p.invite_code ? `<div class="card invite"><h2 class="rail-title">Invite your crew with one link</h2><canvas id="qr" data-qr="${esc(location.origin + location.pathname + '#/project-join/' + p.invite_code)}" data-px="200" aria-label="Project invite QR code"></canvas>
+        <input id="invlink" readonly value="${esc(location.origin + location.pathname + '#/project-join/' + p.invite_code)}" aria-label="Invite link"><div class="pro-actions"><button class="btn sm" data-act="copyinvite">Copy link</button><button class="btn ghost sm" data-act="dlqr">Download QR</button><button class="btn ghost sm" data-act="newcode" data-id="${p.id}">New link</button></div><p class="muted small">Anyone with this link joins the team after logging in.</p></div>` : ''}${p.mine ? `<div class="card"><h2 class="rail-title">Invite crew</h2>
         <form data-form="projpeople" data-id="${p.id}" class="inline"><label class="sr" for="pp">Search people</label><input id="pp" name="q" placeholder="Search by name, role or city"><button class="btn sm" type="submit">Search</button></form>
         <div id="presults"></div>
         <form data-form="crewinvite" data-id="${p.id}"><input type="hidden" name="user_id"><p id="picked" class="muted">Search and pick a person first.</p>
@@ -551,15 +560,25 @@ route(/^#\/pro$/, async () => {
     <div class="lgrid">${perks.map(([i, t, d]) => `<div class="card feat"><span class="fico">${ico(i)}</span><h3>${t}</h3><p class="muted">${d}</p></div>`).join('')}</div>`);
 });
 
+
+route(/^#\/project-join\/([0-9a-fA-F]{8,64})$/, async (code) => {
+  let r;
+  try { r = await api('/project-join/' + code); } catch (e) { return view(`<div class="card center"><h1 class="page-title">Link not valid</h1><p class="muted">${esc(e.message)}</p><a class="btn" href="#/">Go to Set UP</a></div>`); }
+  const head = `<span class="kicker">${ico('brief')} You are invited to join the crew</span><h1 class="page-title">${esc(r.title)}</h1><div class="meta"><span>Project by ${esc(r.owner_name)}</span></div>${r.logline ? `<p class="lead2">${esc(r.logline)}</p>` : ''}`;
+  if (!S.me) { keepNext('#/project-join/' + code); return view(`<div class="card">${head}<p class="muted">Create a free Set UP profile or log in to join this project.</p><a class="btn block" href="#/signup">Join Set UP</a><p class="center"><a class="link" href="#/login">I already have an account</a></p></div>`); }
+  view(`<div class="card">${head}<form data-form="projjoin" data-id="${esc(code)}"><div class="field"><label for="jr2">Your role on this project</label><input id="jr2" name="role" maxlength="80" placeholder="e.g. Gaffer, Actor, Editor" required></div><p class="err" role="alert"></p><button class="btn block lg" type="submit">Join the crew</button></form></div>`);
+});
+
 route(/^#\/castings$/, async () => {
   const qs = new URLSearchParams({ category: ui.castCat, q: ui.castQ, city: ui.castCity });
   const { castings } = await api('/castings?' + qs);
+  const saved = S.me ? (await api('/searches').catch(() => ({ searches: [] }))).searches : [];
   const cats = ['', ...S.categories];
   view(`<h1 class="page-title">Castings</h1>
     <form data-form="castfilter" class="row"><div class="field"><label class="sr" for="cq">Search</label><input id="cq" name="q" placeholder="Search roles, crew, productions" value="${esc(ui.castQ)}"></div>
     <div class="field"><label class="sr" for="cc">City</label><input id="cc" name="city" placeholder="City" value="${esc(ui.castCity)}"></div><button class="sr" type="submit">Search</button></form>
     <div class="chips">${cats.map((c) => `<button class="chip ${ui.castCat === c ? 'on' : ''}" data-act="castcat" data-v="${esc(c)}">${c || 'All'}</button>`).join('')}</div>
-    ${S.me ? `<div class="row" style="margin-bottom:12px"></div>` : ''}
+    ${S.me ? `<div class="alertbar"><button class="btn ghost sm" data-act="savesearch">${ico('bell')} Alert me about new matches</button>${saved.map((x) => `<span class="chip on">${esc([x.category, x.q, x.city].filter(Boolean).join(' · ') || 'All castings')} <button class="xbtn" data-act="delsearch" data-id="${x.id}" aria-label="Remove alert">×</button></span>`).join('')}</div>` : ''}
     ${sampleNote(castings)}
     ${S.me ? `<p><button class="link" data-act="compose" data-v="casting">+ Post a casting call</button> · <a class="link" href="#/applications">My applications</a></p>` : ''}
     ${castings.length ? castings.map(castCard).join('') : '<div class="empty">No castings match. Try another filter.</div>'}`);
@@ -646,6 +665,11 @@ route(/^#\/profile\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
       ${u.state === 'self' ? `<form data-form="avail" class="availform"><div class="row"><div class="field"><label for="af">From</label><input id="af" name="from_date" type="date" required></div><div class="field"><label for="at">To</label><input id="at" name="to_date" type="date" required></div></div>
         <div class="row"><div class="field"><label for="ak">Type</label><select id="ak" name="kind"><option value="available">Available</option><option value="busy">Busy</option></select></div><div class="field"><label for="an">Note</label><input id="an" name="note" maxlength="120" placeholder="e.g. free for shoots in Berlin"></div></div>
         <p class="err" role="alert"></p><button class="btn ghost sm" type="submit">Add dates</button></form>` : ''}</section>
+    <section class="card"><h2 class="sec">${u.state === 'self' ? 'Your cast card' : 'Share this profile'}</h2><div class="qrbox"><canvas id="qr" data-qr="${esc(location.origin + location.pathname + '#/profile/' + u.id)}" data-px="220" aria-label="Profile QR code"></canvas>
+      <div><p class="muted">${u.state === 'self' ? 'Show this QR code on set, at events or on your business card. Anyone who scans it lands on your profile.' : 'Scan to open this profile on a phone.'}</p>
+      <input id="invlink" readonly value="${esc(location.origin + location.pathname + '#/profile/' + u.id)}" aria-label="Profile link"><div class="pro-actions"><button class="btn sm" data-act="copyinvite">Copy link</button><button class="btn ghost sm" data-act="dlqr">Download QR</button></div></div></div></section>
+    <section class="card"><h2 class="sec">Endorsements</h2>${(u.endorsements || []).length ? u.endorsements.map((e) => `<div class="endorse"><a href="#/profile/${e.from.id}">${av(e.from)}</a><div><div class="name"><a href="#/profile/${e.from.id}">${esc(e.from.name)}</a> <span class="sub">${esc(e.from.headline || e.from.role)}</span></div><p class="post-body">“${esc(e.body)}”</p>${S.me && (S.me.id === e.from.id || u.state === 'self') ? `<button class="link" data-act="delendorse" data-id="${e.id}">Remove</button>` : ''}</div></div>`).join('') : '<p class="muted">No endorsements yet.</p>'}
+      ${S.me && u.state !== 'self' && !(u.endorsements || []).some((e) => e.from.id === S.me.id) ? `<form data-form="endorse" data-id="${u.id}"><div class="field"><label for="en">Worked with ${esc(u.name.split(' ')[0])}?</label><textarea id="en" name="body" required minlength="5" maxlength="400" placeholder="A sentence about the work, the reliability, the craft."></textarea></div><p class="err" role="alert"></p><button class="btn sm" type="submit">Write an endorsement</button></form>` : ''}</section>
     <section class="card"><h2 class="sec">Experience</h2>${u.credits.length ? u.credits.map((c) => `<div class="credit"><span class="fico sm">${ico('brief')}</span><div><div class="name">${esc(c.title)}${c.role ? ' · ' + esc(c.role) : ''}</div><div class="sub">${esc([c.kind, c.year].filter(Boolean).join(' · '))}</div>${c.description ? `<p class="post-body">${esc(c.description)}</p>` : ''}</div></div>`).join('') : `<p class="muted">${self ? 'Add your credits so producers can see your experience.' : 'No credits added yet.'}</p>`}${self ? '<a class="link" href="#/me/edit">+ Add credits</a>' : ''}</section>
     ${skills.length ? `<section class="card"><h2 class="sec">Skills</h2><div class="skills">${skills.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div></section>` : ''}
     <h2 class="sec2">Posts</h2>${u.posts.map(postCard).join('') || '<div class="empty">No posts yet.</div>'}
@@ -687,9 +711,9 @@ route(/^#\/notifications$/, async () => {
   const text = (n) => ({
     like: 'liked your post', comment: 'commented on your post', follow: 'started following you',
     connect_request: 'wants to connect', connect_accept: 'accepted your connection',
-    application: `applied to “${esc(n.label)}”`, app_stage: (() => { const [st, ...t] = String(n.label).split('::'); return `moved your application for “${esc(t.join('::'))}” to ${esc(stageLabel(st))}`; })(), crew_invite: `invited you to join “${esc(n.label)}”`, crew_accept: `joined your project “${esc(n.label)}”`, crew_decline: `declined your crew request for “${esc(n.label)}”`, rsvp: `is going to “${esc(n.label)}”`,
+    application: `applied to “${esc(n.label)}”`, app_stage: (() => { const [st, ...t] = String(n.label).split('::'); return `moved your application for “${esc(t.join('::'))}” to ${esc(stageLabel(st))}`; })(), alert: `posted a casting that matches your alert: “${esc(n.label)}”`, endorse: 'wrote an endorsement for you', crew_invite: `invited you to join “${esc(n.label)}”`, crew_accept: `joined your project “${esc(n.label)}”`, crew_decline: `declined your crew request for “${esc(n.label)}”`, rsvp: `is going to “${esc(n.label)}”`,
   }[n.kind] || 'did something');
-  const link = (n) => (n.kind === 'app_stage' ? `#/castings/${n.ref}` : /^crew_/.test(n.kind) ? `#/projects/${n.ref}` : n.kind === 'application' ? `#/castings/${n.ref}` : n.kind === 'rsvp' ? '#/meetups' : `#/profile/${n.actor.id}`);
+  const link = (n) => (n.kind === 'alert' ? `#/castings/${n.ref}` : n.kind === 'app_stage' ? `#/castings/${n.ref}` : /^crew_/.test(n.kind) ? `#/projects/${n.ref}` : n.kind === 'application' ? `#/castings/${n.ref}` : n.kind === 'rsvp' ? '#/meetups' : `#/profile/${n.actor.id}`);
   view(`<h1 class="page-title">Alerts</h1>
     ${requests.length ? `<h2 class="section-title">Connection requests</h2>${requests.map((u) => `<div class="card person"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}<button class="btn sm" data-act="accept" data-id="${u.id}">Accept</button><button class="btn ghost sm" data-act="decline" data-id="${u.id}">Ignore</button></div>`).join('')}<h2 class="section-title">Activity</h2>` : ''}
     ${notifications.length ? notifications.map((n) => `<a class="card person" href="${link(n)}">${av(n.actor)}<div class="who"><div><b>${esc(n.actor.name)}</b> ${text(n)}</div><div class="sub">${ago(n.created)}</div></div>${n.read ? '' : '<span class="dot" aria-label="New"></span>'}</a>`).join('') : '<div class="empty">Nothing yet. Post something or apply to a casting.</div>'}`);
@@ -905,6 +929,11 @@ document.addEventListener('click', (ev) => {
       case 'top': window.scrollTo({ top: 0, behavior: 'smooth' }); return;
       case 'activatepro': await api('/pro/activate', {}); await refreshMe(); toast('Pro is active'); return rerender();
       case 'delpfile': if (confirm('Delete this file?')) { await api(`/project-files/${id}/delete`, {}); loadProjectFiles(el.dataset.pid); } return;
+      case 'delendorse': if (confirm('Remove this endorsement?')) { await api(`/endorsements/${id}/delete`, {}); rerender(); } return;
+      case 'savesearch': await api('/searches', { category: ui.castCat, city: ui.castCity, q: ui.castQ }); toast('Alert saved. We will tell you about new matching castings.'); return rerender();
+      case 'delsearch': await api(`/searches/${id}/delete`, {}); return rerender();
+      case 'daydel': await api(`/project-days/${id}/delete`, {}); return rerender();
+      case 'newcode': if (confirm('The old invite link will stop working. Continue?')) { await api(`/projects/${id}/newcode`, {}); rerender(); } return;
       case 'appfilter': ui.appStage = v; return rerender();
       case 'appstage': await api(`/applications/${id}/stage`, { stage: v }); return rerender();
       case 'delavail': await api(`/availability/${id}/delete`, {}); return rerender();
@@ -1008,7 +1037,7 @@ document.addEventListener('submit', (ev) => {
         case 'login': case 'signup': {
           const r = await api('/' + kind, data);
           if (r.confirm) { f.innerHTML = '<p class="card">Almost there! We sent a confirmation link to your email. Open it, then come back and log in.</p>'; return; }
-          await refreshMe(); { const inv = pendingInvite(); location.hash = inv ? '#/join/' + inv : '#/'; } return router();
+          await refreshMe(); { const nx = takeNext(), inv = pendingInvite(); location.hash = nx || (inv ? '#/join/' + inv : '#/'); } return router();
         }
         case 'reset': await api('/reset', data); f.innerHTML = '<p class="card">If that email has an account, a reset link is on its way.</p>'; return;
         case 'newpassword': await api('/newpassword', data); await refreshMe(); toast('Password updated'); location.hash = '#/'; return;
@@ -1016,6 +1045,9 @@ document.addEventListener('submit', (ev) => {
         case 'community': { const r = await api('/communities', data); closeModal(); location.hash = '#/communities/' + r.id; return; }
         case 'casting': { const r = await api('/castings', data); closeModal(); location.hash = '#/castings/' + r.id; return; }
         case 'avail': await api('/availability', data); toast('Saved'); return rerender();
+        case 'endorse': await api(`/users/${id}/endorse`, data); toast('Endorsement sent'); return rerender();
+        case 'projday': await api(`/projects/${id}/days`, data); toast('Shooting day added'); return rerender();
+        case 'projjoin': { const r = await api('/project-join/' + id, data); toast('You joined the project'); location.hash = '#/projects/' + r.id; return; }
         case 'project': { const r = await api('/projects', data); closeModal(); location.hash = '#/projects/' + r.id; return; }
         case 'projstatus': await api(`/projects/${id}/status`, data); toast('Status updated'); return rerender();
         case 'projpeople': { const { people } = await api('/people?q=' + encodeURIComponent(data.q || '')); const box = document.getElementById('presults');
@@ -1052,12 +1084,14 @@ async function router() {
   clearInterval(pollTimer);
   document.body.classList.add('busy');
   if (mapObj) { mapObj.remove(); mapObj = null; }
+  const sk = setTimeout(() => { const v = document.getElementById('view'); if (v && document.body.classList.contains('busy')) v.innerHTML = '<div class="skel"><i></i><i></i><i></i></div>'; }, 320);
   const hash = location.hash || '#/';
   document.body.dataset.page = hash.split('/')[1] || 'home';
   for (const [re, fn] of routes) {
     const m = hash.match(re);
     if (m) {
-      try { await fn(...m.slice(1)); } catch (e) {
+      try { await fn(...m.slice(1)); clearTimeout(sk); } catch (e) {
+        clearTimeout(sk);
         view(`<div class="empty">${esc(e.status === 404 ? 'Not found' : e.message)}<p><a class="link" href="#/">Back to feed</a></p></div>`);
       }
       return;
@@ -1070,7 +1104,8 @@ window.addEventListener('hashchange', () => { closeModal(); router(); });
 (async () => {
   const r = await api('/me').catch(() => ({ user: null, roles: [], categories: [] }));
   S.me = r.user; S.roles = r.roles; S.categories = r.categories;
-  if (S.me && pendingInvite() && (!location.hash || location.hash === '#/')) location.hash = '#/join/' + pendingInvite();
+  if (S.me && takeNextPeek() && (!location.hash || location.hash === '#/')) location.hash = takeNext();
+  else if (S.me && pendingInvite() && (!location.hash || location.hash === '#/')) location.hash = '#/join/' + pendingInvite();
   router();
   setInterval(() => { if (S.me && !document.hidden && !document.getElementById('thread')) refreshMe(); }, 30000);
 })();

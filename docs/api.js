@@ -405,7 +405,7 @@ const H = {
   /* projects and crew requests */
   async projects(q) {
     const me = await myId();
-    let query = sb.from('setup_projects').select('*, owner:setup_profiles!setup_projects_user_id_fkey(name), team:setup_project_members(count)').order('created_at', { ascending: false }).limit(100);
+    let query = sb.from('setup_projects').select('id,user_id,title,logline,genre,status,city,description,created_at, owner:setup_profiles!setup_projects_user_id_fkey(name), team:setup_project_members(count)').order('created_at', { ascending: false }).limit(100);
     if (q.get('mine') && me) {
       const ids = ok(await sb.from('setup_project_members').select('project_id').eq('user_id', me).eq('status', 'accepted')).map((x) => x.project_id);
       query = query.or(ids.length ? `user_id.eq.${me},id.in.(${ids.join(',')})` : `user_id.eq.${me}`);
@@ -415,7 +415,7 @@ const H = {
   },
   async project(id) {
     const me = await myId();
-    const r = ok(await sb.from('setup_projects').select('*, owner:setup_profiles!setup_projects_user_id_fkey(name), team:setup_project_members(count)').eq('id', id).maybeSingle());
+    const r = ok(await sb.from('setup_projects').select('id,user_id,title,logline,genre,status,city,description,created_at, owner:setup_profiles!setup_projects_user_id_fkey(name), team:setup_project_members(count)').eq('id', id).maybeSingle());
     if (!r) throw fail(404, 'Project not found');
     const mem = ok(await sb.from('setup_project_members').select(`user_id,role,days,note,status,user:setup_profiles!setup_project_members_user_id_fkey(${PCOLS})`).eq('project_id', id).order('created_at').limit(200));
     const out = projectJson(r, me);
@@ -425,6 +425,8 @@ const H = {
     const mine = mem.find((x) => x.user_id === me);
     out.invite = mine && mine.status === 'invited' ? { role: mine.role, days: mine.days, note: mine.note } : null;
     out.member = !!mine && mine.status === 'accepted';
+    out.days = ok(await sb.from('setup_project_days').select('id,day,label,call_time').eq('project_id', id).order('day')).slice(0, 120);
+    if (out.mine) { const c = await sb.rpc('setup_project_invite', { pid: id }); out.invite_code = c.data || ''; }
     return out;
   },
   async create_project(_, b) {
@@ -498,6 +500,42 @@ const H = {
     ok(await sb.from('setup_project_files').delete().eq('id', id));
     return { ok: true };
   },
+  async project_join_preview(code) {
+    const rows = ok(await sb.rpc('setup_project_preview', { code: String(code).toLowerCase() }));
+    if (!rows || !rows.length) throw fail(404, 'This invite link is not valid anymore');
+    return rows[0];
+  },
+  async join_project(code, b) {
+    await uid();
+    const id = ok(await sb.rpc('setup_join_project', { code: String(code).toLowerCase(), crew_role: clean(b.role, 80) }));
+    return { id };
+  },
+  async project_new_code(id) { await uid(); const r = await sb.rpc('setup_project_new_code', { pid: id }); if (r.error) throw fail(403, 'Not allowed'); return { code: r.data }; },
+  async add_day(id, b) {
+    await uid();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(b.day || '')) throw fail(400, 'Choose a date');
+    ok(await sb.from('setup_project_days').insert({ project_id: id, day: b.day, label: clean(b.label, 120), call_time: clean(b.call_time, 20) }));
+    return { ok: true };
+  },
+  async delete_day(id) { await uid(); ok(await sb.from('setup_project_days').delete().eq('id', id)); return { ok: true }; },
+  async saved_searches() {
+    const me = await uid();
+    return { searches: ok(await sb.from('setup_saved_searches').select('id,category,city,q').eq('user_id', me).order('id', { ascending: false }).limit(20)) };
+  },
+  async save_search(_, b) {
+    const me = await uid();
+    const category = CATEGORIES.includes(b.category) ? b.category : '';
+    const city = clean(b.city, 80), q = clean(b.q, 80);
+    ok(await sb.from('setup_saved_searches').insert({ user_id: me, category, city, q }));
+    return { ok: true };
+  },
+  async delete_search(id) { await uid(); ok(await sb.from('setup_saved_searches').delete().eq('id', id)); return { ok: true }; },
+  async endorse(id, b) {
+    const me = await uid();
+    ok(await sb.from('setup_endorsements').insert({ from_id: me, to_id: id, body: clean(b.body, 400, true, 'Endorsement') }));
+    return { ok: true };
+  },
+  async delete_endorsement(id) { await uid(); ok(await sb.from('setup_endorsements').delete().eq('id', id)); return { ok: true }; },
   async delete_project(id) { ok(await sb.from('setup_projects').delete().eq('id', id).eq('user_id', await uid())); return { ok: true }; },
   async crew_invite(id, b) {
     await uid();
@@ -552,8 +590,9 @@ const H = {
     const s = ok(stats);
     const credits = ok(await sb.from('setup_credits').select('*').eq('user_id', id).order('year', { ascending: false }).order('id', { ascending: false }));
     const today = new Date().toISOString().slice(0, 10);
+    const endorsements = ok(await sb.from('setup_endorsements').select(`id,body,created_at,from:setup_profiles!setup_endorsements_from_id_fkey(${PCOLS})`).eq('to_id', id).order('id', { ascending: false }).limit(30)).map((e) => ({ id: e.id, body: e.body, created: iso(e), from: userJson(e.from) }));
     const availability = ok(await sb.from('setup_availability').select('id,from_date,to_date,kind,note').eq('user_id', id).gte('to_date', today).order('from_date').limit(30));
-    return { ...userJson(p), bio: p.bio, skills: p.skills, created: iso(p), reel_url: p.reel_url, lat: p.lat, lng: p.lng, credits, availability, followers: s.followers, connections: s.connections,
+    return { ...userJson(p), bio: p.bio, skills: p.skills, created: iso(p), reel_url: p.reel_url, lat: p.lat, lng: p.lng, credits, availability, endorsements, followers: s.followers, connections: s.connections,
       state: me === id ? 'self' : (conns.get(id) || 'none'), following: ok(fol).length > 0,
       posts: await shapePosts(ok(posts), me), castings: ok(castings).map(castingShape) };
   },
@@ -779,6 +818,10 @@ const R = [
   ['POST', '/applications/(\\d+)/stage', 'set_stage'], ['POST', '/availability', 'add_availability'], ['POST', '/availability/(\\d+)/delete', 'delete_availability'],
   ['GET', '/pro', 'pro_status'], ['POST', '/pro/activate', 'activate_pro'],
   ['GET', '/projects/(\\d+)/files', 'project_files'], ['POST', '/projects/(\\d+)/files', 'upload_project_file'], ['POST', '/project-files/(\\d+)/delete', 'delete_project_file'],
+  ['GET', '/project-join/([0-9a-fA-F]{8,64})', 'project_join_preview'], ['POST', '/project-join/([0-9a-fA-F]{8,64})', 'join_project'], ['POST', '/projects/(\\d+)/newcode', 'project_new_code'],
+  ['POST', '/projects/(\\d+)/days', 'add_day'], ['POST', '/project-days/(\\d+)/delete', 'delete_day'],
+  ['GET', '/searches', 'saved_searches'], ['POST', '/searches', 'save_search'], ['POST', '/searches/(\\d+)/delete', 'delete_search'],
+  ['POST', `/users/(${UUID})/endorse`, 'endorse'], ['POST', '/endorsements/(\\d+)/delete', 'delete_endorsement'],
   ['GET', '/castings', 'castings'], ['POST', '/castings', 'create_casting'], ['GET', '/castings/(\\d+)', 'casting'],
   ['POST', '/castings/(\\d+)/apply', 'apply'], ['POST', '/castings/(\\d+)/delete', 'delete_casting'], ['GET', '/applications', 'my_applications'],
   ['GET', '/meetups', 'meetups'], ['POST', '/meetups', 'create_meetup'], ['POST', '/meetups/(\\d+)/rsvp', 'rsvp'], ['GET', '/meetups/(\\d+)', 'meetup'], ['POST', '/meetups/(\\d+)/checkin', 'meetup_checkin'],
@@ -793,7 +836,7 @@ window.api = async (path, body) => {
   for (const [m, re, h] of R) {
     const match = re.exec(p);
     if (m === method && match) {
-      const args = match.slice(1).map((g) => (/^\d+$/.test(g) && !/^(join_room|room_preview)$/.test(h) ? Number(g) : g));
+      const args = match.slice(1).map((g) => (/^\d+$/.test(g) && !/^(join_room|room_preview|project_join_preview|join_project)$/.test(h) ? Number(g) : g));
       if (args.some(isSample) && (method === 'POST' || h === 'thread')) throw fail(400, SAMPLE_MSG);
       if (['feed', 'people', 'castings', 'meetups', 'communities', 'map_people', 'rooms', 'projects'].includes(h)) return H[h](new URLSearchParams(qs || ''));
       return args.length ? H[h](...args, body || {}) : H[h](undefined, body || {});
