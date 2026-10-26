@@ -858,3 +858,13 @@ a.tile:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 .scta{text-align:center;padding:96px 0 40px}
 .scta .btn{margin:4px}
 @media(max-width:900px){.shero,.ssplit{grid-template-columns:1fr;gap:28px}.shero-i{order:-1}.shero-i img{aspect-ratio:16/10}.ssplit{padding-top:48px}.ssplit.rev .ticketbox{order:-1}}
+
+/* ---------- v20 finishing touches on the cinema landing ---------- */
+.landing:not(.simple) .bento{gap:20px;grid-auto-rows:250px}
+.landing:not(.simple) .tile{border-radius:24px}
+.landing:not(.simple) .lband h2{margin-bottom:6px}
+.landing:not(.simple) .lband>.eyebrow{margin-bottom:8px}
+.landing:not(.simple) .lsec{margin-top:72px}
+.landing:not(.simple) .lhero-t h1{text-wrap:balance}
+.landing:not(.simple) .lhero-t .lead2{color:#dbe3ee}
+.tile:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
