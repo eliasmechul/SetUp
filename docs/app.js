@@ -146,7 +146,8 @@ const quoteBlock = (p) => (p.original
   : (p.repost_of ? '<div class="quote muted">The original post is no longer available.</div>' : ''));
 function postCard(p) {
   const mine = S.me && S.me.id === p.user.id;
-  return `<article class="card" data-post="${p.id}">
+  const tc = new Date(p.created).toLocaleTimeString('en-GB');
+  return `<article class="card" data-post="${p.id}"><div class="take"><span>TAKE ${String(p.id).slice(-2).padStart(2, '0')}</span><span>${tc}</span></div>
     <div class="post-head"><a href="#/profile/${p.user.id}">${av(p.user)}</a>${who(p.user)}<span class="sub">${ago(p.created)}</span>${exPill(p)}</div>
     ${p.community || (p.kind && p.kind !== 'update') ? `<p>${kindPill(p)}${p.community ? `<a class="pill" href="#/communities/${p.community.id}">in ${esc(p.community.name)}</a>` : ''}</p>` : ''}
     ${p.body ? `<p class="post-body">${richText(p.body)}</p>` : ''}
@@ -263,18 +264,20 @@ const homeRoute = async (forceFeed) => {
   if (m) { try { sug = (await api('/suggestions')).people; } catch (e) { /* ignore */ } }
   const toJoin = cm.communities.filter((c) => !c.joined).slice(0, 3);
   const rail = `<aside class="rail" aria-label="Suggestions">
-    <div class="card"><h2 class="rail-title">Hiring near you</h2>${roles.map((c) => `<a class="mini" href="#/castings/${c.id}"><div class="who"><div class="name">${esc(c.title)}</div><div class="sub">${esc(c.city || 'Remote')}${c.pay ? ' · ' + esc(c.pay) : ''}</div></div></a>`).join('') || '<p class="muted">No castings yet.</p>'}<a class="link" href="#/castings">All castings →</a></div>
+    <div class="card"><h2 class="rail-title">Now casting</h2>${roles.map((c) => `<a class="mini" href="#/castings/${c.id}"><div class="who"><div class="name">${esc(c.title)}</div><div class="sub">${esc(c.city || 'Remote')}${c.pay ? ' · ' + esc(c.pay) : ''}</div></div></a>`).join('') || '<p class="muted">No castings yet.</p>'}<a class="link" href="#/castings">All castings →</a></div>
     ${sug.length ? `<div class="card"><h2 class="rail-title">People you may know</h2>${sug.slice(0, 4).map(railPerson).join('')}</div>` : ''}
-    <div class="card"><h2 class="rail-title">Communities</h2>${toJoin.map((c) => `<div class="mini"><div class="who"><a href="#/communities/${c.id}" class="name">${esc(c.name)}</a><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · ${esc(c.topic)}</div></div><button class="btn ghost sm" data-act="joincomm" data-id="${c.id}">Join</button></div>`).join('') || '<p class="muted">No communities to join yet.</p>'}<a class="link" href="#/communities">All communities →</a></div>
-    <div class="card"><h2 class="rail-title">Upcoming meetups</h2>${mt.meetups.slice(0, 3).map(meetMini).join('') || '<p class="muted">No meetups yet.</p>'}<a class="link" href="#/meetups">All meetups →</a></div></aside>`;
+    <div class="card"><h2 class="rail-title">Groups for you</h2>${toJoin.map((c) => `<div class="mini"><div class="who"><a href="#/communities/${c.id}" class="name">${esc(c.name)}</a><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · ${esc(c.topic)}</div></div><button class="btn ghost sm" data-act="joincomm" data-id="${c.id}">Join</button></div>`).join('') || '<p class="muted">No communities to join yet.</p>'}<a class="link" href="#/communities">All communities →</a></div>
+    <div class="card"><h2 class="rail-title">Call sheet</h2>${mt.meetups.slice(0, 3).map(meetMini).join('') || '<p class="muted">No meetups yet.</p>'}<a class="link" href="#/meetups">All meetups →</a></div></aside>`;
   const stream = feed.posts.map(postCard);
   if (!ui.feedKind && (!m || ui.feedScope === 'all')) {
     if (cs.castings[0]) stream.splice(Math.min(2, stream.length), 0, `<div class="feedtag">Casting call</div>${castCard(cs.castings[0])}`);
     if (mt.meetups[0]) stream.splice(Math.min(4, stream.length), 0, `<div class="feedtag">Upcoming meetup</div><div class="card">${meetMini(mt.meetups[0])}<a class="link" href="#/meetups">All meetups →</a></div>`);
     if (cm.communities[1]) stream.splice(Math.min(6, stream.length), 0, `<div class="feedtag">Suggested group</div>${commCard(cm.communities[1])}`);
   }
+  const dlDate = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase();
   view(`<div class="feedgrid"><aside class="lcol">${mc}</aside><div class="feedcol">
-    <div class="card startpost"><div class="sp-top">${m ? av(m) : `<span class="av c0">?</span>`}<button class="sp-input" data-act="compose">${m ? 'Start a post' : 'Join to share your work…'}</button></div>
+    <header class="dailies"><div><div class="dl-kick">TODAY'S DAILIES</div><h1>${m ? 'Your feed' : 'The feed'}</h1></div><div class="dl-date">${dlDate}</div></header>
+    <div class="card startpost"><div class="sp-top">${m ? av(m) : `<span class="av c0">?</span>`}<button class="sp-input" data-act="compose">${m ? 'What are you shooting?' : 'Join to share your work…'}</button></div>
       <div class="sp-btns"><button data-act="compose" data-v="post">${ico('img')} Photo</button><button data-act="compose" data-v="casting">${ico('brief')} Casting call</button><button data-act="compose" data-v="meetup">${ico('cal')} Meetup</button><button data-act="compose" data-v="community">${ico('group')} Community</button></div></div>
     ${sampleNote(feed.posts)}
     <div class="chips kindchips" role="group" aria-label="Topics">${KINDS.map(([k, l]) => `<button class="chip ${ui.feedKind === k ? 'on' : ''}" data-act="feedkind" data-v="${k}">${l}</button>`).join('')}</div>
