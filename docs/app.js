@@ -203,50 +203,40 @@ const homeRoute = async (forceFeed) => {
     api('/meetups').catch(() => ({ meetups: [] })), api('/communities').catch(() => ({ communities: [] })), api('/castings').catch(() => ({ castings: [] }))]);
   const roles = cs.castings.slice(0, 3);
   if (!m && !forceFeed) {
-    const faq = [['Is Set UP free?', 'Yes. Creating a profile, posting, applying to castings, joining communities and using the map is free.'],
-      ['Who is it for?', 'Actors, directors, producers, cinematographers, editors, sound, writers and every other craft in film, plus students and people starting out.'],
-      ['How do producers find people?', 'On the talent map: pick a city, filter by role and availability, and connect or message people in one click.'],
-      ['Are the castings checked?', 'No. Set UP connects people and does not verify productions. Never pay to get a role, and use the Report button on anything suspicious.'],
-      ['Can I delete my account?', 'Yes. Ask us and your profile, posts, messages and files are removed.']];
-    const pill = (t) => `<span class="mk-pill">${t}</span>`;
-    view(`<div class="landing">
-      <section class="lhero"><div class="herobg" aria-hidden="true"></div><div class="grain" aria-hidden="true"></div><div class="lbar t" aria-hidden="true"><span><i class="recdot"></i> REC</span><span class="tc" id="tc">00:24:03:12</span><span>SCENE 24 · TAKE 3</span></div><div class="lbar b" aria-hidden="true"><span>2.39 : 1</span><span>SET UP · FILM PEOPLE</span><span>ISO 800 · 24 FPS</span></div><div class="lhero-t">
-        <p class="eyebrow">The network for film people</p>
-        <h1>Where film people connect, share and <i>get hired.</i></h1>
-        <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
-        <p class="newpill"><b>NEW</b> QR invites and tickets for events</p>
-                <p class="trust"><a href="#/map" data-act="maprole" data-v="Actor">Actors</a><a href="#/map" data-act="maprole" data-v="Director">Directors</a><a href="#/map" data-act="maprole" data-v="Producer">Producers</a><a href="#/map" data-act="maprole" data-v="Crew">Crew</a><a href="#/castings">Casting</a></p></div>
-        <div class="lhero-f"><form class="card joinform" data-form="signup"><span class="jpill">FREE FOR EVERYONE IN FILM</span><h2>Join Set UP</h2><ul class="jbul"><li>Share your work and join groups</li><li>Apply to castings, join events</li><li>Be found on the talent map</li></ul>
-          <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
-          <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
-          <div class="field"><label for="jp">Password (8+ characters)</label><input id="jp" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
-          <div class="row"><div class="field"><label for="jr">I am a…</label><select id="jr" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
-          <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
-          <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
-          <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p><p class="jfine">By joining you agree to the <a href="#/terms">Terms</a> and <a href="#/privacy">Privacy</a>.</p></form></div>
-        </section>
-      <div class="marquee" aria-hidden="true"><div class="mq-track">${[...Array(2)].map(() => ['Actors','Directors','Producers','Cinematographers','Editors','Sound','Writers','Gaffers','Casting directors','Berlin','Istanbul','London','Paris','Hamburg','Vienna','Munich'].map((w) => `<span>${w}</span>`).join('')).join('')}</div></div>
+    const roleChips = S.roles.map((r) => `<a class="chip big" href="#/map" data-act="maprole" data-v="${esc(r)}">${esc(r)}</a>`).join('');
+    view(`<div class="landing simple">
+      <section class="shero">
+        <div class="shero-t">
+          <h1>Welcome to your film community</h1>
+          <p class="lead2">Share your work, find castings and crew, and meet the people who make films.</p>
+          <form class="card joinform" data-form="signup"><h2>Join Set UP. It is free.</h2>
+            <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
+            <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
+            <div class="field"><label for="jp">Password (8+ characters)</label><input id="jp" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
+            <div class="row"><div class="field"><label for="jr">I am a…</label><select id="jr" name="role">${S.roles.map((r) => `<option>${esc(r)}</option>`).join('')}</select></div>
+            <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
+            <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
+            <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p></form>
+        </div>
+        <div class="shero-i"><img src="img/hero.jpg" alt="A film crew on set at dusk"></div>
+      </section>
 
-      <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
-        <div class="bento">
-          <a class="tile t1" href="#/feed" aria-label="Open the feed" style="--img:url(img/f-share.jpg)"><span class="reel">REEL 01</span><h3>Share your work</h3><p>Stills, reels and behind-the-scenes. Tag a post as showcase, question, tip or collab so the right people see it.</p><span class="go" aria-hidden="true">→</span></a>
-          <a class="tile t2" href="#/castings" aria-label="Browse castings" style="--img:url(img/f-cast.jpg)"><span class="reel">REEL 02</span><h3>Find jobs and castings</h3><p>Post a role or apply with your profile in one tap.</p><span class="go" aria-hidden="true">→</span></a>
-          <a class="tile t3" href="#/map" aria-label="Open the talent map" style="--img:url(img/f-map.jpg)"><span class="reel">REEL 03</span><h3>Find your crew on the map</h3><p>Role, city, availability. Connect before you message.</p><span class="go" aria-hidden="true">→</span></a>
-          <a class="tile t4" href="#/communities" aria-label="Explore communities" style="--img:url(img/f-comm.jpg)"><span class="reel">REEL 04</span><h3>Join communities</h3><p>Groups for your craft and your city, plus meetups where you meet your next collaborator.</p><span class="go" aria-hidden="true">→</span></a>
-        </div></section>
+      <section class="ssec"><h2>Find your people by craft</h2><div class="chipwrap">${roleChips}</div></section>
 
-      <section class="lsec roomsband"><div class="roomsin"><div><p class="eyebrow">Meetups and special occasions</p><h2 class="lh">Every event gets <i>its own QR code.</i></h2>
-        <p class="lead2">Host a meetup, screening, premiere, workshop or casting day. Share the QR invite on a poster or in a message. Guests join in one tap and get a personal ticket QR that you scan at the door.</p>
-        <ol class="rsteps"><li><span>1</span>Create your event with date, place and program</li><li><span>2</span>Print or share the QR invite</li><li><span>3</span>Guests join and show their ticket QR at the door</li></ol>
-        <a class="btn" href="#/meetups">Host an event</a></div>
-        <div class="ticket" aria-label="Example event ticket"><div class="tk-main"><small>SET UP PRESENTS</small><b>Pitch night:<br>Harbour Lights</b><span>FRI 7 NOV · 18:00 · STUDIO 4</span><em>ADMIT ONE</em></div><div class="tk-stub"><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><small>SCAN AT THE DOOR</small></div></div></div></section>
+      <section class="ssplit">
+        <div><h2>Show your work and get hired</h2><p class="lead2">Post stills, reels and behind-the-scenes. Apply to castings in one tap, or post a role and review every applicant in one list.</p>
+          <ul class="checks"><li>One profile for the whole production</li><li>Castings with a clear pipeline from new to cast</li><li>A talent map to find crew by city and availability</li></ul>
+          <p><a class="btn" href="#/feed">Open the feed</a> <a class="btn ghost" href="#/castings">Browse castings</a></p></div>
+        <div class="simg"><img src="img/f-share.jpg" alt="" loading="lazy"></div>
+      </section>
 
-      <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
-        ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
+      <section class="ssplit rev">
+        <div class="simg ticketbox"><div class="ticket" aria-label="Example event ticket"><div class="tk-main"><small>SET UP PRESENTS</small><b>Pitch night:<br>Harbour Lights</b><span>FRI 7 NOV · 18:00 · STUDIO 4</span><em>ADMIT ONE</em></div><div class="tk-stub"><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><small>SCAN AT THE DOOR</small></div></div></div>
+        <div><h2>Every event gets its own QR code</h2><p class="lead2">Host a meetup, screening or casting day. Share the QR invite, and guests show their ticket at the door.</p>
+          <p><a class="btn" href="#/meetups">Browse events</a> <a class="btn ghost" href="#/communities">Join communities</a></p></div>
+      </section>
 
-      <section class="lsec faq"><h2 class="lh">Questions</h2>${faq.map(([q, a2]) => `<details class="card"><summary>${esc(q)}</summary><p class="muted">${esc(a2)}</p></details>`).join('')}</section>
-
-      <section class="cta"><h2>Your next set is one search away.</h2><p>Create your free profile in two minutes.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
+      <section class="scta"><h2>Join your film community today</h2><p><a class="btn lg" href="#/signup">Join Set UP</a> <a class="btn ghost lg" href="#/login">Sign in</a></p></section>
     </div>`, true);
     { const cv = document.getElementById('demoqr'); if (cv && window.qrcode) drawQR(cv, location.origin + location.pathname + '#/meetups', 200); }
     return;

@@ -829,3 +829,32 @@ a.tile:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 .empty{background:linear-gradient(rgba(15,23,36,.84),rgba(15,23,36,.92)),url(img/c-studio.jpg) center/cover no-repeat;border:1px solid var(--line);color:#dbe3ee;padding:44px 20px}
 .skel{display:grid;gap:14px}.skel i{display:block;height:120px;border-radius:14px;background:linear-gradient(100deg,rgba(255,255,255,.04) 30%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.04) 70%);background-size:300% 100%;animation:sk 1.2s ease-in-out infinite}
 @keyframes sk{from{background-position:100% 0}to{background-position:0 0}}
+
+/* =====================================================================
+   v19 simple landing, in the spirit of LinkedIn: calm, one idea per block
+   ===================================================================== */
+.landing.simple{max-width:1128px;margin:0 auto}
+.landing.simple .rv{opacity:1;transform:none}
+.shero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center;padding:40px 0 24px}
+.shero-t h1{font:400 clamp(40px,4.6vw,60px)/1.05 'Instrument Serif',serif;margin:0 0 14px;letter-spacing:-.01em}
+.shero-t .lead2{font-size:19px;color:var(--soft);max-width:30em;margin:0 0 24px}
+.shero-t .joinform{max-width:420px;padding:22px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-1)}
+.shero-t .joinform h2{font:600 18px/1.2 'Hanken Grotesk',sans-serif;margin:0 0 14px}
+.shero-t .field{margin-bottom:10px}
+.shero-i img{width:100%;aspect-ratio:4/3.3;object-fit:cover;border-radius:22px;display:block;filter:saturate(.95)}
+.ssec{padding:56px 0 8px}.ssec h2,.ssplit h2,.scta h2{font:400 clamp(30px,3.4vw,42px)/1.1 'Instrument Serif',serif;margin:0 0 18px}
+.chipwrap{display:flex;flex-wrap:wrap;gap:10px}
+.chip.big{padding:10px 18px;font-size:15px;border-radius:999px;border:1px solid var(--line3);color:var(--soft);transition:background .2s,color .2s,border-color .2s}
+.chip.big:hover{background:var(--amber);border-color:var(--amber);color:#1a1205}
+.ssplit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center;padding:72px 0 8px}
+.ssplit.rev>:first-child{order:0}
+.ssplit .lead2{color:var(--soft);font-size:18px;margin:0 0 18px;max-width:32em}
+.checks{list-style:none;padding:0;margin:0 0 22px;display:grid;gap:10px}
+.checks li{display:flex;gap:10px;align-items:center;color:var(--text)}
+.checks li::before{content:'✓';flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(240,169,79,.18);color:var(--amber);font-size:12px}
+.simg img{width:100%;border-radius:22px;aspect-ratio:4/3;object-fit:cover;display:block}
+.ticketbox{display:grid;place-items:center;padding:36px 0;border-radius:22px;background:radial-gradient(80% 90% at 50% 40%,#1f2d47,#121b2c);border:1px solid var(--line)}
+.ticketbox .ticket{margin:0}
+.scta{text-align:center;padding:96px 0 40px}
+.scta .btn{margin:4px}
+@media(max-width:900px){.shero,.ssplit{grid-template-columns:1fr;gap:28px}.shero-i{order:-1}.shero-i img{aspect-ratio:16/10}.ssplit{padding-top:48px}.ssplit.rev .ticketbox{order:-1}}
