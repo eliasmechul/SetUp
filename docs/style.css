@@ -1053,3 +1053,62 @@ body[data-page=people] #view{display:block}
 /* grid pages: full-width info cards, compact segmented control */
 #view>.card:not(.comm):not(.evcard):not(.room){grid-column:1/-1}
 #view>.seg{justify-self:start;grid-column:1/-1}
+
+/* =====================================================================
+   v25 poster theme: bold stacked type, red pill tags, glossy film icons,
+   warm paper background. Photo areas keep a dark scope.
+   ===================================================================== */
+:root{--bg:#F4F1EC;--card:#FFFFFF;--field:#FFFFFF;--line:#E6E0D6;--line2:#D8D0C2;--line3:#B6AA95;--text:#111111;--muted:#6B675F;--soft:#37342E;--nav:#FFFFFF;
+  --amber:#D12A1E;--blue:#D12A1E;--ink:#FFFFFF;--green:#177A55;--danger:#C0392B;--shadow-1:0 1px 2px rgba(17,17,17,.05),0 10px 28px rgba(17,17,17,.07);--shadow-2:0 20px 50px rgba(17,17,17,.16)}
+.lhero,.roomsin,.cta,.roomhead,#view>.page-title,.gcover,.ccover,.pbanner,.banner,.tile,.ticketbox,.cthumb,.ethumb,.empty,.splash{--bg:#0F0A0E;--card:#1A1217;--field:#251B21;--line:#34252D;--line2:#44313B;--line3:#6A4B5A;--text:#F6F2EA;--muted:#C9BBC2;--soft:#E6DADF;--amber:#E9B25C;color:#F6F2EA}
+body{background-color:var(--bg)!important;background-image:radial-gradient(1000px 600px at 95% -10%,rgba(209,42,30,.07),transparent 70%),radial-gradient(900px 600px at -5% 30%,rgba(17,17,17,.04),transparent 70%)!important;color:var(--text)}
+.navin{background:rgba(255,255,255,.92)!important;border:1px solid var(--line)!important;box-shadow:0 14px 40px rgba(17,17,17,.12)!important}
+.ni,.ol,.navbar.out .signin{color:#2a2823!important}
+.ni:hover,.ol:hover,.navbar.out .signin:hover{background:rgba(17,17,17,.06)!important;color:#000!important}
+.ni.on,.ol.on{background:#D12A1E!important;color:#fff!important;box-shadow:0 8px 20px rgba(209,42,30,.35)!important}
+.wordmark .set{color:#111}.wordmark .up{background:#111;color:#fff}
+.wordmark img{background:#0F0A0E;border-radius:10px}
+.authbtns .btn.sm,.navbar.out .btn.sm{background:#111!important;color:#fff!important;box-shadow:0 10px 24px rgba(17,17,17,.25)!important}
+.card{background:#fff!important;border:1px solid var(--line)}
+.btn{background:#D12A1E;border-color:#D12A1E;color:#fff;box-shadow:0 10px 24px rgba(209,42,30,.28)}
+.btn:hover{background:#B52217;border-color:#B52217}
+.btn.ghost{background:transparent;color:#111;border-color:#111;box-shadow:none}
+.btn.ghost:hover{background:#111;color:#fff}
+.link{color:#D12A1E}
+input,select,textarea{background:#fff!important;border:1px solid var(--line2)!important;color:#111}
+input::placeholder,textarea::placeholder{color:#9a958a}
+.chip{background:#fff;border-color:var(--line2);color:var(--soft)}
+.chip.on{background:#111;border-color:#111;color:#fff;box-shadow:none}
+.seg{background:#fff}.seg button.on{background:#111;color:#fff!important}
+.eyebrow,.kicker,.sec2,.section-title,.rail-title{color:#D12A1E!important}
+.footer,.foot{background:#fff;border-top:1px solid var(--line)}
+.tabbar{background:#fff}
+.lband,.landing .lsec{color:var(--text)}
+.dl-date,.take{color:var(--muted)}
+.sp-input{background:#F4F1EC!important}
+.startpost::before{background:repeating-linear-gradient(115deg,#111 0 14px,#f4f1ec 14px 28px)}
+::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:#c9c0ae;border-color:var(--bg)}
+
+/* poster hero */
+.landing .poster{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.8fr);gap:44px;align-items:center;padding:34px 0 20px;position:relative}
+.poster-art{position:relative;min-height:560px;display:flex;flex-direction:column;justify-content:center}
+.poster-h{margin:0;display:flex;flex-direction:column;font:800 clamp(64px,9.4vw,138px)/.86 'Archivo','Inter Tight','Helvetica Neue',Arial,sans-serif;letter-spacing:-.045em;color:#0c0c0c;position:relative;z-index:2}
+.poster-h span{display:block}
+.poster-sub{position:relative;z-index:2;margin:22px 0 0;max-width:24em;font-size:18px;color:var(--soft)}
+.ptag{position:absolute;z-index:3;background:#D12A1E;color:#fff;font:700 14px 'Courier Prime','Courier New',monospace;letter-spacing:.02em;padding:9px 18px;border-radius:999px;box-shadow:0 10px 24px rgba(209,42,30,.35);transition:transform .25s var(--ease)}
+.ptag:hover{transform:rotate(0) scale(1.06)}
+.ptag.t1{top:16%;left:7%;transform:rotate(-6deg)}.ptag.t2{top:42%;left:46%;transform:rotate(5deg)}.ptag.t3{top:60%;left:2%;transform:rotate(-4deg)}.ptag.t4{top:80%;left:30%;transform:rotate(4deg)}
+.pico{position:absolute;z-index:1;filter:drop-shadow(0 22px 22px rgba(0,0,0,.28));animation:bob 6s ease-in-out infinite}
+.i-clap{width:128px;top:0;left:58%}.i-cam{width:140px;top:56%;left:-3%;animation-delay:-2s}.i-head{width:118px;top:22%;left:-2%;animation-delay:-4s}.i-reel{width:112px;top:66%;left:66%;animation-delay:-1s}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+.poster-f{position:relative;z-index:4}
+.poster-f .joinform{background:#fff!important;border:1px solid var(--line);box-shadow:var(--shadow-2);padding:26px;border-radius:26px}
+.poster-f .jpill{background:#111;color:#fff}
+.poster-f .joinform h2{font:800 28px/1.1 'Archivo','Inter Tight',sans-serif;margin:12px 0 10px;color:#111}
+.poster-f .jbul{color:var(--soft)}
+.poster-f .jbul li::before{background:#D12A1E;color:#fff}
+.poster-f .joinform label{color:#4a463f}
+.poster-f .jfine{color:#8a857a}.poster-f .btn.block{background:#111;border-color:#111;color:#fff;box-shadow:0 12px 28px rgba(17,17,17,.3)}
+.poster-f .btn.block:hover{background:#D12A1E;border-color:#D12A1E}
+@media(max-width:980px){.landing .poster{grid-template-columns:1fr;gap:20px}.poster-art{min-height:480px}.poster-h{font-size:clamp(60px,18vw,120px)}.ptag{font-size:12.5px;padding:7px 14px}}
+@media(prefers-reduced-motion:reduce){.pico{animation:none}}

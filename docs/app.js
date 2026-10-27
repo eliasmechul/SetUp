@@ -217,13 +217,17 @@ const homeRoute = async (forceFeed) => {
       ['Can I delete my account?', 'Yes. Ask us and your profile, posts, messages and files are removed.']];
     const pill = (t) => `<span class="mk-pill">${t}</span>`;
     view(`<div class="landing">
-      <section class="lhero"><div class="herobg" aria-hidden="true"></div><div class="grain" aria-hidden="true"></div><div class="lbar t" aria-hidden="true"><span><i class="recdot"></i> REC</span><span class="tc" id="tc">00:24:03:12</span><span>SCENE 24 · TAKE 3</span></div><div class="lbar b" aria-hidden="true"><span>2.39 : 1</span><span>SET UP · FILM PEOPLE</span><span>ISO 800 · 24 FPS</span></div><div class="lhero-t">
-        <p class="eyebrow">The network for film people</p>
-        <h1>Where film people connect, share and <i>get hired.</i></h1>
-        <p class="lead2">Show your work, find jobs and castings, join communities and find your crew on the map. One profile for the whole production.</p>
-        <p class="newpill"><b>NEW</b> QR invites and tickets for events</p>
-                <p class="trust"><a href="#/map" data-act="maprole" data-v="Actor">Actors</a><a href="#/map" data-act="maprole" data-v="Director">Directors</a><a href="#/map" data-act="maprole" data-v="Producer">Producers</a><a href="#/map" data-act="maprole" data-v="Crew">Crew</a><a href="#/castings">Casting</a></p></div>
-        <div class="lhero-f"><form class="card joinform" data-form="signup"><span class="jpill">FREE FOR EVERYONE IN FILM</span><h2>Join Set UP</h2><ul class="jbul"><li>Share your work and join groups</li><li>Apply to castings, join events</li><li>Be found on the talent map</li></ul>
+      <section class="poster">
+        <div class="poster-art">
+          <h1 class="poster-h"><span>Share.</span><span>Cast.</span><span>Connect.</span><span>Repeat.</span></h1>
+          <a class="ptag t1" href="#/castings">Castings &amp; jobs</a><a class="ptag t2" href="#/map">Crew on the map</a><a class="ptag t3" href="#/meetups">Events with QR</a><a class="ptag t4" href="#/projects">Projects &amp; teams</a>
+          <svg class="pico i-clap" viewBox="0 0 120 110" aria-hidden="true"><defs><linearGradient id="gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset="1" stop-color="#0d0d0d"/></linearGradient></defs><rect x="10" y="38" width="100" height="62" rx="10" fill="url(#gk)"/><g transform="rotate(-12 14 38)"><rect x="10" y="14" width="100" height="24" rx="6" fill="url(#gk)"/><path d="M24 14l14 24M48 14l14 24M72 14l14 24M96 14l14 24" stroke="#f4f1ec" stroke-width="9"/></g><circle cx="60" cy="68" r="19" fill="#d12a1e"/><path d="M54 58l18 10-18 10z" fill="#fff"/></svg>
+          <svg class="pico i-cam" viewBox="0 0 130 100" aria-hidden="true"><defs><radialGradient id="gl" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#6b7a8c"/><stop offset=".5" stop-color="#1b232d"/><stop offset="1" stop-color="#05080b"/></radialGradient></defs><rect x="8" y="24" width="114" height="68" rx="12" fill="#161616"/><rect x="40" y="10" width="34" height="18" rx="6" fill="#161616"/><circle cx="68" cy="58" r="30" fill="#242424"/><circle cx="68" cy="58" r="23" fill="url(#gl)"/><circle cx="60" cy="50" r="6" fill="#fff" opacity=".35"/><circle cx="106" cy="38" r="5" fill="#d12a1e"/></svg>
+          <svg class="pico i-head" viewBox="0 0 120 120" aria-hidden="true"><path d="M20 70V58a40 40 0 0 1 80 0v12" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/><rect x="8" y="64" width="26" height="40" rx="12" fill="#161616"/><rect x="86" y="64" width="26" height="40" rx="12" fill="#161616"/><rect x="14" y="72" width="8" height="24" rx="4" fill="#d12a1e"/><rect x="98" y="72" width="8" height="24" rx="4" fill="#d12a1e"/></svg>
+          <svg class="pico i-reel" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="#161616"/><circle cx="60" cy="60" r="14" fill="#d12a1e"/><circle cx="60" cy="24" r="12" fill="#f4f1ec"/><circle cx="91" cy="42" r="12" fill="#f4f1ec"/><circle cx="91" cy="78" r="12" fill="#f4f1ec"/><circle cx="60" cy="96" r="12" fill="#f4f1ec"/><circle cx="29" cy="78" r="12" fill="#f4f1ec"/><circle cx="29" cy="42" r="12" fill="#f4f1ec"/></svg>
+          <p class="poster-sub">The network for film people. One profile for the whole production.</p>
+        </div>
+        <div class="poster-f"><form class="card joinform" data-form="signup"><span class="jpill">FREE FOR EVERYONE IN FILM</span><h2>Join Set UP</h2><ul class="jbul"><li>Share your work and join groups</li><li>Apply to castings, join events</li><li>Be found on the talent map</li></ul>
           <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
           <div class="field"><label for="je">Email</label><input id="je" name="email" type="email" required autocomplete="email"></div>
           <div class="field"><label for="jp">Password (8+ characters)</label><input id="jp" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
@@ -231,7 +235,7 @@ const homeRoute = async (forceFeed) => {
           <div class="field"><label for="jc">City</label><input id="jc" name="city" list="cities" maxlength="80" autocomplete="off"></div></div>${cityList()}
           <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
           <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p><p class="jfine">By joining you agree to the <a href="#/terms">Terms</a> and <a href="#/privacy">Privacy</a>.</p></form></div>
-        </section>
+      </section>
       <div class="marquee" aria-hidden="true"><div class="mq-track">${[...Array(2)].map(() => ['Actors','Directors','Producers','Cinematographers','Editors','Sound','Writers','Gaffers','Casting directors','Berlin','Istanbul','London','Paris','Hamburg','Vienna','Munich'].map((w) => `<span>${w}</span>`).join('')).join('')}</div></div>
 
       <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
