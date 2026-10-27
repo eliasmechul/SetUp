@@ -1050,3 +1050,6 @@ body[data-page=people] #view{display:block}
 :root{--mono:'Courier Prime','Courier New',monospace}
 .kicker,.eyebrow,.dl-kick,.dl-date,.take,.slate,.ctopic,.reel,.dept,.section-title,.sec2,.rail-title,.jpill,.lbar,.tk-main small,.tk-stub small,.tk-main span,.tk-main em,.sp-tag,.sp-up,.nf-code{font-family:'Courier Prime','Courier New',monospace!important;font-weight:700}
 .take,.dept,.slate,.reel,.ctopic{font-size:10.5px!important}
+/* grid pages: full-width info cards, compact segmented control */
+#view>.card:not(.comm):not(.evcard):not(.room){grid-column:1/-1}
+#view>.seg{justify-self:start;grid-column:1/-1}
