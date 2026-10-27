@@ -1166,3 +1166,5 @@ input::placeholder,textarea::placeholder{color:#9a958a}
 .co1{left:7%;top:17%;text-align:right;align-items:flex-end}.co2{left:5%;top:51%;text-align:right;align-items:flex-end}
 .co3{right:7%;left:auto;top:21%;text-align:left;align-items:flex-start;right:auto;left:70%}.co4{left:71%;right:auto;top:55%;text-align:left;align-items:flex-start}
 @media(max-width:820px){.leaders,.dot{display:none}.callout{white-space:normal}}
+.co1{left:14%!important;top:19%!important}.co2{left:15%!important;top:52%!important}
+.slight.l{left:-2%}.slight.r{right:-2%}
