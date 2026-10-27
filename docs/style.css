@@ -1112,3 +1112,21 @@ input::placeholder,textarea::placeholder{color:#9a958a}
 .poster-f .btn.block:hover{background:#D12A1E;border-color:#D12A1E}
 @media(max-width:980px){.landing .poster{grid-template-columns:1fr;gap:20px}.poster-art{min-height:480px}.poster-h{font-size:clamp(60px,18vw,120px)}.ptag{font-size:12.5px;padding:7px 14px}}
 @media(prefers-reduced-motion:reduce){.pico{animation:none}}
+
+/* ---------- poster hero: legible type, icons and tags around it, warm graded photos ---------- */
+.landing .poster{grid-template-columns:minmax(0,1.45fr) minmax(0,.75fr);gap:36px}
+.poster-art{min-height:640px}
+.poster-h{font-size:clamp(58px,8.4vw,122px);line-height:.88}
+.ptag.t1{top:27%;left:36%;transform:rotate(-5deg)}.ptag.t2{top:45%;left:2%;transform:rotate(4deg)}.ptag.t3{top:62%;left:34%;transform:rotate(-4deg)}.ptag.t4{top:79%;left:4%;transform:rotate(3deg)}
+.i-clap{width:132px;top:0;left:70%}.i-head{width:112px;top:22%;left:74%}.i-cam{width:150px;top:44%;left:68%}.i-reel{width:116px;top:70%;left:76%}
+.poster-sub{margin-top:26px}
+.wordmark img{mix-blend-mode:normal!important;background:#0F0A0E!important}
+.poster-f select,.poster-f input{color:#111!important}
+.poster-f select option{color:#111}
+@media(max-width:980px){.landing .poster{grid-template-columns:1fr}.poster-art{min-height:520px}.i-clap{left:66%;width:96px}.i-head{left:70%;width:84px}.i-cam{left:62%;width:110px}.i-reel{left:72%;width:88px}.ptag.t1{left:30%}.ptag.t3{left:26%}}
+/* warm, graded photography with film perforations */
+.tile{filter:none}
+.tile::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--img) center/cover no-repeat;filter:sepia(.3) saturate(1.2) contrast(1.05) brightness(.95)}
+.tile{background:linear-gradient(180deg,rgba(15,10,14,.05) 20%,rgba(15,10,14,.88))!important}
+.tile::after{display:block;opacity:1;content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 10px,transparent 10px 26px) 8px 0/8px 100% no-repeat,repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 10px,transparent 10px 26px) calc(100% - 16px) 0/8px 100% no-repeat;mix-blend-mode:overlay;opacity:.7}
+.tile>*{position:relative;z-index:2}
