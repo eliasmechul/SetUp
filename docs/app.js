@@ -134,6 +134,7 @@ function view(html, isWide) {
     applications: ['YOUR SLATE', 'Every casting you applied to, and where it stands.'], pro: ['SET UP PRO', 'Tools to hire and to host.'] }[document.body.dataset.page];
   const pt = document.querySelector('#view>.page-title');
   if (pt && T) { pt.dataset.k = T[0]; pt.dataset.s = T[1]; }
+}
 if (!window.__tc) { window.__tc = setInterval(() => { const el = document.getElementById('tc'); if (!el) return; const t = Date.now(); const f = Math.floor((t % 1000) / 41.67); const sec = Math.floor(t / 1000); const p = (n, l = 2) => String(n).padStart(l, '0'); el.textContent = `${p(Math.floor(sec / 3600) % 24)}:${p(Math.floor(sec / 60) % 60)}:${p(sec % 60)}:${p(f)}`; }, 80); }
 function revealOnScroll() {
   const els = document.querySelectorAll('.landing .lsec, .landing .lband, .landing .cta, .landing .strip');
