@@ -173,7 +173,7 @@ const meetMini = (m) => { const w = when(m.starts); return `<div class="mini"><d
 const railPerson = (u) => `<div class="person rp"><a href="#/profile/${u.id}">${av(u)}</a>${who(u)}${connBtn(u.id, 'none', true)}</div>`;
 const COVERS = ['f-comm', 'c-clap', 'f-map', 'c-studio', 'f-cast', 'c-sony', 'f-share', 'c-rig', 'rooms', 'c-slate', 'hero'];
 const coverOf = (c) => `img/${COVERS[(Number(String(c.id).replace(/\D/g, '').slice(-4)) * 7 + String(c.topic || '').length * 3) % COVERS.length]}.jpg`;
-const commCard = (c) => `<article class="card comm"><a class="ccover" href="#/communities/${c.id}" style="background-image:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.7)),url(${coverOf(c)})" aria-label="${esc(c.name)}"><span class="ctopic">${esc(c.topic)}</span></a>
+const commCard = (c) => `<article class="card comm"><a class="ccover" href="#/communities/${c.id}" style="background-image:linear-gradient(180deg,rgba(15,10,14,.1),rgba(15,10,14,.7)),url(${coverOf(c)})" aria-label="${esc(c.name)}"><span class="ctopic">${esc(c.topic)}</span></a>
   <div class="cbody"><a href="#/communities/${c.id}"><h3>${esc(c.name)}</h3></a>${exPill(c)}
   <div class="sub">${c.members} member${c.members === 1 ? '' : 's'}${c.city ? ' · ' + esc(c.city) : ''}</div>
   ${c.description ? `<p class="cdesc">${esc(c.description)}</p>` : ''}
@@ -182,7 +182,7 @@ const STAGES = [['new', 'New'], ['shortlist', 'Shortlist'], ['callback', 'Callba
 const stageLabel = (k) => (STAGES.find((x) => x[0] === k) || ['', k])[1];
 function castCard(c) {
   const status = c.applied ? `<span class="pill ok">${c.stage && c.stage !== 'new' ? esc(stageLabel(c.stage)) : 'Applied'}</span>` : '';
-  return `<a class="cast" href="#/castings/${c.id}"><div class="cthumb" style="background-image:linear-gradient(180deg,rgba(15,23,36,.05),rgba(15,23,36,.6)),url(${coverOf({ topic: c.category, id: c.id })})"><span>${esc(c.category)}</span></div><div class="in">
+  return `<a class="cast" href="#/castings/${c.id}"><div class="cthumb" style="background-image:linear-gradient(180deg,rgba(15,10,14,.05),rgba(15,10,14,.6)),url(${coverOf({ topic: c.category, id: c.id })})"><span>${esc(c.category)}</span></div><div class="in">
     <span class="kicker">${esc(c.category)} casting ${exPill(c)}</span><h3>${esc(c.title)}</h3>
     <div class="meta chips">${c.production ? `<span>${esc(c.production)}</span>` : ''}${c.city ? `<span>${ico('pin')} ${esc(c.city)}</span>` : ''}${c.pay ? `<span>${esc(c.pay)}</span>` : ''}${c.deadline ? `<span>Closes ${esc(when(c.deadline).text)}</span>` : ''}</div>
     <div class="meta"><span>Posted ${ago(c.created)} by ${esc(c.poster)}</span>${c.applicants !== undefined ? `<span>${c.applicants} applied</span>` : ''}${status}</div>
@@ -365,7 +365,7 @@ route(/^#\/communities\/(\d+)$/, async (id) => {
     : `<div class="card center"><p class="muted">Join this group to post and comment.</p><button class="btn" data-act="joincomm" data-id="${c.id}">Join group</button></div>`)
     : `<div class="card center"><p class="muted">Log in to join this group and take part in the discussion.</p><a class="btn" href="#/signup">Join Set UP</a></div>`;
   view(`<p><a class="link" href="#/communities">${ico('back')} Communities</a></p>
-    <div class="gcover" style="background-image:linear-gradient(180deg,rgba(14,13,12,.05),rgba(14,13,12,.75)),url(${coverOf(c)})"><span class="ctopic">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''}</span></div>
+    <div class="gcover" style="background-image:linear-gradient(180deg,rgba(15,10,14,.05),rgba(15,10,14,.75)),url(${coverOf(c)})"><span class="ctopic">${esc(c.topic)}${c.city ? ' · ' + esc(c.city) : ''}</span></div>
     <div class="ghead card"><div><h1 class="gname">${esc(c.name)}</h1><div class="sub">${c.members} member${c.members === 1 ? '' : 's'} · Public group</div></div>
       <div class="pro-actions">${mine ? `<button class="btn danger sm" data-act="delcomm" data-id="${c.id}">Delete group</button>` : `<button class="btn ${c.joined ? 'ghost' : ''}" data-act="joincomm" data-id="${c.id}">${c.joined ? 'Joined ✓' : 'Join group'}</button>`}</div></div>
     <div class="ggrid"><div class="gmain">${composer}
@@ -510,7 +510,7 @@ route(/^#\/checkin\/(\d+)\/([0-9a-f-]{36})$/, async (mid, guestId) => {
 
 const PSTATUS = [['development', 'Development'], ['pre_production', 'Pre-production'], ['shooting', 'Shooting'], ['post_production', 'Post-production'], ['released', 'Released']];
 const pstatus = (k) => (PSTATUS.find((x) => x[0] === k) || ['', k])[1];
-const projCard = (p, i = 0) => `<article class="card comm"><a class="ccover" href="#/projects/${p.id}" style="background-image:linear-gradient(180deg,rgba(14,13,12,.1),rgba(14,13,12,.7)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})" aria-label="${esc(p.title)}"><span class="slate">SC ${String(i + 1).padStart(2, '0')}</span><span class="ctopic">${esc(pstatus(p.status))}</span></a>
+const projCard = (p, i = 0) => `<article class="card comm"><a class="ccover" href="#/projects/${p.id}" style="background-image:linear-gradient(180deg,rgba(15,10,14,.1),rgba(15,10,14,.7)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})" aria-label="${esc(p.title)}"><span class="slate">SC ${String(i + 1).padStart(2, '0')}</span><span class="ctopic">${esc(pstatus(p.status))}</span></a>
   <div class="cbody"><a href="#/projects/${p.id}"><h3>${esc(p.title)}</h3></a><div class="sub">${p.genre ? esc(p.genre) + ' · ' : ''}${p.city ? esc(p.city) + ' · ' : ''}by ${esc(p.owner)} · ${p.team} in the team</div>
   ${p.logline ? `<p class="cdesc">${esc(p.logline)}</p>` : ''}</div></article>`;
 
@@ -532,7 +532,7 @@ route(/^#\/projects\/(\d+)$/, async (id) => {
   const team = p.team.map((t) => `<div class="person rp"><a href="#/profile/${t.id}">${av(t)}</a><a class="who" href="#/profile/${t.id}"><div class="name">${esc(t.name)}</div><div class="sub">${esc(t.crew_role)}${t.days ? ' · ' + esc(t.days) : ''}</div></a>${p.mine ? `<button class="link" data-act="crewremove" data-id="${p.id}" data-uid="${t.id}">Remove</button>` : ''}</div>`).join('');
   const pending = p.pending.map((t) => `<div class="person rp"><a href="#/profile/${t.id}">${av(t)}</a><a class="who" href="#/profile/${t.id}"><div class="name">${esc(t.name)}</div><div class="sub">${esc(t.crew_role)} · ${t.status === 'invited' ? 'waiting for an answer' : 'declined'}</div></a><button class="link" data-act="crewremove" data-id="${p.id}" data-uid="${t.id}">Remove</button></div>`).join('');
   view(`<p><a class="link" href="#/projects">${ico('back')} Projects</a></p>
-    <div class="gcover" style="background-image:linear-gradient(180deg,rgba(14,13,12,.05),rgba(14,13,12,.75)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})"><span class="ctopic">${esc(pstatus(p.status))}${p.genre ? ' · ' + esc(p.genre) : ''}</span></div>
+    <div class="gcover" style="background-image:linear-gradient(180deg,rgba(15,10,14,.05),rgba(15,10,14,.75)),url(${coverOf({ topic: p.genre || p.title, id: p.id })})"><span class="ctopic">${esc(pstatus(p.status))}${p.genre ? ' · ' + esc(p.genre) : ''}</span></div>
     <div class="ghead card"><div><h1 class="gname">${esc(p.title)}</h1><div class="sub">by <a class="link" href="#/profile/${p.owner_id}">${esc(p.owner)}</a>${p.city ? ' · ' + esc(p.city) : ''} · ${p.team} in the team</div></div>
       <div class="pro-actions">${p.mine ? `<form data-form="projstatus" data-id="${p.id}" class="inline"><label class="sr" for="ps">Status</label><select id="ps" name="status">${PSTATUS.map(([k, l]) => `<option value="${k}" ${k === p.status ? 'selected' : ''}>${l}</option>`).join('')}</select><button class="btn ghost sm" type="submit">Update</button></form><button class="btn danger sm" data-act="delproject" data-id="${p.id}">Delete</button>` : ''}</div></div>
     ${p.invite ? `<div class="card"><span class="kicker">${ico('brief')} You are invited</span><h3>${esc(p.invite.role)}${p.invite.days ? ' · ' + esc(p.invite.days) : ''}</h3>${p.invite.note ? `<p class="post-body">${esc(p.invite.note)}</p>` : ''}<div class="pro-actions"><button class="btn" data-act="crewrespond" data-id="${p.id}" data-v="accepted">Accept</button><button class="btn ghost" data-act="crewrespond" data-id="${p.id}" data-v="declined">Decline</button></div></div>` : ''}
@@ -635,7 +635,7 @@ route(/^#\/meetups$/, async () => {
     <div class="seg"><button class="${ui.meetTab === 'upcoming' ? 'on' : ''}" data-act="meettab" data-v="upcoming">Upcoming</button><button class="${ui.meetTab === 'mine' ? 'on' : ''}" data-act="meettab" data-v="mine">Going / Hosting</button></div>
     ${sampleNote(meetups)}
     ${S.me ? '<p><button class="link" data-act="compose" data-v="meetup">+ Host a meetup</button></p>' : ''}
-    ${meetups.length ? meetups.map((m) => { const w = when(m.starts); const mine = S.me && S.me.id === m.host_id; return `<div class="card evcard"><div class="ethumb" style="background-image:linear-gradient(180deg,rgba(15,23,36,.05),rgba(15,23,36,.7)),url(${coverOf({ topic: m.city || m.title, id: m.id })})"><span>${esc(m.city || 'Event')}</span></div><div class="event">
+    ${meetups.length ? meetups.map((m) => { const w = when(m.starts); const mine = S.me && S.me.id === m.host_id; return `<div class="card evcard"><div class="ethumb" style="background-image:linear-gradient(180deg,rgba(15,10,14,.05),rgba(15,10,14,.7)),url(${coverOf({ topic: m.city || m.title, id: m.id })})"><span>${esc(m.city || 'Event')}</span></div><div class="event">
       <div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div>
       <div class="info"><a href="#/meetups/${m.id}"><h3>${esc(m.title)}</h3></a>${exPill(m)}<div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}${m.city ? ', ' + esc(m.city) : ''}</div>
       <div class="sub">${m.going} going · Hosted by <a class="link" href="#/profile/${m.host_id}">${esc(m.host)}</a></div></div>
