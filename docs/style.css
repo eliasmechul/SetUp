@@ -1033,3 +1033,14 @@ body[data-page=people] #view{display:block}
 @media(max-width:900px){body[data-page] #view{display:block!important}body[data-page] #view>*{margin-bottom:14px}}
 .comm{display:flex;flex-direction:column}.comm .cbody{flex:1;display:flex;flex-direction:column;align-items:flex-start}
 @media(min-width:760px){#view .comm{display:flex!important;grid-template-columns:none}.comm .ccover{min-height:150px}}
+
+/* menu bar in screenplay type: Courier Prime, scene-heading caps */
+.ni,.ni.mob,.ol,.navbar.out .signin,.authbtns .btn.sm,.navbar.out .btn.sm,.navbar .gsearch input{font-family:'Courier Prime','Courier New',monospace!important}
+@media(min-width:900px){
+  .ni,.ni.mob,.ol{font-size:14.5px!important;font-weight:700!important;text-transform:uppercase;letter-spacing:.07em!important;padding:0 17px!important}
+  .navbar.out .signin{font-size:14.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+  .authbtns .btn.sm,.navbar.out .btn.sm{font-size:14.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+  .ni .ico{width:17px;height:17px}
+  .wordmark .up{font-family:'Courier Prime',monospace!important;font-weight:700}
+}
+@media(min-width:900px) and (max-width:1360px){.ni,.ni.mob{padding:0 14px!important}}
