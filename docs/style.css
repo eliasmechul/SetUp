@@ -1180,3 +1180,20 @@ input::placeholder,textarea::placeholder{color:#9a958a}
 .spot .btn{background:#D12A1E;color:#fff}.spot .btn.ghost{background:transparent;border-color:rgba(255,255,255,.5);color:#fff}.spot .btn.ghost:hover{background:#fff;color:#111}
 @media(max-width:700px){.spot{min-height:520px}.spot-chair{width:58vw;bottom:24px}}
 @media(prefers-reduced-motion:reduce){.spot-beam{animation:none}}
+
+/* =====================================================================
+   v27 screenplay type everywhere (Courier Prime)
+   ===================================================================== */
+*,*::before,*::after{font-family:'Courier Prime','Courier New',monospace!important}
+body{font-size:15.5px;letter-spacing:0;font-optical-sizing:none}
+h1,h2,h3,h4,.name,.page-title,.poster-h,.studio-h,.spot h2,.pname,.gname,.tile h3,.cast h3,.event h3,.tk-main b{letter-spacing:-.02em!important;font-weight:700}
+.poster-h{font-size:clamp(50px,7.3vw,106px)!important;line-height:.95}
+.studio-h{font-size:clamp(58px,8vw,112px)!important}
+#view>.page-title{font-size:clamp(38px,4.6vw,60px)!important}
+.lhero-t h1,.shero-t h1{font-size:clamp(36px,4.2vw,56px)!important}
+.spot h2{font-size:clamp(30px,4vw,50px)!important}
+.tile h3,.cast h3,.event h3{font-weight:700}
+.btn,.chip,.ni,.ol{font-weight:700}
+.lead2,.poster-sub{font-size:16.5px}
+em,i{font-style:italic}
+.lh,.landing .lband h2,.landing .ssplit h2{font-size:clamp(28px,3.2vw,40px)!important}
