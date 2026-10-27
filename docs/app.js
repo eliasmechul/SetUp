@@ -238,12 +238,17 @@ const homeRoute = async (forceFeed) => {
       </section>
       <div class="marquee" aria-hidden="true"><div class="mq-track">${[...Array(2)].map(() => ['Actors','Directors','Producers','Cinematographers','Editors','Sound','Writers','Gaffers','Casting directors','Berlin','Istanbul','London','Paris','Hamburg','Vienna','Munich'].map((w) => `<span>${w}</span>`).join('')).join('')}</div></div>
 
-      <section class="lband"><p class="eyebrow">What you can do</p><h2>Everything a production needs, <i>one network.</i></h2>
-        <div class="bento">
-          <a class="tile t1" href="#/feed" aria-label="Open the feed" style="--img:url(img/f-share.jpg)"><span class="reel">REEL 01</span><h3>Share your work</h3><p>Stills, reels and behind-the-scenes. Tag a post as showcase, question, tip or collab so the right people see it.</p><span class="go" aria-hidden="true">→</span></a>
-          <a class="tile t2" href="#/castings" aria-label="Browse castings" style="--img:url(img/f-cast.jpg)"><span class="reel">REEL 02</span><h3>Find jobs and castings</h3><p>Post a role or apply with your profile in one tap.</p><span class="go" aria-hidden="true">→</span></a>
-          <a class="tile t3" href="#/map" aria-label="Open the talent map" style="--img:url(img/f-map.jpg)"><span class="reel">REEL 03</span><h3>Find your crew on the map</h3><p>Role, city, availability. Connect before you message.</p><span class="go" aria-hidden="true">→</span></a>
-          <a class="tile t4" href="#/communities" aria-label="Explore communities" style="--img:url(img/f-comm.jpg)"><span class="reel">REEL 04</span><h3>Join communities</h3><p>Groups for your craft and your city, plus meetups where you meet your next collaborator.</p><span class="go" aria-hidden="true">→</span></a>
+      <section class="studio">
+        <h2 class="studio-h">WHAT?</h2>
+        <p class="studio-sub"><span>CAN YOU DO ON SET UP</span></p>
+        <div class="studio-stage">
+          <svg class="slight l" viewBox="0 0 120 300" aria-hidden="true"><defs><radialGradient id="lga" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6d6"/><stop offset=".45" stop-color="#ffd98a"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient></defs><circle cx="60" cy="64" r="58" fill="url(#lga)" opacity=".9"/><path d="M60 118v170M30 292h60M60 200l-30 92M60 200l30 92" stroke="#161616" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="34" y="44" width="52" height="40" rx="8" fill="#161616"/><circle cx="60" cy="64" r="13" fill="#fff3c2"/><path d="M34 44l-16-12M34 84l-16 12M86 44l16-12M86 84l16 12" stroke="#161616" stroke-width="6" stroke-linecap="round"/></svg>
+          <img class="chair" src="img/chair.jpg" alt="A director's chair in a bright studio" loading="lazy">
+          <svg class="slight r" viewBox="0 0 120 300" aria-hidden="true"><defs><radialGradient id="lgb" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6d6"/><stop offset=".45" stop-color="#ffd98a"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient></defs><circle cx="60" cy="64" r="58" fill="url(#lgb)" opacity=".9"/><path d="M60 118v170M30 292h60M60 200l-30 92M60 200l30 92" stroke="#161616" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="34" y="44" width="52" height="40" rx="8" fill="#161616"/><circle cx="60" cy="64" r="13" fill="#fff3c2"/><path d="M34 44l-16-12M34 84l-16 12M86 44l16-12M86 84l16 12" stroke="#161616" stroke-width="6" stroke-linecap="round"/></svg>
+          <a class="callout co1" href="#/feed"><b>Share your work</b><span>Posts, stills and reels</span></a>
+          <a class="callout co2" href="#/castings"><b>Castings &amp; jobs</b><span>Apply in one tap</span></a>
+          <a class="callout co3" href="#/map"><b>Crew on the map</b><span>By craft, city, availability</span></a>
+          <a class="callout co4" href="#/meetups"><b>Events with QR</b><span>Tickets and check-in</span></a>
         </div></section>
 
       <section class="lsec roomsband"><div class="roomsin"><div><p class="eyebrow">Meetups and special occasions</p><h2 class="lh">Every event gets <i>its own QR code.</i></h2>

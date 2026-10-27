@@ -59,3 +59,4 @@ Photos: img/*.jpg come from Unsplash (free license, no attribution required): se
 - Pro: `setup_settings.pro_open = 'true'` lets anyone self-activate Pro (early access, no payments). Set to 'false' to hand out Pro manually (update setup_profiles.plan). Real payments need a payment provider account (not set up).
 - Sample people/castings/meetups still show (tagged Example) until real ones exist. Remove `SAMPLE.*` fallbacks in docs/api.js before a public launch.
 - Still needed before launch: domain (setupfilm.com), real SMTP, legal pages, original logo, real photos.
+Photos in img/ are from Unsplash (free license): see unsplash.com/license.
