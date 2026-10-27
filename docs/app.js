@@ -128,7 +128,12 @@ function view(html, isWide) {
   if (v) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
   revealOnScroll();
   document.querySelectorAll('canvas[data-qr]').forEach((c) => drawQR(c, c.dataset.qr, +c.dataset.px || 240));
-}
+  const T = { castings: ['CASTING BOARD', 'Open roles from productions near you. Apply with your profile in one tap.'], communities: ['THE LOUNGE', 'Groups for your craft and your city. Ask, answer and meet your next collaborator.'],
+    projects: ['IN PRODUCTION', 'Films in the making. Build the team, book the crew, keep every shooting day in one place.'], meetups: ['CALL SHEET', 'Meetups, screenings and special occasions, each with its own QR ticket.'],
+    people: ['THE CREW', 'Find actors, directors and crew by craft, city and availability.'], messages: ['BACKSTAGE', 'Conversations with the people you work with.'], notifications: ['ON SET', 'What happened while you were away.'],
+    applications: ['YOUR SLATE', 'Every casting you applied to, and where it stands.'], pro: ['SET UP PRO', 'Tools to hire and to host.'] }[document.body.dataset.page];
+  const pt = document.querySelector('#view>.page-title');
+  if (pt && T) { pt.dataset.k = T[0]; pt.dataset.s = T[1]; }
 if (!window.__tc) { window.__tc = setInterval(() => { const el = document.getElementById('tc'); if (!el) return; const t = Date.now(); const f = Math.floor((t % 1000) / 41.67); const sec = Math.floor(t / 1000); const p = (n, l = 2) => String(n).padStart(l, '0'); el.textContent = `${p(Math.floor(sec / 3600) % 24)}:${p(Math.floor(sec / 60) % 60)}:${p(sec % 60)}:${p(f)}`; }, 80); }
 function revealOnScroll() {
   const els = document.querySelectorAll('.landing .lsec, .landing .lband, .landing .cta, .landing .strip');
@@ -176,11 +181,11 @@ const STAGES = [['new', 'New'], ['shortlist', 'Shortlist'], ['callback', 'Callba
 const stageLabel = (k) => (STAGES.find((x) => x[0] === k) || ['', k])[1];
 function castCard(c) {
   const status = c.applied ? `<span class="pill ok">${c.stage && c.stage !== 'new' ? esc(stageLabel(c.stage)) : 'Applied'}</span>` : '';
-  return `<a class="cast" href="#/castings/${c.id}"><div class="in">
+  return `<a class="cast" href="#/castings/${c.id}"><div class="cthumb" style="background-image:linear-gradient(180deg,rgba(15,23,36,.05),rgba(15,23,36,.6)),url(${coverOf({ topic: c.category, id: c.id })})"><span>${esc(c.category)}</span></div><div class="in">
     <span class="kicker">${esc(c.category)} casting ${exPill(c)}</span><h3>${esc(c.title)}</h3>
-    <div class="meta">${c.production ? `<span>${esc(c.production)}</span>` : ''}${c.city ? `<span>${esc(c.city)}</span>` : ''}${c.pay ? `<span>${esc(c.pay)}</span>` : ''}${c.deadline ? `<span>Closes ${esc(when(c.deadline).text)}</span>` : ''}</div>
+    <div class="meta chips">${c.production ? `<span>${esc(c.production)}</span>` : ''}${c.city ? `<span>${ico('pin')} ${esc(c.city)}</span>` : ''}${c.pay ? `<span>${esc(c.pay)}</span>` : ''}${c.deadline ? `<span>Closes ${esc(when(c.deadline).text)}</span>` : ''}</div>
     <div class="meta"><span>Posted ${ago(c.created)} by ${esc(c.poster)}</span>${c.applicants !== undefined ? `<span>${c.applicants} applied</span>` : ''}${status}</div>
-  </div></a>`;
+  </div><span class="go2" aria-hidden="true">→</span></a>`;
 }
 function personCard(u, state) {
   return `<div class="card person">${`<a href="#/profile/${u.id}">${av(u)}</a>`}${who(u)}${connBtn(u.id, state || u.state, true)}</div>`;
@@ -629,7 +634,7 @@ route(/^#\/meetups$/, async () => {
     <div class="seg"><button class="${ui.meetTab === 'upcoming' ? 'on' : ''}" data-act="meettab" data-v="upcoming">Upcoming</button><button class="${ui.meetTab === 'mine' ? 'on' : ''}" data-act="meettab" data-v="mine">Going / Hosting</button></div>
     ${sampleNote(meetups)}
     ${S.me ? '<p><button class="link" data-act="compose" data-v="meetup">+ Host a meetup</button></p>' : ''}
-    ${meetups.length ? meetups.map((m) => { const w = when(m.starts); const mine = S.me && S.me.id === m.host_id; return `<div class="card"><div class="event">
+    ${meetups.length ? meetups.map((m) => { const w = when(m.starts); const mine = S.me && S.me.id === m.host_id; return `<div class="card evcard"><div class="ethumb" style="background-image:linear-gradient(180deg,rgba(15,23,36,.05),rgba(15,23,36,.7)),url(${coverOf({ topic: m.city || m.title, id: m.id })})"><span>${esc(m.city || 'Event')}</span></div><div class="event">
       <div class="date"><span>${esc(w.mon)}</span><b>${w.day}</b></div>
       <div class="info"><a href="#/meetups/${m.id}"><h3>${esc(m.title)}</h3></a>${exPill(m)}<div class="sub">${esc(w.text)}${m.venue ? ' · ' + esc(m.venue) : ''}${m.city ? ', ' + esc(m.city) : ''}</div>
       <div class="sub">${m.going} going · Hosted by <a class="link" href="#/profile/${m.host_id}">${esc(m.host)}</a></div></div>
@@ -648,7 +653,7 @@ route(/^#\/people$/, async () => {
     <div class="field"><label class="sr" for="pc">City</label><input id="pc" name="city" placeholder="Any city" value="${esc(ui.pcity)}"></div></div>
     <button class="btn block" type="submit">Search</button></form>
     <h2 class="section-title">${people.length} found</h2>
-    ${people.map((u) => personCard(u)).join('') || '<div class="empty">No one matches yet.</div>'}`);
+    ${people.length ? `<div class="pgrid">${people.map((u) => personCard(u)).join('')}</div>` : '<div class="empty">No one matches yet.</div>'}`);
 });
 
 route(/^#\/profile\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/, async (id) => {

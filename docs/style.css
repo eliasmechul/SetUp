@@ -918,3 +918,50 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;letter-spacing:-.005em
 .rail .card,.lcol .card{border-radius:18px}
 .kindchips{gap:8px}
 .mini{padding:10px 0}
+
+/* =====================================================================
+   v22 expressive inner pages: title cards, casting board, event tickets,
+   crew grid. One bold system instead of plain lists.
+   ===================================================================== */
+/* title cards */
+#view>.page-title{min-height:210px;display:flex;flex-direction:column;justify-content:flex-end;padding:30px 34px;border-radius:26px;font:400 clamp(44px,5.4vw,68px)/.98 'Instrument Serif',serif;letter-spacing:-.015em;margin-bottom:22px;
+  background:linear-gradient(180deg,rgba(5,8,15,.15),rgba(5,8,15,.88)),radial-gradient(60% 120% at 90% 0%,rgba(240,169,79,.22),transparent 60%),var(--ph,url(img/hero.jpg)) center/cover no-repeat}
+#view>.page-title::before{content:attr(data-k);position:absolute;top:22px;left:34px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.24em;color:var(--amber)}
+#view>.page-title::after{content:attr(data-s);display:block;font:500 15.5px/1.4 'Plus Jakarta Sans',sans-serif;letter-spacing:0;color:#cfd8e6;max-width:34em;margin-top:10px}
+body[data-page=castings] #view>.page-title{--k:1}
+/* casting board */
+.cast{display:flex!important;padding:0!important;overflow:hidden;border-left:0!important;border-radius:20px!important;min-height:132px;position:relative}
+.cthumb{width:150px;flex:none;background-size:cover;background-position:center;position:relative;display:flex;align-items:flex-end;padding:12px}
+.cthumb span{font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:#F6F2EA;background:rgba(5,8,15,.55);padding:3px 8px;border-radius:5px;backdrop-filter:blur(4px)}
+.cast .in{flex:1;padding:18px 54px 16px 22px!important}
+.cast h3{font:400 28px/1.05 'Instrument Serif',serif!important;margin:4px 0 10px}
+.meta.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.meta.chips span{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--soft)}
+.meta.chips .ico{width:13px;height:13px}
+.go2{position:absolute;right:18px;top:50%;margin-top:-18px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line3);color:var(--soft);transition:background .25s var(--ease),color .25s var(--ease),transform .25s var(--ease)}
+a.cast:hover .go2{background:var(--amber);border-color:var(--amber);color:#1a1205;transform:translateX(3px)}
+a.cast{transition:transform .25s var(--ease),border-color .25s var(--ease),box-shadow .25s var(--ease)}
+@media(max-width:640px){.cthumb{width:84px}.cast .in{padding:14px 46px 14px 16px!important}.cast h3{font-size:23px!important}}
+/* event tickets */
+.evcard{padding:0!important;overflow:hidden}
+.ethumb{height:104px;background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:12px 18px}
+.ethumb span{font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:#F6F2EA;background:rgba(5,8,15,.55);padding:3px 8px;border-radius:5px}
+.evcard>:not(.ethumb){margin-left:20px;margin-right:20px}.evcard>.event{padding-top:16px}.evcard>*:last-child{margin-bottom:16px}
+.event .date{width:68px;min-height:72px;border-radius:14px;background:linear-gradient(180deg,#1b2942,#121c2f);border:1px solid var(--line3);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.event .date b{font:400 34px/1 'Instrument Serif',serif;color:#F6F2EA}
+.event .date span{font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.2em;color:var(--amber)}
+.event h3{font:400 28px/1.1 'Instrument Serif',serif!important}
+/* crew grid */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pgrid .card.person{margin:0;border-radius:20px;padding:18px}
+/* section headings */
+.section-title,.sec2{display:flex;align-items:center;gap:12px;font:500 11.5px 'IBM Plex Mono',monospace!important;letter-spacing:.22em;color:var(--amber);margin:30px 0 14px}
+.section-title::after,.sec2::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line3),transparent)}
+/* inline filters */
+.chips .chip{padding:8px 16px;font-weight:600}
+.chips .chip.on{box-shadow:0 6px 18px rgba(240,169,79,.25)}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px}
+.seg button{border-radius:999px;border:0!important;padding:8px 18px;font-weight:600}
+.seg button.on{background:var(--amber);color:#1a1205!important}
+/* page backdrop with depth */
+body{background-image:radial-gradient(1000px 600px at 92% -6%,rgba(240,169,79,.09),transparent 70%),radial-gradient(900px 620px at -8% 24%,rgba(80,120,200,.10),transparent 70%),radial-gradient(800px 500px at 60% 110%,rgba(240,169,79,.06),transparent 70%);background-attachment:fixed}
