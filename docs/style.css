@@ -1044,3 +1044,4 @@ body[data-page=people] #view{display:block}
   .wordmark .up{font-family:'Courier Prime',monospace!important;font-weight:700}
 }
 @media(min-width:900px) and (max-width:1360px){.ni,.ni.mob{padding:0 14px!important}}
+@media(min-width:900px){.topnav{align-items:center}.ni,.ni.mob,.ol{display:inline-flex!important;align-items:center;justify-content:center;line-height:1}.navin{align-items:center}}
