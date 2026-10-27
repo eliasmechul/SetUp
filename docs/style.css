@@ -1130,3 +1130,5 @@ input::placeholder,textarea::placeholder{color:#9a958a}
 .tile{background:linear-gradient(180deg,rgba(15,10,14,.05) 20%,rgba(15,10,14,.88))!important}
 .tile::after{display:block;opacity:1;content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 10px,transparent 10px 26px) 8px 0/8px 100% no-repeat,repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 10px,transparent 10px 26px) calc(100% - 16px) 0/8px 100% no-repeat;mix-blend-mode:overlay;opacity:.7}
 .tile>*{position:relative;z-index:2}
+.ptag.t1{top:20.5%;left:41%}.ptag.t2{top:33%;left:30%}.ptag.t3{top:46.5%;left:58%}.ptag.t4{top:60.5%;left:51%}
+.tile::after{opacity:.4}
