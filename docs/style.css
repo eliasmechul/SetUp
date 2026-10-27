@@ -965,3 +965,15 @@ a.cast{transition:transform .25s var(--ease),border-color .25s var(--ease),box-s
 .seg button.on{background:var(--amber);color:#1a1205!important}
 /* page backdrop with depth */
 body{background-image:radial-gradient(1000px 600px at 92% -6%,rgba(240,169,79,.09),transparent 70%),radial-gradient(900px 620px at -8% 24%,rgba(80,120,200,.10),transparent 70%),radial-gradient(800px 500px at 60% 110%,rgba(240,169,79,.06),transparent 70%);background-attachment:fixed}
+
+/* fixes from the first look */
+#view>.page-title{display:block!important;min-height:236px;padding:76px 34px 26px!important}
+#view>.page-title::before{top:26px}
+.evcard>:not(.ethumb){margin-left:20px!important;margin-right:20px!important}
+input,select,textarea{background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.17)!important;border-radius:12px!important;min-height:46px;color:var(--text)}
+textarea{min-height:110px}
+input:focus,select:focus,textarea:focus{border-color:var(--amber)!important;background:rgba(255,255,255,.08)!important;box-shadow:0 0 0 3px rgba(240,169,79,.18)}
+input::placeholder,textarea::placeholder{color:#8091aa}
+select option{color:#111;background:#fff}
+.gsearch{border-radius:999px!important}
+.gsearch input{border:0!important;background:transparent!important;min-height:38px;box-shadow:none!important}
