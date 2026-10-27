@@ -264,7 +264,17 @@ const homeRoute = async (forceFeed) => {
 
       <section class="lsec faq"><h2 class="lh">Questions</h2>${faq.map(([q, a2]) => `<details class="card"><summary>${esc(q)}</summary><p class="muted">${esc(a2)}</p></details>`).join('')}</section>
 
-      <section class="cta"><h2>Your next set is one search away.</h2><p>Create your free profile in two minutes.</p><a class="btn white lg" href="#/signup">Join Set UP</a></section>
+      <section class="spot">
+        <div class="spot-beam" aria-hidden="true"></div>
+        <svg class="spot-chair" viewBox="0 0 300 330" aria-hidden="true"><defs><linearGradient id="wd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3b97e"/><stop offset="1" stop-color="#a87a44"/></linearGradient><linearGradient id="cv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3446"/><stop offset="1" stop-color="#10151f"/></linearGradient></defs>
+          <ellipse cx="150" cy="312" rx="120" ry="13" fill="#000" opacity=".55"/>
+          <rect x="62" y="38" width="176" height="62" rx="6" fill="url(#cv)"/><rect x="58" y="34" width="10" height="160" rx="4" fill="url(#wd)"/><rect x="232" y="34" width="10" height="160" rx="4" fill="url(#wd)"/>
+          <rect x="38" y="140" width="54" height="9" rx="4" fill="url(#wd)"/><rect x="208" y="140" width="54" height="9" rx="4" fill="url(#wd)"/>
+          <path d="M60 178q90 30 180 0l-4 20q-86 24 -172 0z" fill="url(#cv)"/>
+          <path d="M70 196L238 308M230 196L62 308" stroke="url(#wd)" stroke-width="11" stroke-linecap="round"/><rect x="60" y="300" width="180" height="9" rx="4" fill="url(#wd)" opacity=".9"/>
+        </svg>
+        <div class="spot-t"><p class="spot-k">YOUR SEAT IS WAITING</p><h2>Take your place on the call sheet.</h2><p><a class="btn lg" href="#/signup">Join Set UP</a> <a class="btn ghost lg" href="#/feed">Look around first</a></p></div>
+      </section>
     </div>`, true);
     { const cv = document.getElementById('demoqr'); if (cv && window.qrcode) drawQR(cv, location.origin + location.pathname + '#/meetups', 200); }
     return;

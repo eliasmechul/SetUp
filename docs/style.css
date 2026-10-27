@@ -1168,3 +1168,15 @@ input::placeholder,textarea::placeholder{color:#9a958a}
 @media(max-width:820px){.leaders,.dot{display:none}.callout{white-space:normal}}
 .co1{left:14%!important;top:19%!important}.co2{left:15%!important;top:52%!important}
 .slight.l{left:-2%}.slight.r{right:-2%}
+
+/* spotlight finale: a chair alone in the beam */
+.spot{position:relative;margin:72px 0 24px;border-radius:34px;overflow:hidden;background:#07080b;min-height:560px;display:grid;place-items:center;text-align:center;isolation:isolate;--text:#F6F2EA;--soft:#e6dadf;color:#F6F2EA}
+.spot-beam{position:absolute;inset:0;z-index:0;background:conic-gradient(from 180deg at 50% -8%,transparent 152deg,rgba(255,238,200,.20) 168deg,rgba(255,238,200,.34) 180deg,rgba(255,238,200,.20) 192deg,transparent 208deg),radial-gradient(60% 24% at 50% 92%,rgba(255,238,200,.28),transparent 70%);animation:flick 7s ease-in-out infinite}
+@keyframes flick{0%,100%{opacity:1}48%{opacity:.92}52%{opacity:1}}
+.spot-chair{position:absolute;z-index:1;bottom:36px;left:50%;width:min(300px,44vw);transform:translateX(-50%);filter:drop-shadow(0 0 40px rgba(255,238,200,.12))}
+.spot-t{position:relative;z-index:2;padding:54px 24px 0;align-self:start}
+.spot-k{font:700 12px 'Courier Prime','Courier New',monospace;letter-spacing:.34em;color:#E9B25C;margin:0 0 14px}
+.spot h2{margin:0 auto 22px;max-width:14em;font:400 clamp(34px,4.8vw,60px)/1.04 'Instrument Serif',serif;color:#F6F2EA}
+.spot .btn{background:#D12A1E;color:#fff}.spot .btn.ghost{background:transparent;border-color:rgba(255,255,255,.5);color:#fff}.spot .btn.ghost:hover{background:#fff;color:#111}
+@media(max-width:700px){.spot{min-height:520px}.spot-chair{width:58vw;bottom:24px}}
+@media(prefers-reduced-motion:reduce){.spot-beam{animation:none}}
