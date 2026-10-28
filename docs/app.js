@@ -107,14 +107,14 @@ function shell(content) {
   $app.innerHTML = `
   <div class="shell">
     <header class="navbar ${m ? '' : 'out'}"><div class="navin">
-      <a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
+      <a class="wordmark" href="#/"><img src="logo-v2.png" alt=""><span class="set">Set</span><span class="up">UP</span></a>
       <form class="gsearch" data-form="gsearch" role="search"><label class="sr" for="gs">Search people</label>${ico('search')}<input id="gs" name="q" placeholder="Search people, roles, skills" autocomplete="off"></form>
       <nav class="topnav" aria-label="Main">${m ? top : outLinks}</nav>
       ${m ? '' : '<div class="authbtns"><a class="signin" href="#/login">Sign in</a><a class="btn sm" href="#/signup">Join free</a></div>'}
     </div></header>
     <main class="main ${wide ? 'wide' : ''}" id="view">${content}</main>
     <footer class="foot"><div class="foot-in">
-      <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
+      <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo-v2.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
       <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/pro">Set UP Pro</a><a href="#/projects">Projects</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
       <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
@@ -813,14 +813,14 @@ route(/^#\/imprint$/, async () => view(`<h1 class="page-title">Impressum</h1>${L
   <p>[If you are a company add: register court and number, VAT ID.]</p></div>`));
 
 route(/^#\/reset$/, async () => {
-  view(`<div class="auth"><div class="hero"><img src="logo.png" alt="Set UP logo"><p>Reset your password</p></div>
+  view(`<div class="auth"><div class="hero"><img src="logo-v2.png" alt="Set UP logo"><p>Reset your password</p></div>
     <form data-form="reset"><div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required autocomplete="email"></div>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Send reset link</button></form>
     <p style="text-align:center"><a class="link" href="#/login">Back to log in</a></p></div>`);
 });
 
 route(/^#\/new-password$/, async () => {
-  view(`<div class="auth"><div class="hero"><img src="logo.png" alt="Set UP logo"><p>Choose a new password</p></div>
+  view(`<div class="auth"><div class="hero"><img src="logo-v2.png" alt="Set UP logo"><p>Choose a new password</p></div>
     <form data-form="newpassword"><div class="field"><label for="p">New password (8+ characters)</label><input id="p" name="password" type="password" required minlength="8" autocomplete="new-password"></div>
     <p class="err" role="alert"></p><button class="btn block" type="submit">Save password</button></form></div>`);
 });
@@ -828,7 +828,7 @@ route(/^#\/new-password$/, async () => {
 route(/^#\/(login|signup)$/, async (mode) => {
   if (S.me) { location.hash = '#/'; return; }
   const signup = mode === 'signup';
-  view(`<div class="auth"><div class="hero"><img src="logo.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div><p>${signup ? 'Create your free profile' : 'Welcome back'}</p></div>
+  view(`<div class="auth"><div class="hero"><img src="logo-v2.png" alt="Set UP logo"><div><span class="big">Set<span class="up">UP</span></span></div><p>${signup ? 'Create your free profile' : 'Welcome back'}</p></div>
     <form data-form="${mode}">
     ${signup ? `<div class="field"><label for="n">Full name</label><input id="n" name="name" required maxlength="80" autocomplete="name"></div>` : ''}
     <div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required autocomplete="email"></div>

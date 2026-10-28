@@ -1197,3 +1197,9 @@ h1,h2,h3,h4,.name,.page-title,.poster-h,.studio-h,.spot h2,.pname,.gname,.tile h
 .lead2,.poster-sub{font-size:16.5px}
 em,i{font-style:italic}
 .lh,.landing .lband h2,.landing .ssplit h2{font-size:clamp(28px,3.2vw,40px)!important}
+
+/* new logo: photographic hands in a rounded square, with the red record dot */
+.wordmark img{height:46px!important;width:46px!important;max-width:none!important;border-radius:12px!important;object-fit:cover!important;background:#000!important;mix-blend-mode:normal!important;box-shadow:0 6px 16px rgba(0,0,0,.28)}
+.sp-logo{width:150px!important;mix-blend-mode:normal!important;border-radius:30px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.auth .hero img{border-radius:24px;width:96px;height:96px;object-fit:cover}
+@media(max-width:700px){.wordmark img{height:40px!important;width:40px!important}.sp-logo{width:120px!important}}
