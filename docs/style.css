@@ -1203,3 +1203,13 @@ em,i{font-style:italic}
 .sp-logo{width:150px!important;mix-blend-mode:normal!important;border-radius:30px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 .auth .hero img{border-radius:24px;width:96px;height:96px;object-fit:cover}
 @media(max-width:700px){.wordmark img{height:40px!important;width:40px!important}.sp-logo{width:120px!important}}
+
+/* poster hero on narrow screens: tighter, no dead space */
+@media(max-width:980px){
+  .landing .poster{padding-top:12px}
+  .poster-art{min-height:430px;justify-content:flex-start}
+  .poster-h{font-size:clamp(52px,13.5vw,112px)!important}
+  .i-clap{top:0;left:66%;width:92px}.i-head{top:23%;left:74%;width:78px}.i-cam{top:45%;left:64%;width:104px}.i-reel{top:70%;left:74%;width:84px}
+  .ptag.t1{top:21%;left:48%}.ptag.t2{top:36%;left:36%}.ptag.t3{top:51%;left:56%}.ptag.t4{top:66%;left:44%}
+  .poster-sub{position:absolute;left:0;bottom:0;margin:0}
+}
