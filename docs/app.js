@@ -126,6 +126,7 @@ function view(html, isWide) {
   wide = !!isWide; shell(html); window.scrollTo(0, 0);
   const v = document.getElementById('view');
   if (v) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
+  { const TT = { castings: 'Castings', communities: 'Communities', projects: 'Projects', meetups: 'Meetups', people: 'People', feed: 'Feed', map: 'Talent map', pro: 'Set UP Pro', share: 'Share Set UP', login: 'Log in', signup: 'Join', rooms: 'Private rooms', privacy: 'Privacy', terms: 'Terms', imprint: 'Impressum', messages: 'Messages', notifications: 'Alerts', applications: 'My applications', profile: 'Profile', join: 'Invitation', checkin: 'Check-in' }[document.body.dataset.page]; document.title = TT ? TT + ' · Set UP' : 'Set UP · Film people. One place.'; }
   revealOnScroll();
   document.querySelectorAll('canvas[data-qr]').forEach((c) => drawQR(c, c.dataset.qr, +c.dataset.px || 240));
   const T = { castings: ['CASTING BOARD', 'Open roles from productions near you. Apply with your profile in one tap.'], communities: ['THE LOUNGE', 'Groups for your craft and your city. Ask, answer and meet your next collaborator.'],
@@ -788,9 +789,11 @@ route(/^#\/tag\/(.+)$/, async (raw) => {
     ${posts.length ? posts.map(postCard).join('') : '<div class="empty">No posts with this tag yet.</div>'}`);
 });
 
-const LEGAL_NOTE = '<p class="sample-note"><b>Draft.</b> This is a template. Fill in the [brackets] and have it reviewed by a lawyer before you rely on it.</p>';
+const LG = (k, ph) => { const l = (window.SETUP_CONFIG && window.SETUP_CONFIG.legal) || {}; return l[k] ? esc(l[k]) : ph; };
+const legalFilled = () => !!((window.SETUP_CONFIG && window.SETUP_CONFIG.legal) || {}).name;
+const LEGAL_NOTE = '';
 route(/^#\/privacy$/, async () => view(`<h1 class="page-title">Privacy policy</h1>${LEGAL_NOTE}<div class="legal">
-  <p><b>Who is responsible:</b> [Your name or company], [address], [contact email].</p>
+  <p><b>Who is responsible:</b> ${LG('name', '[Your name or company]')}, ${LG('street', '[address]')}, ${LG('city', '')} ${LG('email', '[contact email]')}.</p>
   <h2>What we collect</h2><p>Account data you give us (name, email, role, city, profile text, photos, credits), the content you post (posts, comments, messages, castings, communities, meetups, applications), and the connections you make. Your email and password are handled by our login provider; we never see your password.</p>
   <h2>How we use it</h2><p>To run Set UP: show your profile and posts, place you on the talent map by city (only the city centre, never your address), let people connect, message and apply, send account emails (confirmation, password reset) and keep the service safe.</p>
   <h2>Who processes it</h2><p>Supabase (database, login, file storage; project region: [Singapore / update if you move it]); GitHub Pages (website hosting); OpenStreetMap (map tiles: your IP address is sent to them when you open the map); Google Fonts (fonts: your IP address is sent to Google). [Consider hosting the fonts yourself to avoid the Google request.]</p>
@@ -805,12 +808,12 @@ route(/^#\/terms$/, async () => view(`<h1 class="page-title">Terms of use</h1>${
   <h2>Castings and jobs</h2><p>Set UP only connects people. We do not employ anyone, we are not a party to any agreement between users, and we do not check castings. Use your own judgement and never pay to get a role.</p>
   <h2>Reports and removal</h2><p>Use the Report button. We may remove content or suspend accounts that break these rules.</p>
   <h2>Liability</h2><p>Set UP is provided as is. To the extent the law allows, we are not liable for losses arising from use of the service. [Have this clause reviewed.]</p>
-  <h2>Contact</h2><p>[contact email]. Governing law: [country / court].</p></div>`));
+  <h2>Contact</h2><p>${LG('email', '[contact email]')}. Governing law: ${LG('country', '[country / court]')}.</p></div>`));
 route(/^#\/imprint$/, async () => view(`<h1 class="page-title">Impressum</h1>${LEGAL_NOTE}<div class="legal">
-  <p><b>Provider:</b><br>[Full name or company name]<br>[Street and number]<br>[Postcode and city], [Country]</p>
-  <p><b>Contact:</b><br>Email: [contact email]<br>[Phone, optional]</p>
-  <p><b>Responsible for content:</b> [Name and address]</p>
-  <p>[If you are a company add: register court and number, VAT ID.]</p></div>`));
+  <p><b>Provider:</b><br>${LG('name', '[Full name or company name]')}<br>${LG('street', '[Street and number]')}<br>${LG('city', '[Postcode and city]')}${legalFilled() ? ', ' : ', '}${LG('country', '[Country]')}</p>
+  <p><b>Contact:</b><br>Email: ${LG('email', '[contact email]')}${legalFilled() && !LG('phone', '') ? '' : `<br>${LG('phone', '[Phone, optional]')}`}</p>
+  <p><b>Responsible for content:</b> ${LG('name', '[Name and address]')}</p>
+  ${legalFilled() ? '' : '<p>[If you are a company add: register court and number, VAT ID.]</p>'}</div>`));
 
 route(/^#\/reset$/, async () => {
   view(`<div class="auth"><div class="hero"><img src="logo-v2.png" alt="Set UP logo"><p>Reset your password</p></div>

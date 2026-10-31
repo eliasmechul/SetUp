@@ -2,6 +2,23 @@
 (() => {
   const TR = {
     // navigation & footer
+    // v28: new surfaces
+    'Feed': 'Akış', 'Talent map': 'Yetenek haritası', 'Projects': 'Projeler', 'Communities': 'Topluluklar', 'Sign in': 'Giriş yap', 'Join free': 'Ücretsiz katıl', 'Join Set UP': 'Set UP’a katıl',
+    'Share.': 'Paylaş.', 'Cast.': 'Kadro kur.', 'Connect.': 'Bağlan.', 'Repeat.': 'Tekrarla.',
+    'Castings & jobs': 'Seçmeler ve işler', 'Crew on the map': 'Haritada ekip', 'Events with QR': 'QR’lı etkinlikler', 'Projects & teams': 'Projeler ve ekipler',
+    'The network for film people. One profile for the whole production.': 'Film insanlarının ağı. Tüm prodüksiyon için tek profil.',
+    'FREE FOR EVERYONE IN FILM': 'FİLMDEKİ HERKES İÇİN ÜCRETSİZ', 'Share your work and join groups': 'İşini paylaş ve gruplara katıl', 'Apply to castings, join events': 'Seçmelere başvur, etkinliklere katıl', 'Be found on the talent map': 'Yetenek haritasında bulun',
+    'Full name': 'Ad soyad', 'Email': 'E-posta', 'Password (8+ characters)': 'Şifre (en az 8 karakter)', 'I am a…': 'Ben bir…', 'City': 'Şehir', 'Already a member?': 'Zaten üye misin?',
+    'WHAT?': 'NE?', 'CAN YOU DO ON SET UP': 'YAPABİLİRSİN SET UP’TA', 'Posts, stills and reels': 'Gönderiler, kareler ve showreel’ler', 'Apply in one tap': 'Tek dokunuşla başvur', 'By craft, city, availability': 'Meslek, şehir, müsaitlik', 'Tickets and check-in': 'Bilet ve giriş kontrolü',
+    'Every event gets its own QR code.': 'Her etkinliğin kendi QR kodu var.', 'Host an event': 'Etkinlik düzenle',
+    'YOUR SEAT IS WAITING': 'KOLTUĞUN SENİ BEKLİYOR', 'Take your place on the call sheet.': 'Çekim listesinde yerini al.', 'Look around first': 'Önce etrafa bak',
+    'The feed': 'Akış', 'Your feed': 'Akışın', 'What are you shooting?': 'Ne çekiyorsun?', 'Photo': 'Fotoğraf', 'Casting call': 'Seçme ilanı', 'Meetup': 'Buluşma', 'Community': 'Topluluk',
+    'Now casting': 'Şu an seçme yapılan', 'Call sheet': 'Çekim listesi', 'Groups for you': 'Sana uygun gruplar', 'All castings →': 'Tüm seçmeler →', 'All communities →': 'Tüm topluluklar →',
+    'Discover': 'Keşfet', 'Join group': 'Gruba katıl', 'Joined ✓': 'Katıldın ✓', 'Create your free profile to post, comment, apply to castings and join groups.': 'Gönderi paylaşmak, yorum yapmak, seçmelere başvurmak ve gruplara katılmak için ücretsiz profil oluştur.',
+    'Closes': 'Son tarih', 'Apply': 'Başvur', 'Applied': 'Başvuruldu', 'Going / Hosting': 'Katılıyorum / Düzenliyorum', 'Upcoming': 'Yaklaşan', 'Join this event': 'Etkinliğe katıl', 'Going ✓': 'Katılıyorsun ✓',
+    'Alert me about new matches': 'Yeni eşleşmeleri bildir', 'QR invite and ticket': 'QR davet ve bilet', 'Your ticket': 'Biletin', 'Invite people': 'İnsanları davet et',
+    'Guests': 'Konuklar', 'Team': 'Ekip', 'Files': 'Dosyalar', 'Shooting days': 'Çekim günleri', 'Availability': 'Müsaitlik', 'Endorsements': 'Tavsiyeler', 'Your cast card': 'Kadro kartın', 'Share this profile': 'Bu profili paylaş',
+    'Back to top ↑': 'Başa dön ↑', 'Made for film people': 'Film insanları için yapıldı', 'This page is not on the call sheet.': 'Bu sayfa çekim listesinde yok.', 'Back to Set UP': 'Set UP’a dön', 'Open the feed': 'Akışı aç',
     'Like': 'Beğen', 'Comment': 'Yorum yap', 'Product': 'Ürün', 'Legal': 'Yasal', 'Language': 'Dil', 'Questions': 'Sorular', 'How it works': 'Nasıl çalışır', 'What you can do': 'Neler yapabilirsin',
     'The network for film people': 'Film insanlarının ağı', 'Where film people connect, share and ': 'Film insanlarının bağlandığı, paylaştığı ve ', 'get hired.': 'iş bulduğu yer.',
     'From profile to set in three steps': 'Profilden sete üç adımda', 'Build your profile': 'Profilini oluştur', 'Find your people': 'İnsanlarını bul', 'Get on set': 'Sete çık',

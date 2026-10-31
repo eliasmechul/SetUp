@@ -60,3 +60,12 @@ Photos: img/*.jpg come from Unsplash (free license, no attribution required): se
 - Sample people/castings/meetups still show (tagged Example) until real ones exist. Remove `SAMPLE.*` fallbacks in docs/api.js before a public launch.
 - Still needed before launch: domain (setupfilm.com), real SMTP, legal pages, original logo, real photos.
 Photos in img/ are from Unsplash (free license): see unsplash.com/license.
+
+## Launch checklist (Oct 2026)
+1. Domain: buy setupfilm.com, add it in GitHub Pages (Settings > Pages > Custom domain), set DNS, then update Supabase Auth Site URL and redirect URLs.
+2. Email: connect a real SMTP service in Supabase (Authentication > SMTP) so sign-up emails are not rate limited.
+3. Legal: fill `legal` in docs/config.js (name, street, city, country, email, phone). Impressum and privacy pages use it automatically. Have a lawyer review the texts.
+4. Content: remove the sample people/castings/meetups (`SAMPLE.*` in docs/api.js) once real members exist. Replace Unsplash photos with your own set photos when available.
+5. Pro: `setup_settings.pro_open = 'true'` lets anyone activate Pro for free (early access). Set to 'false' and update `setup_profiles.plan` by hand, or add a payment provider.
+6. Supabase: enable leaked-password protection (Authentication > Policies).
+7. Optional: store apps (Capacitor wrapper) need Apple and Google developer accounts.
