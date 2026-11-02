@@ -215,7 +215,7 @@ const homeRoute = async (forceFeed) => {
       ['Who is it for?', 'Actors, directors, producers, cinematographers, editors, sound, writers and every other craft in film, plus students and people starting out.'],
       ['How do producers find people?', 'On the talent map: pick a city, filter by role and availability, and connect or message people in one click.'],
       ['Are the castings checked?', 'No. Set UP connects people and does not verify productions. Never pay to get a role, and use the Report button on anything suspicious.'],
-      ['Can I delete my account?', 'Yes. Ask us and your profile, posts, messages and files are removed.']];
+      ['Can I delete my account?', 'Yes, any time: Edit profile → Your data → Delete my account. Your profile, posts and messages are removed. You can also download a copy of your data there.']];
     const pill = (t) => `<span class="mk-pill">${t}</span>`;
     view(`<div class="landing">
       <section class="poster">
