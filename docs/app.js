@@ -733,7 +733,10 @@ route(/^#\/me\/edit$/, async () => {
       <div class="field"><label for="ck">Type</label><input id="ck" name="kind" maxlength="40" placeholder="Short film, feature, music video…"></div>
       <div class="field"><label for="cy">Year</label><input id="cy" name="year" maxlength="4" inputmode="numeric" placeholder="2026"></div></div>
       <div class="field"><label for="cd2">Description (optional)</label><textarea id="cd2" name="description" maxlength="600"></textarea></div>
-      <p class="err" role="alert"></p><button class="btn" type="submit">Add credit</button></form>`);
+      <p class="err" role="alert"></p><button class="btn" type="submit">Add credit</button></form>
+    <h2 class="sec2">Your data</h2>
+    <div class="card"><p class="muted">Download a copy of everything linked to your account, or delete your account for good.</p>
+      <div class="pro-actions"><button class="btn ghost sm" data-act="exportdata">Download my data</button><button class="btn ghost sm danger" data-act="delaccount">Delete my account</button></div></div>`);
 });
 
 route(/^#\/notifications$/, async () => {
@@ -936,6 +939,11 @@ document.addEventListener('click', (ev) => {
       case 'report': return openReport(el.dataset.type, id);
       case 'repost': return openRepost(id);
       case 'lang': return window.I18N && window.I18N.toggle();
+      case 'exportdata': { const d = await api('/export_me'); const a = document.createElement('a'); a.download = 'setup-my-data.json'; a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' })); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('Your data was downloaded'); return; }
+      case 'delaccount': {
+        if (prompt('This permanently deletes your profile, posts, messages and connections. Type DELETE to confirm.') !== 'DELETE') return;
+        await api('/delete_account', {}); S.me = null; toast('Your account was deleted'); location.hash = '#/'; return router();
+      }
       case 'logout': await api('/logout', {}); S.me = null; location.hash = '#/'; return router();
       case 'scope': ui.feedScope = v; return rerender();
       case 'feedkind': ui.feedKind = v; return rerender();

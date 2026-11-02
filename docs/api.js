@@ -173,6 +173,24 @@ const H = {
     if (error) throw fail(401, /confirm/i.test(error.message) ? 'Please confirm your email first (check your inbox)' : 'Wrong email or password');
     return { ok: true };
   },
+  async export_me() {
+    const me = await uid();
+    const mine = (t, col = 'user_id') => sb.from(t).select('*').eq(col, me);
+    const both = (t) => sb.from(t).select('*').or(`from_id.eq.${me},to_id.eq.${me}`);
+    const parts = { profile: sb.from('setup_profiles').select('*').eq('id', me), posts: mine('setup_posts'), comments: mine('setup_comments'), credits: mine('setup_credits'),
+      castings: mine('setup_castings'), applications: mine('setup_applications'), meetups: mine('setup_meetups'), rsvps: mine('setup_rsvps'), communities: mine('setup_communities'),
+      community_memberships: mine('setup_community_members'), saved_searches: mine('setup_saved_searches'), availability: mine('setup_availability'),
+      connections: both('setup_connections'), endorsements: both('setup_endorsements'), messages: both('setup_messages'), follows: mine('setup_follows', 'follower_id') };
+    const out = { exported_at: new Date().toISOString(), account_id: me };
+    await Promise.all(Object.entries(parts).map(async ([k, q]) => { const { data, error } = await q; out[k] = error ? { error: error.message } : data; }));
+    return out;
+  },
+  async delete_account() {
+    await uid();
+    ok(await sb.rpc('delete_my_account'));
+    await sb.auth.signOut();
+    return { ok: true };
+  },
   async logout() { await sb.auth.signOut(); return { ok: true }; },
   async reset(_, b) {
     const email = clean(b.email, 160, true, 'Email').toLowerCase();
@@ -800,7 +818,7 @@ SAMPLE.posts = () => []; SAMPLE.communities = () => [];
 
 const R = [
   ['GET', '/me', 'me'], ['POST', '/me', 'update_me'], ['POST', '/signup', 'signup'], ['POST', '/report', 'report'], ['POST', '/login', 'login'],
-  ['POST', '/logout', 'logout'], ['POST', '/reset', 'reset'], ['POST', '/newpassword', 'newpassword'], ['POST', '/upload', 'upload'],
+  ['POST', '/logout', 'logout'], ['GET', '/export_me', 'export_me'], ['POST', '/delete_account', 'delete_account'], ['POST', '/reset', 'reset'], ['POST', '/newpassword', 'newpassword'], ['POST', '/upload', 'upload'],
   ['GET', '/feed', 'feed'], ['POST', '/posts', 'create_post'], ['POST', '/posts/(\\d+)/delete', 'delete_post'],
   ['POST', '/posts/(\\d+)/like', 'like'], ['GET', '/posts/(\\d+)/comments', 'get_comments'], ['POST', '/posts/(\\d+)/comments', 'add_comment'],
   ['GET', '/people', 'people'], ['GET', '/mappeople', 'map_people'], ['POST', '/credits', 'add_credit'], ['POST', '/credits/(\\d+)/delete', 'delete_credit'], ['GET', `/users/(${UUID})`, 'profile'], ['POST', `/users/(${UUID})/follow`, 'follow'],
