@@ -1237,3 +1237,8 @@ em,i{font-style:italic}
   .navbar.out .signin{padding:0 7px}
   .authbtns .btn.sm,.navbar.out .btn.sm{padding:0 13px!important}
 }
+/* Feed on mid-width windows: two columns, so the stream keeps a readable width */
+@media(min-width:900px) and (max-width:1179px){
+  .feedgrid{grid-template-columns:minmax(0,1fr) 300px!important}
+  .feedgrid>.lcol{display:none}
+}
