@@ -1219,3 +1219,21 @@ em,i{font-style:italic}
   .ptag.t1{top:19%;left:46%}.ptag.t2{top:33.5%;left:36%}.ptag.t3{top:48.5%;left:56%}.ptag.t4{top:63%;left:53%}
   .ptag{font-size:12px;padding:6px 12px}
 }
+
+/* v29 — mid-width navbar (tablet / small laptop windows): keep everything inside the pill */
+@media(min-width:900px) and (max-width:1279px){
+  .navin{gap:8px!important;padding:8px 8px 8px 14px!important}
+  .wordmark{margin-right:6px}.wordmark img{height:38px!important}
+  .ni,.ni.mob,.ol{padding:0 10px!important;font-size:12.5px!important;letter-spacing:.03em!important;white-space:nowrap}
+  .topnav{gap:0!important;min-width:0}
+  .navbar.out .signin{padding:0 10px;font-size:12.5px;letter-spacing:.03em;white-space:nowrap}
+  .authbtns .btn.sm,.navbar.out .btn.sm{padding:0 16px!important;font-size:12.5px;white-space:nowrap}
+  .navbar.out .gsearch{display:none}
+  .navbar:not(.out) .ni>span:not(.badge){display:none}
+  .navbar:not(.out) .ni{padding:0 12px!important}
+}
+@media(min-width:900px) and (max-width:999px){
+  .ni,.ni.mob,.ol{padding:0 7px!important;font-size:12px!important}
+  .navbar.out .signin{padding:0 7px}
+  .authbtns .btn.sm,.navbar.out .btn.sm{padding:0 13px!important}
+}

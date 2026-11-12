@@ -97,7 +97,7 @@ function shell(content) {
   const badge = (n) => (n ? `<span class="badge">${n > 9 ? '9+' : n}</span>` : '');
   const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/projects', 'cal', 'Projects'], ['#/communities', 'group', 'Groups'],
     ['#/meetups', 'cal', 'Meetups', 0, 1], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
-  const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
+  const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}" title="${l}" aria-label="${l}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
     (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');
   const outLinks = [['#/feed', 'Feed'], ['#/map', 'Talent map'], ['#/castings', 'Castings'], ['#/projects', 'Projects'], ['#/communities', 'Communities'], ['#/meetups', 'Meetups']]
     .map(([h, l]) => `<a class="ol ${active(h) ? 'on' : ''}" href="${h}">${l}</a>`).join('');
@@ -126,7 +126,7 @@ function view(html, isWide) {
   wide = !!isWide; shell(html); window.scrollTo(0, 0);
   const v = document.getElementById('view');
   if (v) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
-  { const TT = { castings: 'Castings', communities: 'Communities', projects: 'Projects', meetups: 'Meetups', people: 'People', feed: 'Feed', map: 'Talent map', pro: 'Set UP Pro', share: 'Share Set UP', login: 'Log in', signup: 'Join', rooms: 'Private rooms', privacy: 'Privacy', terms: 'Terms', imprint: 'Impressum', messages: 'Messages', notifications: 'Alerts', applications: 'My applications', profile: 'Profile', join: 'Invitation', checkin: 'Check-in' }[document.body.dataset.page]; document.title = TT ? TT + ' · Set UP' : 'Set UP · Film people. One place.'; }
+  { const TT = { castings: 'Castings', communities: 'Communities', projects: 'Projects', meetups: 'Meetups', people: 'People', feed: 'Feed', map: 'Talent map', pro: 'Set UP Pro', share: 'Share Set UP', login: 'Log in', signup: 'Join', rooms: 'Private rooms', privacy: 'Privacy', terms: 'Terms', imprint: 'Impressum', messages: 'Messages', notifications: 'Alerts', applications: 'My applications', profile: 'Profile', join: 'Invitation', checkin: 'Check-in', reset: 'Reset password', 'new-password': 'New password', me: 'Edit profile', tag: 'Topic', 'project-join': 'Invitation' }[document.body.dataset.page]; document.title = TT ? TT + ' · Set UP' : 'Set UP · Film people. One place.'; }
   revealOnScroll();
   document.querySelectorAll('canvas[data-qr]').forEach((c) => drawQR(c, c.dataset.qr, +c.dataset.px || 240));
   const T = { castings: ['CASTING BOARD', 'Open roles from productions near you. Apply with your profile in one tap.'], communities: ['THE LOUNGE', 'Groups for your craft and your city. Ask, answer and meet your next collaborator.'],

@@ -603,3 +603,7 @@ grant select (id, user_id, title, logline, genre, status, city, description, cre
 -- (functions setup_project_preview, setup_join_project, setup_project_invite, setup_project_new_code,
 --  tables setup_saved_searches, setup_project_days, setup_endorsements and their triggers were applied as migrations
 --  "setup_growth_features" and "setup_hide_project_invite_code".)
+
+-- Members can list their own folder in the uploads bucket (used to remove their images when they delete their account).
+create policy setup_uploads_list_own on storage.objects for select to authenticated
+using (bucket_id = 'setup-uploads' and (storage.foldername(name))[1] = ((select auth.uid()))::text);

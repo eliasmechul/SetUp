@@ -121,7 +121,7 @@ const SAMPLE = {
       [9000002, 'Gaffer, feature documentary', 'Crew', 'Hamburg', 'Day rate', 12, 2, 'Experienced gaffer for a ten-day documentary shoot. Own kit is a plus.'],
       [9000003, 'Voice actor, animated series', 'Voice', 'Remote', 'Paid', 3, 5, 'Warm, expressive voice for a children\'s animated series. Remote recording.'],
       [9000004, 'Street scene extras, one day', 'Extras', 'Munich', 'Unpaid, meals', 9, 1, 'Background performers for a busy street scene.']]
-      .map(([id, title, category, city, pay, days, owner, description]) => ({ id, title, category, production: '[Example production]', city, pay, deadline: dAhead(days), description,
+      .map(([id, title, category, city, pay, days, owner, description]) => ({ id, title, category, production: 'Sample production', city, pay, deadline: dAhead(days), description,
         created: minsAgo(120), user_id: SID(owner), poster: sPeople[owner - 1].name, applied: false, sample: true }));
   },
   communities() {
@@ -186,7 +186,16 @@ const H = {
     return out;
   },
   async delete_account() {
-    await uid();
+    const me = await uid();
+    // Remove the member's uploaded images first (their folder in the public bucket); never block the deletion on it.
+    try {
+      for (let i = 0; i < 10; i++) {
+        const { data } = await sb.storage.from(C.bucket).list(me, { limit: 100 });
+        if (!data || !data.length) break;
+        const r = await sb.storage.from(C.bucket).remove(data.map((f) => `${me}/${f.name}`));
+        if (r.error) break;
+      }
+    } catch (e) { /* ignore */ }
     ok(await sb.rpc('delete_my_account'));
     await sb.auth.signOut();
     return { ok: true };
