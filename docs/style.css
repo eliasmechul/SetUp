@@ -1242,3 +1242,6 @@ em,i{font-style:italic}
   .feedgrid{grid-template-columns:minmax(0,1fr) 300px!important}
   .feedgrid>.lcol{display:none}
 }
+/* Moderation */
+.modcard{display:grid;gap:10px}.mod-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mod-img{max-width:240px;border-radius:10px}.mod-list{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}

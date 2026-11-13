@@ -116,7 +116,7 @@ function shell(content) {
     <footer class="foot"><div class="foot-in">
       <div class="foot-brand"><a class="wordmark" href="#/"><img src="logo-v2.png" alt=""><span class="set">Set</span><span class="up">UP</span></a><p>The network for film people. Share your work, find jobs and castings, and find your crew on the map.</p></div>
       <div><h4>Product</h4><a href="#/map">Talent map</a><a href="#/castings">Castings</a><a href="#/pro">Set UP Pro</a><a href="#/projects">Projects</a><a href="#/communities">Communities</a><a href="#/meetups">Meetups and events</a><a href="#/share">Share Set UP</a></div>
-      <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a></div>
+      <div><h4>Legal</h4><a href="#/privacy">Privacy</a><a href="#/terms">Terms</a><a href="#/imprint">Impressum</a>${m && m.is_admin ? '<a href="#/admin">Reports (team)</a>' : ''}</div>
       <div><h4>Language</h4><button class="link" data-act="lang" aria-label="Language">${window.I18N && window.I18N.lang === 'tr' ? 'English' : 'Türkçe'}</button></div>
       <p class="foot-copy"><span>© ${new Date().getFullYear()} Set UP · Made for film people</span><a href="#/" data-act="top">Back to top ↑</a></p></div></footer>
     <nav class="tabbar" aria-label="Main">${bar}</nav>
@@ -126,7 +126,7 @@ function view(html, isWide) {
   wide = !!isWide; shell(html); window.scrollTo(0, 0);
   const v = document.getElementById('view');
   if (v) { v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
-  { const TT = { castings: 'Castings', communities: 'Communities', projects: 'Projects', meetups: 'Meetups', people: 'People', feed: 'Feed', map: 'Talent map', pro: 'Set UP Pro', share: 'Share Set UP', login: 'Log in', signup: 'Join', rooms: 'Private rooms', privacy: 'Privacy', terms: 'Terms', imprint: 'Impressum', messages: 'Messages', notifications: 'Alerts', applications: 'My applications', profile: 'Profile', join: 'Invitation', checkin: 'Check-in', reset: 'Reset password', 'new-password': 'New password', me: 'Edit profile', tag: 'Topic', 'project-join': 'Invitation' }[document.body.dataset.page]; document.title = TT ? TT + ' · Set UP' : 'Set UP · Film people. One place.'; }
+  { const TT = { castings: 'Castings', communities: 'Communities', projects: 'Projects', meetups: 'Meetups', people: 'People', feed: 'Feed', map: 'Talent map', pro: 'Set UP Pro', share: 'Share Set UP', login: 'Log in', signup: 'Join', rooms: 'Private rooms', privacy: 'Privacy', terms: 'Terms', imprint: 'Impressum', messages: 'Messages', notifications: 'Alerts', applications: 'My applications', profile: 'Profile', join: 'Invitation', checkin: 'Check-in', reset: 'Reset password', 'new-password': 'New password', me: 'Edit profile', tag: 'Topic', 'project-join': 'Invitation', admin: 'Reports' }[document.body.dataset.page]; document.title = TT ? TT + ' · Set UP' : 'Set UP · Film people. One place.'; }
   revealOnScroll();
   document.querySelectorAll('canvas[data-qr]').forEach((c) => drawQR(c, c.dataset.qr, +c.dataset.px || 240));
   const T = { castings: ['CASTING BOARD', 'Open roles from productions near you. Apply with your profile in one tap.'], communities: ['THE LOUNGE', 'Groups for your craft and your city. Ask, answer and meet your next collaborator.'],
@@ -580,6 +580,17 @@ route(/^#\/projects\/(\d+)$/, async (id) => {
 });
 
 
+route(/^#\/admin$/, async () => {
+  if (!S.me) return needLogin();
+  const { reports } = await api('/mod/reports');
+  const link = (r) => r.target_type === 'post' || r.target_type === 'comment' ? '' : `<a class="link" href="#/${r.target_type === 'profile' ? 'profile' : r.target_type === 'casting' ? 'castings' : 'communities'}/${esc(r.target_id)}">Open</a>`;
+  view(`<h1 class="ptitle">Reports</h1><p class="muted">${reports.length ? reports.length + ' reported item' + (reports.length === 1 ? '' : 's') + ', newest first.' : 'Nothing to review. Reports from members appear here.'}</p>
+    ${reports.map((r) => `<div class="card modcard"><div class="mod-h"><span class="pill">${esc(r.target_type)}</span><b>${r.reports} report${r.reports === 1 ? '' : 's'}</b>${link(r)}</div>
+      ${r.target ? `<p class="post-body">${esc(r.target.text || '')}</p>${r.target.image ? `<img class="mod-img" src="${esc(r.target.image)}" alt="">` : ''}<p class="muted small">By <a class="link" href="#/profile/${esc(r.target.author_id)}">${esc(r.target.author)}</a></p>` : '<p class="muted">This item was already deleted.</p>'}
+      <ul class="mod-list">${r.items.map((i) => `<li><b>${esc(i.reason)}</b>${i.note ? ' · ' + esc(i.note) : ''} <span class="muted small">— ${esc(i.by)}, ${ago(i.at)}</span></li>`).join('')}</ul>
+      <div class="pro-actions"><button class="btn ghost sm" data-act="modresolve" data-v="dismiss" data-type="${esc(r.target_type)}" data-id="${esc(r.target_id)}">Keep and close</button>
+      ${r.target && r.target_type !== 'profile' ? `<button class="btn ghost sm danger" data-act="modresolve" data-v="remove" data-type="${esc(r.target_type)}" data-id="${esc(r.target_id)}">Remove ${esc(r.target_type)}</button>` : ''}</div></div>`).join('')}`);
+});
 route(/^#\/pro$/, async () => {
   const st = S.me ? await api('/pro') : { pro_open: true, pro: false };
   const perks = [['brief', 'Post casting calls', 'Publish roles and manage every applicant through shortlist, callback and cast.'], ['cal', 'Host events', 'Create meetups, screenings and special occasions with a QR invite and personal ticket QR codes.'],
@@ -943,6 +954,10 @@ document.addEventListener('click', (ev) => {
       case 'delaccount': {
         if (prompt('This permanently deletes your profile, posts, messages and connections. Type DELETE to confirm.') !== 'DELETE') return;
         await api('/delete_account', {}); S.me = null; toast('Your account was deleted'); location.hash = '#/'; return router();
+      }
+      case 'modresolve': {
+        if (v === 'remove' && !confirm('Remove this ' + el.dataset.type + ' for everyone? This cannot be undone.')) return;
+        await api('/mod/resolve', { target_type: el.dataset.type, target_id: id, action: v }); toast(v === 'remove' ? 'Removed' : 'Report closed'); return router();
       }
       case 'logout': await api('/logout', {}); S.me = null; location.hash = '#/'; return router();
       case 'scope': ui.feedScope = v; return rerender();

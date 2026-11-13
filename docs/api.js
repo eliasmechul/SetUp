@@ -154,7 +154,9 @@ const H = {
       sb.from('setup_notifications').select('id', { count: 'exact', head: true }).eq('user_id', p.id).eq('read', false),
       sb.from('setup_messages').select('id', { count: 'exact', head: true }).eq('to_id', p.id).eq('read', false),
     ]);
-    return { user: { ...p, unread_notifications: n.count || 0, unread_messages: m.count || 0 }, ...base };
+    let admin = false;
+    try { const r = await sb.rpc('setup_is_admin'); admin = r.data === true; } catch (e) { /* not set up */ }
+    return { user: { ...p, unread_notifications: n.count || 0, unread_messages: m.count || 0, is_admin: admin }, ...base };
   },
   async signup(_, b) {
     const name = clean(b.name, 80, true, 'Name');
@@ -198,6 +200,19 @@ const H = {
     } catch (e) { /* ignore */ }
     ok(await sb.rpc('delete_my_account'));
     await sb.auth.signOut();
+    return { ok: true };
+  },
+  async mod_reports() {
+    await uid();
+    const r = await sb.rpc('setup_mod_reports');
+    if (r.error) throw fail(403, 'This page is for the Set UP team.');
+    return { reports: r.data || [] };
+  },
+  async mod_resolve(_, b) {
+    await uid();
+    const action = b.action === 'remove' ? 'remove' : 'dismiss';
+    const r = await sb.rpc('setup_mod_resolve', { t_type: String(b.target_type || ''), t_id: String(b.target_id || '').slice(0, 60), action });
+    if (r.error) throw fail(400, /cannot be removed/.test(r.error.message) ? 'This item cannot be removed here.' : 'Could not update the report.');
     return { ok: true };
   },
   async logout() { await sb.auth.signOut(); return { ok: true }; },
@@ -827,7 +842,7 @@ SAMPLE.posts = () => []; SAMPLE.communities = () => [];
 
 const R = [
   ['GET', '/me', 'me'], ['POST', '/me', 'update_me'], ['POST', '/signup', 'signup'], ['POST', '/report', 'report'], ['POST', '/login', 'login'],
-  ['POST', '/logout', 'logout'], ['GET', '/export_me', 'export_me'], ['POST', '/delete_account', 'delete_account'], ['POST', '/reset', 'reset'], ['POST', '/newpassword', 'newpassword'], ['POST', '/upload', 'upload'],
+  ['POST', '/logout', 'logout'], ['GET', '/mod/reports', 'mod_reports'], ['POST', '/mod/resolve', 'mod_resolve'], ['GET', '/export_me', 'export_me'], ['POST', '/delete_account', 'delete_account'], ['POST', '/reset', 'reset'], ['POST', '/newpassword', 'newpassword'], ['POST', '/upload', 'upload'],
   ['GET', '/feed', 'feed'], ['POST', '/posts', 'create_post'], ['POST', '/posts/(\\d+)/delete', 'delete_post'],
   ['POST', '/posts/(\\d+)/like', 'like'], ['GET', '/posts/(\\d+)/comments', 'get_comments'], ['POST', '/posts/(\\d+)/comments', 'add_comment'],
   ['GET', '/people', 'people'], ['GET', '/mappeople', 'map_people'], ['POST', '/credits', 'add_credit'], ['POST', '/credits/(\\d+)/delete', 'delete_credit'], ['GET', `/users/(${UUID})`, 'profile'], ['POST', `/users/(${UUID})/follow`, 'follow'],

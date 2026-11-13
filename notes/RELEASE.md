@@ -20,7 +20,7 @@
 ## Decide before release
 - Sample people, castings and meetups (tagged "Example") are still shown. Switch off in `docs/api.js` (`SAMPLE.*`) when real content exists.
 - Pro is free for everyone (`setup_settings.pro_open = 'true'`). Payments are not built.
-- Moderation: reports land in `setup_reports` and are only readable in the Supabase dashboard. There is no admin screen.
+- Moderation: the page `#/admin` (Reports) is built. The database part is in `supabase/moderation.sql` and must be applied once; then add an admin with the insert at the end of that file.
 
 ## Nice to have
 - Own photos and a high-resolution logo; app-store wrappers; uptime monitoring; backups (Supabase plan dependent).
