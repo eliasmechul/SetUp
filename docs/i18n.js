@@ -3,6 +3,12 @@
   const TR = {
     // navigation & footer
     // v28: new surfaces
+    // v30: data, reports
+    'Your data': 'Verilerin', 'Download my data': 'Verilerimi indir', 'Delete my account': 'Hesabımı sil',
+    'Download a copy of everything linked to your account, or delete your account for good.': 'Hesabınla ilişkili her şeyin bir kopyasını indir ya da hesabını kalıcı olarak sil.',
+    'Reports': 'Bildirimler', 'Keep and close': 'Koru ve kapat', 'Reports (team)': 'Bildirimler (ekip)',
+    'Nothing to review. Reports from members appear here.': 'İncelenecek bir şey yok. Üyelerin bildirimleri burada görünür.',
+    'Sample production': 'Örnek yapım',
     'Feed': 'Akış', 'Talent map': 'Yetenek haritası', 'Projects': 'Projeler', 'Communities': 'Topluluklar', 'Sign in': 'Giriş yap', 'Join free': 'Ücretsiz katıl', 'Join Set UP': 'Set UP’a katıl',
     'Share.': 'Paylaş.', 'Cast.': 'Kadro kur.', 'Connect.': 'Bağlan.', 'Repeat.': 'Tekrarla.',
     'Castings & jobs': 'Seçmeler ve işler', 'Crew on the map': 'Haritada ekip', 'Events with QR': 'QR’lı etkinlikler', 'Projects & teams': 'Projeler ve ekipler',
