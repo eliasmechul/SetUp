@@ -11,9 +11,11 @@
 - Moderation SQL applied and tested (non-admins refused, admin can read and remove). No admin is assigned yet: no real member account exists.
 
 - Phone width (390 px, simulated in a frame): all 19 signed-in screens fit without sideways scrolling. Found and fixed: the third menu icon (alerts) stuck out of the top bar.
+- Button flows in the test copy (requests captured, nothing sent): new post, save profile (redirects to profile), add credit, send message, report resolve/remove, data export (file is created), delete account (cancel sends nothing; confirm sends the request and returns to the start page).
+- Accessibility basics on 15 pages: every image has alt text, every button/link/field has a name, one h1 per page, no duplicate ids.
 
 ## Not tested
-- Real writes from the browser as a signed-in member (posting, saving the profile, sending a message, data export, account deletion buttons, QR check-in). The database rules behind them are tested; the buttons are not. Needs one real test account.
+- Real writes against the live database from the browser as a member (the buttons and the database rules are tested separately, not together), and QR check-in. Needs one real test account.
 - Real phones (only a simulated 390 px frame in desktop Chrome), Safari, Firefox.
 - Sign-up email delivery.
 
