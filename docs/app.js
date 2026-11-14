@@ -14,6 +14,7 @@ let mapObj = null;
 /* ---------- helpers ---------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ICONS = {
+  clap: '<path d="M3 10h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10l1-4 16-3 1 4zM8 5.2l2 4.3M13 4.3l2 4.4"/>',
   home: '<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   brief: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
@@ -95,7 +96,7 @@ let wide = false;
 function shell(content) {
   const m = S.me;
   const badge = (n) => (n ? `<span class="badge">${n > 9 ? '9+' : n}</span>` : '');
-  const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/projects', 'cal', 'Projects'], ['#/communities', 'group', 'Groups'],
+  const items = [['#/', 'home', 'Home'], ['#/map', 'pin', 'Map'], ['#/people', 'users', 'Network'], ['#/castings', 'brief', 'Castings'], ['#/projects', 'clap', 'Projects'], ['#/communities', 'group', 'Groups'],
     ['#/meetups', 'cal', 'Meetups', 0, 1], ['#/messages', 'chat', 'Messages', m && m.unread_messages, 1], ['#/notifications', 'bell', 'Alerts', m && m.unread_notifications, 1]];
   const top = items.map(([h, i, l, n, mob]) => `<a class="ni ${active(h) ? 'on' : ''} ${mob ? 'mob' : ''}" href="${h}" title="${l}" aria-label="${l}">${ico(i)}<span>${l}</span>${badge(n)}</a>`).join('') +
     (m ? `<a class="ni ${active('#/profile/' + m.id) ? 'on' : ''}" href="#/profile/${m.id}">${av(m, 'xs')}<span>Me</span></a>` : '');

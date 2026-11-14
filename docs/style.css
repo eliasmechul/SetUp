@@ -1245,3 +1245,8 @@ em,i{font-style:italic}
 /* Moderation */
 .modcard{display:grid;gap:10px}.mod-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .mod-img{max-width:240px;border-radius:10px}.mod-list{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
+/* Profile page: its two-column layout was being overridden by the people-grid rule of the same class name */
+body[data-page=profile] #view>.pgrid{display:block}
+@media(min-width:900px){body[data-page=profile] #view>.pgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start;max-width:1100px;margin:0 auto}}
+.pav{position:relative;z-index:2}
+.pro-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
