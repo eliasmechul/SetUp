@@ -1255,3 +1255,12 @@ body[data-page=castings] #view>*,body[data-page=communities] #view>*,body[data-p
 body[data-page=castings] #view>.cast,body[data-page=communities] #view>.comm,body[data-page=projects] #view>.comm,body[data-page=meetups] #view>.evcard,body[data-page=applications] #view>.cast{grid-column:auto}
 /* Event / room header keeps its dark photo background (the light card theme was winning, leaving pale text on white) */
 #view .card.roomhead{background:linear-gradient(rgba(15,10,14,.55),rgba(15,10,14,.92)),url(img/rooms.jpg) center/cover no-repeat!important;border-color:transparent!important}
+/* Phones: the three icons (meetups, messages, alerts) must fit inside the pill next to the logo and search */
+@media(max-width:560px){
+  .navin{gap:4px!important;padding-right:6px!important}
+  .navbar .ni.mob{width:40px!important;min-width:0;padding:0!important;justify-content:center}
+  .navbar .topnav{margin-left:auto!important;gap:0!important;flex:0 0 auto}
+  .navbar .wordmark{margin-right:2px}
+  .navbar .gsearch{flex:1 1 0;min-width:36px;max-width:none}
+  .navbar .gsearch input::placeholder{color:transparent}
+}
