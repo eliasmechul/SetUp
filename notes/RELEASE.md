@@ -10,9 +10,11 @@
 - Found and fixed this way: profile page squeezed into a third of the width, avatar hidden behind the banner, group/meetup detail pages at half width, event header with pale text on white.
 - Moderation SQL applied and tested (non-admins refused, admin can read and remove). No admin is assigned yet: no real member account exists.
 
+- Phone width (390 px, simulated in a frame): all 19 signed-in screens fit without sideways scrolling. Found and fixed: the third menu icon (alerts) stuck out of the top bar.
+
 ## Not tested
 - Real writes from the browser as a signed-in member (posting, saving the profile, sending a message, data export, account deletion buttons, QR check-in). The database rules behind them are tested; the buttons are not. Needs one real test account.
-- Real phones (only narrow desktop windows), Safari, Firefox.
+- Real phones (only a simulated 390 px frame in desktop Chrome), Safari, Firefox.
 - Sign-up email delivery.
 
 ## Blocking for a public release (owner)
