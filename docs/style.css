@@ -1250,3 +1250,8 @@ body[data-page=profile] #view>.pgrid{display:block}
 @media(min-width:900px){body[data-page=profile] #view>.pgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start;max-width:1100px;margin:0 auto}}
 .pav{position:relative;z-index:2}
 .pro-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+/* Listing pages are a two-column grid; only the listing cards sit in single cells. Everything else (and every detail page) spans the full width. */
+body[data-page=castings] #view>*,body[data-page=communities] #view>*,body[data-page=projects] #view>*,body[data-page=meetups] #view>*,body[data-page=applications] #view>*{grid-column:1/-1}
+body[data-page=castings] #view>.cast,body[data-page=communities] #view>.comm,body[data-page=projects] #view>.comm,body[data-page=meetups] #view>.evcard,body[data-page=applications] #view>.cast{grid-column:auto}
+/* Event / room header keeps its dark photo background (the light card theme was winning, leaving pale text on white) */
+#view .card.roomhead{background:linear-gradient(rgba(15,10,14,.55),rgba(15,10,14,.92)),url(img/rooms.jpg) center/cover no-repeat!important;border-color:transparent!important}

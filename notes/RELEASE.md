@@ -5,8 +5,13 @@
 - Database rules, tested with two temporary members inside a rolled-back transaction: profile, post, like, comment, connection request and accept, message (blocked before connecting), casting (blocked without Pro, allowed with Pro), application, project, notifications, account deletion (profile and posts gone).
 - Blocked as intended: creating someone else's profile, editing or deleting someone else's post, accepting your own connection request, upgrading yourself to Pro by hand.
 
+## Signed-in screens (14 Nov)
+- Rendered with a simulated member in a local test copy (real public data, fixture data for private endpoints, writes swallowed): feed, people, map, castings + detail, applications, projects, communities + detail, meetups + detail, rooms, Pro, messages + thread, alerts, edit profile, own and other profile, reports. No script errors, no broken values, no overflow at 1000 px; automatic contrast check clean.
+- Found and fixed this way: profile page squeezed into a third of the width, avatar hidden behind the banner, group/meetup detail pages at half width, event header with pale text on white.
+- Moderation SQL applied and tested (non-admins refused, admin can read and remove). No admin is assigned yet: no real member account exists.
+
 ## Not tested
-- Everything behind the login in a real browser (compose, edit profile, messages, data export, account deletion buttons, QR check-in). Needs one real test account.
+- Real writes from the browser as a signed-in member (posting, saving the profile, sending a message, data export, account deletion buttons, QR check-in). The database rules behind them are tested; the buttons are not. Needs one real test account.
 - Real phones (only narrow desktop windows), Safari, Firefox.
 - Sign-up email delivery.
 
