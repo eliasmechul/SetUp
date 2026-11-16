@@ -221,13 +221,10 @@ const homeRoute = async (forceFeed) => {
     view(`<div class="landing">
       <section class="poster">
         <div class="poster-art">
-          <h1 class="poster-h"><span>Share.</span><span>Cast.</span><span>Connect.</span><span>Repeat.</span></h1>
-          <a class="ptag t1" href="#/castings">Castings &amp; jobs</a><a class="ptag t2" href="#/map">Crew on the map</a><a class="ptag t3" href="#/meetups">Events with QR</a><a class="ptag t4" href="#/projects">Projects &amp; teams</a>
-          <svg class="pico i-clap" viewBox="0 0 120 110" aria-hidden="true"><defs><linearGradient id="gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset="1" stop-color="#0d0d0d"/></linearGradient></defs><rect x="10" y="38" width="100" height="62" rx="10" fill="url(#gk)"/><g transform="rotate(-12 14 38)"><rect x="10" y="14" width="100" height="24" rx="6" fill="url(#gk)"/><path d="M24 14l14 24M48 14l14 24M72 14l14 24M96 14l14 24" stroke="#f4f1ec" stroke-width="9"/></g><circle cx="60" cy="68" r="19" fill="#d12a1e"/><path d="M54 58l18 10-18 10z" fill="#fff"/></svg>
-          <svg class="pico i-cam" viewBox="0 0 130 100" aria-hidden="true"><defs><radialGradient id="gl" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#6b7a8c"/><stop offset=".5" stop-color="#1b232d"/><stop offset="1" stop-color="#05080b"/></radialGradient></defs><rect x="8" y="24" width="114" height="68" rx="12" fill="#161616"/><rect x="40" y="10" width="34" height="18" rx="6" fill="#161616"/><circle cx="68" cy="58" r="30" fill="#242424"/><circle cx="68" cy="58" r="23" fill="url(#gl)"/><circle cx="60" cy="50" r="6" fill="#fff" opacity=".35"/><circle cx="106" cy="38" r="5" fill="#d12a1e"/></svg>
-          <svg class="pico i-head" viewBox="0 0 120 120" aria-hidden="true"><path d="M20 70V58a40 40 0 0 1 80 0v12" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/><rect x="8" y="64" width="26" height="40" rx="12" fill="#161616"/><rect x="86" y="64" width="26" height="40" rx="12" fill="#161616"/><rect x="14" y="72" width="8" height="24" rx="4" fill="#d12a1e"/><rect x="98" y="72" width="8" height="24" rx="4" fill="#d12a1e"/></svg>
-          <svg class="pico i-reel" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="#161616"/><circle cx="60" cy="60" r="14" fill="#d12a1e"/><circle cx="60" cy="24" r="12" fill="#f4f1ec"/><circle cx="91" cy="42" r="12" fill="#f4f1ec"/><circle cx="91" cy="78" r="12" fill="#f4f1ec"/><circle cx="60" cy="96" r="12" fill="#f4f1ec"/><circle cx="29" cy="78" r="12" fill="#f4f1ec"/><circle cx="29" cy="42" r="12" fill="#f4f1ec"/></svg>
-          <p class="poster-sub">The network for film people. One profile for the whole production.</p>
+          <span class="hk">THE NETWORK FOR FILM PEOPLE</span>
+          <h1 class="poster-h">Where film people find each other.</h1>
+          <p class="poster-sub">One profile for the whole production: share your work, find castings and build your crew.</p>
+          <div class="hcta"><a class="btn lg" href="#/castings">Browse castings</a><a class="btn ghost lg" href="#/map">Open the talent map</a></div>
         </div>
         <div class="poster-f"><form class="card joinform" data-form="signup"><span class="jpill">FREE FOR EVERYONE IN FILM</span><h2>Join Set UP</h2><ul class="jbul"><li>Share your work and join groups</li><li>Apply to castings, join events</li><li>Be found on the talent map</li></ul>
           <div class="field"><label for="jn">Full name</label><input id="jn" name="name" required maxlength="80" autocomplete="name"></div>
@@ -238,7 +235,8 @@ const homeRoute = async (forceFeed) => {
           <p class="err" role="alert"></p><button class="btn block lg" type="submit">Join Set UP</button>
           <p class="muted center small">Already a member? <a class="link" href="#/login">Sign in</a></p><p class="jfine">By joining you agree to the <a href="#/terms">Terms</a> and <a href="#/privacy">Privacy</a>.</p></form></div>
       </section>
-      <div class="marquee" aria-hidden="true"><div class="mq-track">${[...Array(2)].map(() => ['Actors','Directors','Producers','Cinematographers','Editors','Sound','Writers','Gaffers','Casting directors','Berlin','Istanbul','London','Paris','Hamburg','Vienna','Munich'].map((w) => `<span>${w}</span>`).join('')).join('')}</div></div>
+      <section class="lsec rv roles"><div class="rhead"><span class="eyebrow">WHO IT'S FOR</span><h2 class="lh">One network for every craft</h2></div>
+        <div class="rtiles">${[['Actors', 'c-slate'], ['Directors', 'chair'], ['Producers', 'c-studio'], ['Cinematographers', 'c-rig'], ['Crew', 'c-clap']].map(([n, i]) => `<a class="rtile" href="#/people" style="--img:url(img/${i}.jpg)"><span>${n}</span></a>`).join('')}</div></section>
 
       <section class="studio">
         <h2 class="studio-h">WHAT?</h2>

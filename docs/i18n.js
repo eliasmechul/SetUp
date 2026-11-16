@@ -4,6 +4,10 @@
     // navigation & footer
     // v28: new surfaces
     // v30: data, reports
+    'THE NETWORK FOR FILM PEOPLE': 'FİLM İNSANLARININ AĞI', 'Where film people find each other.': 'Film insanlarının birbirini bulduğu yer.',
+    'One profile for the whole production: share your work, find castings and build your crew.': 'Tüm yapım için tek profil: işlerini paylaş, seçmeler bul ve ekibini kur.',
+    'Browse castings': 'Seçmelere göz at', 'Open the talent map': 'Yetenek haritasını aç', 'WHO IT\'S FOR': 'KİMLER İÇİN', 'One network for every craft': 'Her zanaat için tek ağ',
+    'Actors': 'Oyuncular', 'Directors': 'Yönetmenler', 'Producers': 'Yapımcılar', 'Cinematographers': 'Görüntü yönetmenleri', 'Crew': 'Ekip',
     'Your data': 'Verilerin', 'Download my data': 'Verilerimi indir', 'Delete my account': 'Hesabımı sil',
     'Download a copy of everything linked to your account, or delete your account for good.': 'Hesabınla ilişkili her şeyin bir kopyasını indir ya da hesabını kalıcı olarak sil.',
     'Reports': 'Bildirimler', 'Keep and close': 'Koru ve kapat', 'Reports (team)': 'Bildirimler (ekip)',

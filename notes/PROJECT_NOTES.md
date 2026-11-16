@@ -69,3 +69,6 @@ Photos in img/ are from Unsplash (free license): see unsplash.com/license.
 5. Pro: `setup_settings.pro_open = 'true'` lets anyone activate Pro for free (early access). Set to 'false' and update `setup_profiles.plan` by hand, or add a payment provider.
 6. Supabase: enable leaked-password protection (Authentication > Policies).
 7. Optional: store apps (Capacitor wrapper) need Apple and Google developer accounts.
+
+## Photo credits (Unsplash licence, no attribution required)
+Landing hero `img/hero.jpg` (B&W film crew), role tiles use `c-slate`, `chair`, `c-studio`, `c-rig`, `c-clap`. Free to use; see unsplash.com/license.
