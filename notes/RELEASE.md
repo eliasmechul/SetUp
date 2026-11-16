@@ -20,7 +20,7 @@
 - Sign-up email delivery.
 
 ## Blocking for a public release (owner)
-1. Domain: buy it, then `scripts/set-domain.sh <domain>`, DNS records, GitHub Pages custom domain, HTTPS.
+1. Domain: setupfilm.com was still free on 16 Nov 2026 (whois: no match; .net, .co, .app also unregistered). Buy it, then `scripts/set-domain.sh <domain>`, DNS records, GitHub Pages custom domain, HTTPS.
 2. Supabase Auth: Site URL and redirect URLs set to the new domain.
 3. Email: custom SMTP in Supabase (the built-in sender is limited to a few mails per hour, so sign-ups will fail under load).
 4. Legal: fill `legal` in `docs/config.js`; have privacy, terms and Impressum reviewed. The privacy text still names "[contact email]" placeholders until this is filled.
