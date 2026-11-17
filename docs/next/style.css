@@ -1356,7 +1356,7 @@ body #view .pgrid>.card.person{height:100%}
 .sp-dot{clip-path:circle(4.7% at 50% 46.5%);opacity:1;transform:scale(0);animation:spDot .55s cubic-bezier(.3,1.7,.5,1) 1.6s both}
 .sp-name{position:relative;display:flex!important;align-items:flex-start;gap:0!important;height:auto!important;margin:0!important;overflow:visible!important}
 .sp-set{display:inline-block;overflow:hidden;white-space:nowrap;width:0;font:400 58px/1.05 'Courier Prime','Courier New',monospace!important;letter-spacing:-.02em;color:#F6F2EA;transform:none!important;opacity:1!important;animation:spType .55s steps(3,end) 2.05s forwards!important}
-.sp-up{display:inline-block;align-self:flex-start;margin:-9px 0 0 -7px!important;padding:3px 7px!important;border-radius:3px!important;background:#D12A1E!important;color:#fff!important;font:700 15px/1 'Courier Prime','Courier New',monospace!important;letter-spacing:.1em!important;transform:scale(.4);transform-origin:0 0;opacity:0;animation:spPop .35s cubic-bezier(.3,1.6,.5,1) 2.7s forwards!important}
+.sp-up{display:inline-block;align-self:flex-start;margin:-2px 0 0 -7px!important;padding:3px 7px!important;border-radius:3px!important;background:#D12A1E!important;color:#fff!important;font:700 15px/1 'Courier Prime','Courier New',monospace!important;letter-spacing:.1em!important;transform:scale(.4);transform-origin:0 0;opacity:0;animation:spPop .35s cubic-bezier(.3,1.6,.5,1) 2.7s forwards!important}
 .sp-tag{animation:spFade .8s ease 3s forwards!important}
 @keyframes spPlate{to{opacity:1}}
 @keyframes spA{0%{transform:translate(34%,-34%);opacity:0}30%{opacity:1}100%{transform:none;opacity:1}}
@@ -1372,4 +1372,4 @@ body #view .pgrid>.card.person{height:100%}
 .wordmark{gap:0!important}
 .wordmark img{margin-right:11px}
 .wordmark .set{margin-right:0}
-.wordmark .up{align-self:flex-start;margin:-3px 0 0 2px!important;padding:3px 6px!important;border-radius:3px!important;letter-spacing:.06em}
+.wordmark .up{align-self:flex-start;margin:0 0 0 2px!important;padding:3px 6px!important;border-radius:3px!important;letter-spacing:.06em}
