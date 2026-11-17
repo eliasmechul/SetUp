@@ -1343,3 +1343,33 @@ body #view .pgrid>.card.person>.btn,body #view .pgrid>.card.person>button,body #
 body #view .pgrid{align-items:stretch!important}
 body #view .pgrid>.card.person{height:100%}
 @media(max-width:620px){body #view .pgrid>.card.person .av{height:110px!important;font-size:36px}}
+
+/* v33 — intro: the two hands come together, the red dot lights up, then "Set" is typed and "UP" tucks into its corner */
+#splash{background:radial-gradient(70% 60% at 50% 45%,#1d1b1a,#080706 72%)!important;animation:spOut .6s ease 3.9s forwards!important}
+.sp-inner{gap:26px!important}
+.sp-mark{--s:150px;position:relative;width:var(--s);height:var(--s);border-radius:11.7%;overflow:hidden;background:#000;box-shadow:0 24px 60px rgba(0,0,0,.65);animation:spHit .4s ease 1.45s both}
+.sp-plate{display:none}
+.sp-h{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:normal!important;border-radius:11.7%!important;box-shadow:none!important;opacity:0}
+.sp-ha{clip-path:polygon(0 0,100% 0,100% 77.9%,74.2% 60.2%,58.6% 38.1%,42% 33.6%,30.3% 29.9%,0 9%);animation:spA 1.15s cubic-bezier(.16,.84,.3,1) .35s both}
+.sp-hb{clip-path:polygon(0 9%,30.3% 29.9%,42% 33.6%,58.6% 38.1%,74.2% 60.2%,100% 77.9%,100% 100%,0 100%);
+  -webkit-mask-image:radial-gradient(circle at 50% 46.5%,transparent calc(var(--s)*.052),#000 calc(var(--s)*.054));mask-image:radial-gradient(circle at 50% 46.5%,transparent calc(var(--s)*.052),#000 calc(var(--s)*.054));animation:spB 1.15s cubic-bezier(.16,.84,.3,1) .35s both}
+.sp-dot{clip-path:circle(4.7% at 50% 46.5%);opacity:1;transform:scale(0);animation:spDot .55s cubic-bezier(.3,1.7,.5,1) 1.6s both}
+.sp-name{position:relative;display:flex!important;align-items:flex-start;gap:0!important;height:auto!important;margin:0!important;overflow:visible!important}
+.sp-set{display:inline-block;overflow:hidden;white-space:nowrap;width:0;font:400 58px/1.05 'Courier Prime','Courier New',monospace!important;letter-spacing:-.02em;color:#F6F2EA;transform:none!important;opacity:1!important;animation:spType .55s steps(3,end) 2.05s forwards!important}
+.sp-up{display:inline-block;align-self:flex-start;margin:5px 0 0 -7px!important;padding:3px 7px!important;border-radius:3px!important;background:#D12A1E!important;color:#fff!important;font:700 15px/1 'Courier Prime','Courier New',monospace!important;letter-spacing:.1em!important;transform:scale(.4);transform-origin:0 0;opacity:0;animation:spPop .35s cubic-bezier(.3,1.6,.5,1) 2.7s forwards!important}
+.sp-tag{animation:spFade .8s ease 3s forwards!important}
+@keyframes spPlate{to{opacity:1}}
+@keyframes spA{0%{transform:translate(34%,-34%);opacity:0}30%{opacity:1}100%{transform:none;opacity:1}}
+@keyframes spB{0%{transform:translate(-34%,34%);opacity:0}30%{opacity:1}100%{transform:none;opacity:1}}
+@keyframes spHit{0%,100%{transform:scale(1)}45%{transform:scale(1.045)}}
+@keyframes spDot{to{transform:scale(1)}}
+@keyframes spType{to{width:3ch}}
+@keyframes spPop{to{transform:none;opacity:1}}
+@media(max-width:480px){.sp-mark{--s:124px}.sp-set{font-size:46px!important}.sp-up{font-size:12px!important;margin-top:4px!important}}
+@media(prefers-reduced-motion:reduce){#splash{display:none}}
+
+/* "UP" sits tight against the top-right corner of "Set" everywhere */
+.wordmark{gap:0!important}
+.wordmark img{margin-right:11px}
+.wordmark .set{margin-right:0}
+.wordmark .up{align-self:flex-start;margin:4px 0 0 2px!important;padding:3px 6px!important;border-radius:3px!important;letter-spacing:.06em}

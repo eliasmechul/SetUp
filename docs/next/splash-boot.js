@@ -7,6 +7,6 @@
     if (seen || calm) root.classList.add('nosplash'); else sessionStorage.setItem('setup_splash', '1');
   } catch (e) { /* storage blocked: show it */ }
   window.addEventListener('load', function () {
-    setTimeout(function () { var s = document.getElementById('splash'); if (s && s.parentNode) s.parentNode.removeChild(s); }, 3400);
+    setTimeout(function () { var s = document.getElementById('splash'); if (s && s.parentNode) s.parentNode.removeChild(s); }, 4800);
   });
 })();
