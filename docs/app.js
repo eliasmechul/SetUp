@@ -260,7 +260,7 @@ const homeRoute = async (forceFeed) => {
         <div class="ticket" aria-label="Example event ticket"><div class="tk-main"><small>SET UP PRESENTS</small><b>Pitch night:<br>Harbour Lights</b><span>FRI 7 NOV · 18:00 · STUDIO 4</span><em>ADMIT ONE</em></div><div class="tk-stub"><canvas id="demoqr" width="200" height="200" aria-label="Sample QR code"></canvas><small>SCAN AT THE DOOR</small></div></div></div></section>
 
       <section class="lsec"><div class="lrow"><h2 class="lh">Open roles</h2><a class="link" href="#/castings">All castings →</a></div>
-        ${roles.length ? roles.map(castCard).join('') : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
+        ${roles.length ? `<div class="rolegrid">${roles.map(castCard).join('')}</div>` : '<div class="empty">No open roles yet. Join and post the first one.</div>'}</section>
 
       <section class="lsec faq"><h2 class="lh">Questions</h2>${faq.map(([q, a2]) => `<details class="card"><summary>${esc(q)}</summary><p class="muted">${esc(a2)}</p></details>`).join('')}</section>
 
